@@ -140,7 +140,10 @@ def issue_order_now(symbol, contract, direction, amount, action):
     global reissuing_order, wait_for_completion
     # print (symbol, direction, amount, action)
     raw_result = order_infos[direction][action](symbol, contract, amount)
-    result = json.loads(raw_result)
+    if type(raw_result) == dict :
+        result = raw_result
+    else:
+        result = json.loads(raw_result)
     # print (result)
     if result['result'] == False:
         reissuing_order += 1
@@ -155,7 +158,10 @@ def issue_order_now(symbol, contract, direction, amount, action):
     if result['result'] == False: # something is wrong
         reissuing_order += 1
     else:
-        order_info = json.loads(raw_order_info)
+        if type(raw_order_info) == dict:
+            order_id = raw_order_info
+        else:
+            order_info = json.loads(raw_order_info)
         #print (order_info)
         try: # in case amount too much 
             # update amount_ratio from current order's lever_rate field
