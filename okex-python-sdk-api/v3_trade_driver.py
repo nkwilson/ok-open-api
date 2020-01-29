@@ -180,13 +180,13 @@ def issue_order_now(symbol, contract, direction, amount, action):
             if order_info['filled_qty'] != order_info['size']:
                 if wait_for_completion == 0: # it's ok
                     # no update for last_fee
-                    return (True, order_info['size'])
+                    return (True, float(order_info['price_avg']))
                 else: # should wait 
                     amount -= int(order_info['filled_qty'])
                     reissuing_order += 1
             else:
                 globals()['last_fee'] = abs(float(order_info['fee']))
-                return (True, order_info['size'])
+                return (True, float(order_info['price_avg']))
     except Exception as ex:
         if amount < 2: # no balance now
             return (False, 0)
@@ -212,7 +212,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     l_reverse=orders_holding[direction]['reverse']
     # print (holding)
     if len(holding) > 1:
-        orders_holding[direction]['holding'] = [tuple(float(x[0]), float(x[1])) for x in holding]
+        orders_holding[direction]['holding'] = [(float(x[0]), float(x[1])) for x in holding]
         holding=orders_holding[direction]['holding']
         holding.sort(reverse=l_reverse)
     if must_positive == False:
