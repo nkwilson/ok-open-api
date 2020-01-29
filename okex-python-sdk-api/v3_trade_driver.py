@@ -198,6 +198,8 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         holding=orders_holding[direction]['holding']
         holding.sort(reverse=l_reverse)
     if must_positive == False:
+        if action == 'open':
+            return issue_order_now(symbol, contract, direction, amount, action)
         if amount == 0:
             holding.clear()
             amount = t_amount
@@ -249,7 +251,7 @@ def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_
     return (ret, price)
 
 def issue_quarter_order_now(symbol, direction, amount, action):
-    return issue_quarter_order_now_conditional(symbol, direction, amount, action, False)
+    return issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=False)
 
 old_open_price = 0
 old_close_mean = 0
