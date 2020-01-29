@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import okex.account_api as account
 import okex.futures_api as future
 import okex.lever_api as lever
