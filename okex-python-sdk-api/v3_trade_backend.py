@@ -239,7 +239,7 @@ if __name__ == '__main__':
     # 资金账户API
     # account api test
     # param use_server_time's value is False if is True will use server timestamp
-    accountAPI = account.AccountAPI(api_key, seceret_key, passphrase, True)
+#    accountAPI = account.AccountAPI(api_key, seceret_key, passphrase, True)
     # 获取资金账户信息 （20次/2s）
     # result = accountAPI.get_wallet()
     # 获取单一币种账户信息 （20次/2s）
@@ -274,7 +274,7 @@ if __name__ == '__main__':
 
 # 币币API
     # spot api test
-    spotAPI = spot.SpotAPI(api_key, seceret_key, passphrase, True)
+#    spotAPI = spot.SpotAPI(api_key, seceret_key, passphrase, True)
     # 获取币币账户信息 （20次/2s）
     # result = spotAPI.get_account_info()
     # 获取单一币种账户信息 （20次/2s）
@@ -336,7 +336,7 @@ if __name__ == '__main__':
 
 # 币币杠杆API
     # level api test
-    levelAPI = lever.LeverAPI(api_key, seceret_key, passphrase, True)
+#    levelAPI = lever.LeverAPI(api_key, seceret_key, passphrase, True)
     # 币币杠杆账户信息 （20次/2s）
     # result = levelAPI.get_account_info()
     # 单一币对账户信息 （20次/2s）
@@ -394,7 +394,7 @@ if __name__ == '__main__':
 
 # 交割合约API
     # future api test
-    futureAPI = future.FutureAPI(api_key, seceret_key, passphrase, True)
+#    futureAPI = future.FutureAPI(api_key, seceret_key, passphrase, True)
     # 所有合约持仓信息 （5次/2s）（根据userid限速）
     # result = futureAPI.get_position()
     # 单个合约持仓信息 （20次/2s）（根据underlying，分别限速）
@@ -482,7 +482,7 @@ if __name__ == '__main__':
 
 # 永续合约API
     # swap api test
-    swapAPI = swap.SwapAPI(api_key, seceret_key, passphrase, True)
+#    swapAPI = swap.SwapAPI(api_key, seceret_key, passphrase, True)
     # 所有合约持仓信息 （1次/10s）
     # result = swapAPI.get_position()
     # 单个合约持仓信息 （20次/2s）
@@ -555,13 +555,13 @@ if __name__ == '__main__':
 
 # 指数API
     # index api test
-    indexAPI = index.IndexAPI(api_key, seceret_key, passphrase, True)
+#    indexAPI = index.IndexAPI(api_key, seceret_key, passphrase, True)
     # 公共-获取指数成分 （20次/2s）
     # result = indexAPI.get_index_constituents('BTC-USD')
 
 # 期权合约API
     # option api test
-    optionAPI = option.OptionAPI(api_key, seceret_key, passphrase, True)
+#    optionAPI = option.OptionAPI(api_key, seceret_key, passphrase, True)
     # 单个标的指数持仓信息 （20次/2s）
     # result = optionAPI.get_specific_position('TBTC-USD')
     # 单个标的物账户信息 （20次/2s）
