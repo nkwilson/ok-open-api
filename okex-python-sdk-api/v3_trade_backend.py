@@ -46,7 +46,7 @@ def cancel_order(symbol, contract, order_id):
     #return okcoinFuture.future_cancel(symbol, contract, order_id)
 
 def query_orderinfo(symbol, contract, order_id):
-    return futureAPI.get_order_info(order_id, query_instrument_id(symbol, contract))
+    return futureAPI.get_order_info(query_instrument_id(symbol, contract), order_id)
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
 
 # In [7]: backend.query_kline('bch_usd', '300', 'this_week')
