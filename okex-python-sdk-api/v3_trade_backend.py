@@ -41,12 +41,12 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     return futureAPI.take_order(query_instrument_id(symbol, contract), 3, '', int(amount), match_price=1)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
 
-def cancel_order(symbol, contract, order_id):
-    return futureAPI.revoke_order(instrument_id=query_instrument_id(symbol, contract), order_id=order_id)
+def cancel_order(symbol, contract, orderid):
+    return futureAPI.revoke_order(instrument_id=query_instrument_id(symbol, contract), order_id=orderid)
     #return okcoinFuture.future_cancel(symbol, contract, order_id)
 
-def query_orderinfo(symbol, contract, order_id):
-    return futureAPI.get_order_info(query_instrument_id(symbol, contract), order_id)
+def query_orderinfo(symbol, contract, orderid):
+    return futureAPI.get_order_info(instrument_id=query_instrument_id(symbol, contract), order_id=orderid)
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
 
 # In [7]: backend.query_kline('bch_usd', '300', 'this_week')
