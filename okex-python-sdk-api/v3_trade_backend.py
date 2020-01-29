@@ -26,19 +26,19 @@ def transform_direction(direction):
     return new_dirs[direction]
 
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
-    return futureAPI.take_order(query_instrument_id(symbol, contract), 2, '', amount, match_price=1)
+    return futureAPI.take_order(query_instrument_id(symbol, contract), 2, '', int(amount), match_price=1)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
 
 def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
-    return futureAPI.take_order(query_instrument_id(symbol, contract), 4, '', amount, match_price=1)
+    return futureAPI.take_order(query_instrument_id(symbol, contract), 4, '', int(amount), match_price=1)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '4',                                     '1', '10')
 
 def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
-    return futureAPI.take_order(query_instrument_id(symbol, contract), 1, '', amount, match_price=1)
+    return futureAPI.take_order(query_instrument_id(symbol, contract), 1, '', int(amount), match_price=1)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '1',                                     '1', '10')
 
 def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
-    return futureAPI.take_order(query_instrument_id(symbol, contract), 3, '', amount, match_price=1)
+    return futureAPI.take_order(query_instrument_id(symbol, contract), 3, '', int(amount), match_price=1)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
 
 def cancel_order(symbol, contract, order_id):
