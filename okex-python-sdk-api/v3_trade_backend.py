@@ -6,6 +6,8 @@ import okex.swap_api as swap
 import okex.index_api as index
 import okex.option_api as option
 
+import datetime
+
 api_key = "9b8f6039-a5db-4862-95b9-183404b95ac6"
 secret_key = "7AFDDC3FB2F9D3693B16BC1D6AB441EE"
 IP = "0"
@@ -15,8 +17,9 @@ futureAPI = future.FutureAPI(api_key, secret_key, passphrase, True)
 
 # symbol is like BTC-USD, contract is like quarter/this_week/next_week
 def query_instrument_id(symbol, contract):
+    new_contracts = {'quarter':'quarter', 'thisweek': 'this_week', 'nextweek': 'next_week'}
     result = futureAPI.get_products()
-    return list(filter(lambda i: i['alias'] == contract and i['underlying'] == symbol.upper().replace('_', '-'), result))[0]['instrument_id']
+    return list(filter(lambda i: i['alias'] == new_contracts[contract] and i['underlying'] == symbol.upper().replace('_', '-'), result))[0]['instrument_id']
 
 def transform_direction(direction):
     new_dirs = {'buy':'long', 'sell':'short'}
@@ -57,7 +60,9 @@ def query_orderinfo(symbol, contract, order_id):
 #   '233.17'],
 
 def query_kline(symbol, period, contract, ktype=''):
-    return futureAPI.get_kline(query_instrument_id(symbol, contract), granularity=period)
+    kline=futureAPI.get_kline(query_instrument_id(symbol, contract), period)
+    kline[0][0]=str(datetime.datetime.strptime(kline[0][0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
+    return kline
     #return okcoinFuture.future_kline(symbol, period, contract, ktype)
 
 # In [13]: futureAPI.get_specific_position('BTC-USD-200327')
@@ -96,31 +101,23 @@ def query_kline(symbol, period, contract, ktype=''):
 #    'updated_at': '2020-01-28T09:01:14.380Z'}],
 #  'margin_mode': 'fixed',
 #  'result': True}
-    
 def check_holdings_profit(symbol, contract, direction):
-    nn = (0, 0, 0) # (loss, amount, bond)
-    loops = 3
+    nn = (0, 0) # (loss, amount)
     instrument_id = query_instrument_id(symbol, contract)
-    while loops > 0:
-        loops -= 1
-        try:
-            holding=futureAPI.get_specific_position(instrument_id)
-            if holding['result'] == False:
-                return nn
-            break
-        except Exception as ex:
-            time.sleep(1)
-    if loops == 0 or len(holding['holding']) == 0:
+    holding=futureAPI.get_specific_position(instrument_id)
+    if holding['result'] == False:
+        return nn
+    if len(holding['holding']) == 0:
         return nn
     data = holding['holding'][0]
     new_dir=transform_direction(direction)
     loss = float(data['%s_pnl_ratio' % new_dir])
     amount = float(data['%s_qty' % new_dir])
     margin = float(data['%s_margin' % new_dir])
-    if (amount == 0):
+    if amount < 1:
         return nn
     else:
-        return (loss, amount, margin / amount)
+        return (loss, amount) # , margin / amount)
 
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, contract, direction):
