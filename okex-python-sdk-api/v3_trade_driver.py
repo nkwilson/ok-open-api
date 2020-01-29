@@ -139,7 +139,7 @@ wait_for_completion = 1 # default is no wait
 def issue_order_now(symbol, contract, direction, amount, action, price=''):
     global reissuing_order, wait_for_completion
     # print (symbol, direction, amount, action)
-    raw_result = order_infos[direction][action](symbol, contract, amount)
+    raw_result = order_infos[direction][action](symbol, contract, amount, price)
     if type(raw_result) == dict :
         result = raw_result
     else:
@@ -149,7 +149,7 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         reissuing_order += 1
         if amount < 2:
             return (False, 0)
-        return issue_order_now(symbol, contract, direction, amount / 2, action)
+        return issue_order_now(symbol, contract, direction, amount / 2, action, price)
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
     if wait_for_completion > 0: # only valid if positive
@@ -179,7 +179,7 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         return (False, 0)
     print ('try to cancel pending order and reissue', ' amount = %d' % amount)
     backend.cancel_order(symbol, contract, order_id)
-    return issue_order_now(symbol, contract, direction, amount, action)
+    return issue_order_now(symbol, contract, direction, amount, action, price)
 
 # orders need to close, sorted by price
 orders_holding ={'sell':{'reverse':False, 'holding':list()},
@@ -199,7 +199,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         holding.sort(reverse=l_reverse)
     if must_positive == False:
         if action == 'open':
-            return issue_order_now(symbol, contract, direction, amount, action)
+            return issue_order_now(symbol, contract, direction, amount, action, globals()['request_price'])
         if amount == 0:
             holding.clear()
             amount = t_amount
@@ -212,7 +212,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                 if amount > 0 and total_amount > amount:
                     holding.append((price, total_amount - amount))
                     break
-        (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
+        (ret, price) = issue_order_now(symbol, contract, direction, amount, action, globals()['request_price'])
         print ('loss ratio=%f%%, %s, closed %d' % (loss, 'yeap' if loss > 0 else 'tough', amount))
         return (ret, price)
     total_amount = 0
@@ -234,7 +234,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
             holding.append((price, l_amount)) # put it back
             break
     if total_amount > 0 : # yes, has positive holdings
-        (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action)
+        (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action, globals()['request_price'])
         addon = ' (%d required, %d closed, %d left)' % (saved_amount, total_amount, (t_amount - total_amount))
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
     return (ret, price)
@@ -604,6 +604,7 @@ def get_multiple_profit4(close, previoud_close, open_price, open_start_price, l_
         current_profit3 = previous_close - close
     return (current_profit, current_profit1, current_profit2, current_profit3)
 
+request_price=''
 last_fee = 0
 open_cost = 0
 quarter_amount = 1
@@ -655,6 +656,8 @@ def try_to_trade_tit2tat(subpath, guard=False):
     global forward_greedy, backward_greedy
     global update_quarter_amount_forward, update_quarter_amount_backward
     global greedy_count, greedy_count_max
+
+    globals()['request_price'] = '' # first clear it
     
     greedy_status = ''    
     #print (subpath)
@@ -877,7 +880,9 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if greedy_action == 'close': # yes, close action pending
                             if forward_greedy :
                                 if globals()['greedy_same_amount']:
-                                    issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+                                    (ret, price) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+                                    if ret:
+                                        globals()['request_price'] = price
                                 if thisweek_amount_pending > 0: 
                                     l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
                                     if thisweek_amount_pending >= l_amount: # is ok
@@ -908,11 +913,15 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                 if forward_greedy: # adjust open sequence according to l_dir
                                     if l_dir == 'buy': # first open sell, then open buy
                                         if globals()['greedy_same_amount']:
-                                            issue_quarter_order_now(symbol, reverse_follow_dir, thisweek_amount * 0.90, 'open')
+                                            (ret, price) = issue_quarter_order_now(symbol, reverse_follow_dir, thisweek_amount * 0.90, 'open')
+                                            if ret:
+                                                globals()['request_price'] = price
                                         issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                                         pass
                                     else:
-                                        issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                        (ret, price) = issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                        if ret:
+                                            globals()['request_price'] = price
                                         if globals()['greedy_same_amount']:
                                             issue_quarter_order_now(symbol, reverse_follow_dir, thisweek_amount * 0.90, 'open')
                                         pass
