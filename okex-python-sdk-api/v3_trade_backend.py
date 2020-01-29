@@ -146,7 +146,7 @@ def check_holdings_profit(symbol, contract, direction):
     new_dir=transform_direction(direction)
     loss = float(data['%s_pnl_ratio' % new_dir])
     amount = float(data['%s_qty' % new_dir])
-    margin = float(data['%s_margin' % new_dir])
+#    margin = float(data['%s_margin' % new_dir])
     if amount < 1:
         return nn
     else:
@@ -587,5 +587,5 @@ if __name__ == '__main__':
     # 公共-获取K线数据 （20次/2s）
     # result = optionAPI.get_kline('TBTC-USD-191213-7500-C')
 
-    print(time + json.dumps(result))
-    logging.info("result:" + json.dumps(result))
+#    print(time + json.dumps(result))
+#    logging.info("result:" + json.dumps(result))
