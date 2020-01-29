@@ -95,7 +95,7 @@ parser.add_option('', '--api', dest='api_version',
 (options, args) = parser.parse_args()
 print (type(options), options, args)
 
-import '%s_trade_backend' % options.api_version as backend
+backend=__import__('%s_trade_backend' % options.api_version, globals())
 
 # demo: ok_sub_futureusd_btc_kline_quarter_4hou
 def figure_out_symbol_info(path):
