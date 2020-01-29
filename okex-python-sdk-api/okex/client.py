@@ -3,8 +3,8 @@ import json
 from . import consts as c, utils, exceptions
 import logging
 
-log_format = '%(asctime)s - %(levelname)s - %(message)s'
-logging.basicConfig(filename='mylog-rest.json', filemode='a', format=log_format, level=logging.INFO)
+#log_format = '%(asctime)s - %(levelname)s - %(message)s'
+#logging.basicConfig(filename='mylog-rest.json', filemode='a', format=log_format, level=logging.INFO)
 
 # logging.warning('warn message')
 # logging.info('info message')
@@ -44,11 +44,11 @@ class Client(object):
         # send request
         response = None
 
-        print("url:", url)
-        logging.info("url:" + url)
+        #print("url:", url)
+        #logging.info("url:" + url)
         # print("headers:", header)
-        print("body:", body)
-        logging.info("body:" + body)
+        #print("body:", body)
+        #logging.info("body:" + body)
 
         if method == c.GET:
             response = requests.get(url, headers=header)
