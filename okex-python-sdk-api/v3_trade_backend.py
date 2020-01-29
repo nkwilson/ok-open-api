@@ -25,6 +25,17 @@ def transform_direction(direction):
     new_dirs = {'buy':'long', 'sell':'short'}
     return new_dirs[direction]
 
+# In [2]: backend.open_order_sell_rate('bch_usd', 'thisweek', 1)
+# url: https://www.okex.com/api/futures/v3/instruments
+# body: 
+# url: https://www.okex.com/api/futures/v3/order
+# body: {"client_oid": "", "instrument_id": "BCH-USD-200131", "type": 2, "order_type": "0", "price": "", "size": 1, "match_price": 1}
+# Out[2]: 
+# {'error_code': '0',
+#  'error_message': '',
+#  'order_id': '4295822327387137',
+#  'result': True}
+
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     return futureAPI.take_order(query_instrument_id(symbol, contract), 2, '', int(amount), match_price=1)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
@@ -45,6 +56,25 @@ def cancel_order(symbol, contract, orderid):
     return futureAPI.revoke_order(instrument_id=query_instrument_id(symbol, contract), order_id=orderid)
     #return okcoinFuture.future_cancel(symbol, contract, order_id)
 
+# In [2]: backend.query_orderinfo('bch_usd', 'thisweek', 4295822327387137)
+# Out[2]: 
+# {'client_oid': '',
+#  'contract_val': '10',
+#  'fee': '-0.00001276',
+#  'filled_qty': '1',
+#  'instrument_id': 'BCH-USD-200131',
+#  'leverage': '10',
+#  'order_id': '4295822327387137',
+#  'order_type': '0',
+#  'pnl': '0',
+#  'price': '391.96',
+#  'price_avg': '391.96',
+#  'size': '1',
+#  'state': '2',
+#  'status': '2',
+#  'timestamp': '2020-01-29T08:04:06.760Z',
+#  'type': '2'}
+    
 def query_orderinfo(symbol, contract, orderid):
     return futureAPI.get_order_info(instrument_id=query_instrument_id(symbol, contract), order_id=orderid)
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
