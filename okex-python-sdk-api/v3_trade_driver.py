@@ -136,7 +136,7 @@ order_infos = {'usd_btc':'btc_usd',
 
 reissuing_order = 0
 wait_for_completion = 1 # default is no wait
-def issue_order_now(symbol, contract, direction, amount, action):
+def issue_order_now(symbol, contract, direction, amount, action, price=''):
     global reissuing_order, wait_for_completion
     # print (symbol, direction, amount, action)
     raw_result = order_infos[direction][action](symbol, contract, amount)
@@ -185,11 +185,11 @@ def issue_order_now(symbol, contract, direction, amount, action):
 orders_holding ={'sell':{'reverse':False, 'holding':list()},
                  'buy':{'reverse':True, 'holding':list()}}
 
-# only for close
+# for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
     if t_amount == 0:
-        return 0 # no operation
+        return (False, 0) # no operation
     holding=orders_holding[direction]['holding']
     l_reverse=orders_holding[direction]['reverse']
     # print (holding)
@@ -212,11 +212,13 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                     break
         (ret, price) = issue_order_now(symbol, contract, direction, amount, action)
         print ('loss ratio=%f%%, %s, closed %d' % (loss, 'yeap' if loss > 0 else 'tough', amount))
-        return amount if ret == True else 0
+        return (ret, price)
     total_amount = 0
     addon = ''
     saved_amount = amount
     amount = min(t_amount, amount) # get little on
+    price=0
+    ret=False
     while len(holding) > 0:
         (price, l_amount)=holding.pop()
         if globals()['positive_greedy_profit'](price, direction) == True:
@@ -233,27 +235,21 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action)
         addon = ' (%d required, %d closed, %d left)' % (saved_amount, total_amount, (t_amount - total_amount))
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
-    return total_amount
-
-def issue_quarter_order_now(symbol, direction, amount, action):
-    print ('EMUL ' if options.noaction else '',
-           'issue quarter order: ',
-           action, symbol, direction, amount)
-    if options.noaction:
-        return 0
-    (ret, price) = issue_order_now(symbol, globals()['contract'], direction, amount, action)
-    if ret == True and action == 'open':
-        orders_holding[direction]['holding'].append((price, amount))
-    return amount if ret == True else 0
+    return (ret, price)
 
 def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=True):
     print ('EMUL ' if options.noaction else '',
-           'issue quarter order conditional: ',
+           'issue quarter order%s: ' % (' conditional' if must_positive else ''),
            action, symbol, direction, amount)
     if options.noaction:
         return 0
-    return issue_order_now_conditional(symbol, globals()['contract'], direction, amount, action, must_positive)
+    (ret, price) = issue_order_now_conditional(symbol, globals()['contract'], direction, amount, action, must_positive)
+    if ret == True and action == 'open':
+        orders_holding[direction]['holding'].append((price, amount))
+    return (ret, price)
 
+def issue_quarter_order_now(symbol, direction, amount, action):
+    return issue_quarter_order_now_conditional(symbol, direction, amount, action, False)
 
 old_open_price = 0
 old_close_mean = 0
