@@ -61,7 +61,7 @@ def query_orderinfo(symbol, contract, order_id):
 
 def query_kline(symbol, period, contract, ktype=''):
     kline=futureAPI.get_kline(query_instrument_id(symbol, contract), period)
-    last=kline[-1][0]
+    last=kline[-1]
     last[0]=str(datetime.datetime.strptime(last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
     kline.clear()
     kline.append(last)
