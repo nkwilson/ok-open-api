@@ -154,39 +154,21 @@ def issue_order_now(symbol, contract, direction, amount, action):
     #print (order_id)
     if wait_for_completion > 0: # only valid if positive
         time.sleep(wait_for_completion)
-    raw_order_info = backend.query_orderinfo(symbol, contract, order_id)
-    if type(raw_order_info) == dict: # v3 api
-        order_info = raw_order_info
-    else:
-        order_info = json.loads(raw_order_info)
+    order_info = backend.query_orderinfo(symbol, contract, order_id)
     #print (order_info)
     try: # in case amount too much 
         # update amount_ratio from current order's lever_rate field
-        if 'orders' in order_info.keys(): # old v1 api
-            globals()['amount_ratio'] = float(order_info['orders'][0]['lever_rate'])
-            deal_amount = order_info['orders'][0]['deal_amount']
-            if order_info['orders'][0]['amount'] != deal_amount:
-                if wait_for_completion == 0: # it's ok
-                    # no update for last_fee
-                    return (True, order_info['orders'][0]['price'])
-                else: # should wait 
-                    amount -= int(deal_amount)
-                    reissuing_order += 1
-            else:
-                globals()['last_fee'] = abs(float(order_info['orders'][0]['fee']))/float(order_info['orders'][0]['amount'])
-                return (True, order_info['orders'][0]['price'])
-        else: # v3 api
-            globals()['amount_ratio'] = float(order_info['leverage'])
-            if order_info['filled_qty'] != order_info['size']:
-                if wait_for_completion == 0: # it's ok
-                    # no update for last_fee
-                    return (True, float(order_info['price_avg']))
-                else: # should wait 
-                    amount -= int(order_info['filled_qty'])
-                    reissuing_order += 1
-            else:
-                globals()['last_fee'] = abs(float(order_info['fee']))
+        globals()['amount_ratio'] = float(order_info['leverage'])
+        if order_info['filled_qty'] != order_info['size']:
+            if wait_for_completion == 0: # it's ok
+                # no update for last_fee
                 return (True, float(order_info['price_avg']))
+            else: # should wait 
+                amount -= int(order_info['filled_qty'])
+                reissuing_order += 1
+        else:
+            globals()['last_fee'] = abs(float(order_info['fee']))
+            return (True, float(order_info['price_avg']))
     except Exception as ex:
         if amount < 2: # no balance now
             return (False, 0)
