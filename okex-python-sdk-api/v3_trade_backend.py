@@ -26,27 +26,27 @@ def transform_direction(direction):
     return new_dirs[direction]
 
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
-    return futureAPI.take_order(query_instrument_id(symbol, contract), 2, '', int(amount), match_price=1)
+    return str(futureAPI.take_order(query_instrument_id(symbol, contract), 2, '', int(amount), match_price=1))
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
 
 def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
-    return futureAPI.take_order(query_instrument_id(symbol, contract), 4, '', int(amount), match_price=1)
+    return str(futureAPI.take_order(query_instrument_id(symbol, contract), 4, '', int(amount), match_price=1))
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '4',                                     '1', '10')
 
 def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
-    return futureAPI.take_order(query_instrument_id(symbol, contract), 1, '', int(amount), match_price=1)
+    return str(futureAPI.take_order(query_instrument_id(symbol, contract), 1, '', int(amount), match_price=1))
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '1',                                     '1', '10')
 
 def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
-    return futureAPI.take_order(query_instrument_id(symbol, contract), 3, '', int(amount), match_price=1)
+    return str(futureAPI.take_order(query_instrument_id(symbol, contract), 3, '', int(amount), match_price=1))
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
 
 def cancel_order(symbol, contract, order_id):
-    return futureAPI.revoke_order(instrument_id=query_instrument_id(symbol, contract), order_id=order_id)
+    return str(futureAPI.revoke_order(instrument_id=query_instrument_id(symbol, contract), order_id=order_id))
     #return okcoinFuture.future_cancel(symbol, contract, order_id)
 
 def query_orderinfo(symbol, contract, order_id):
-    return futureAPI.get_order_info(order_id, query_instrument_id(symbol, contract))
+    return str(futureAPI.get_order_info(order_id, query_instrument_id(symbol, contract)))
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
 
 # In [7]: backend.query_kline('bch_usd', '300', 'this_week')
@@ -61,7 +61,10 @@ def query_orderinfo(symbol, contract, order_id):
 
 def query_kline(symbol, period, contract, ktype=''):
     kline=futureAPI.get_kline(query_instrument_id(symbol, contract), period)
-    kline[0][0]=str(datetime.datetime.strptime(kline[0][0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
+    last=kline[-1][0]
+    last[0]=str(datetime.datetime.strptime(last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
+    kline.clear()
+    kline.append(last)
     return kline
     #return okcoinFuture.future_kline(symbol, period, contract, ktype)
 
