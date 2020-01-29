@@ -69,7 +69,8 @@ class Client(object):
                     r['before'] = res_header['OK-BEFORE']
                     r['after'] = res_header['OK-AFTER']
                 except:
-                    print("")
+                    #print("")
+                    pass
                 return response.json(), r
             else:
                 return response.json()
