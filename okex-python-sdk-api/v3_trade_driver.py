@@ -148,7 +148,7 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     if result['result'] == False:
         reissuing_order += 1
         if amount < 2:
-            return (False, 0)
+            return (False, 0, 0)
         return issue_order_now(symbol, contract, direction, amount / 2, action, price)
     order_id = str(result['order_id']) # no exceptions, means successed
     #print (order_id)
@@ -162,21 +162,21 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         if order_info['filled_qty'] != order_info['size']:
             if wait_for_completion == 0: # it's ok
                 # no update for last_fee
-                return (True, float(order_info['price_avg']))
+                return (True, float(order_info['price_avg']), float(order_info['size']))
             else: # should wait 
                 amount -= int(order_info['filled_qty'])
                 reissuing_order += 1
         else:
             globals()['last_fee'] = abs(float(order_info['fee']))
-            return (True, float(order_info['price_avg']))
+            return (True, float(order_info['price_avg']), float(order_info['size']))
     except Exception as ex:
         if amount < 2: # no balance now
-            return (False, 0)
+            return (False, 0, 0)
         reissuing_order += 1
         amount = amount / 2
     if reissuing_order > 60: # more than 60 , quit
         reissuing_order = 0
-        return (False, 0)
+        return (False, 0, 0)
     print ('try to cancel pending order and reissue', ' amount = %d' % amount)
     backend.cancel_order(symbol, contract, order_id)
     return issue_order_now(symbol, contract, direction, amount, action, price)
@@ -189,7 +189,7 @@ orders_holding ={'sell':{'reverse':False, 'holding':list()},
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
     if t_amount == 0:
-        return (False, 0) # no operation
+        return (False, 0, 0) # no operation (ret, price, amount)
     holding=orders_holding[direction]['holding']
     l_reverse=orders_holding[direction]['reverse']
     # print (holding)
@@ -212,9 +212,9 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                 if amount > 0 and total_amount > amount:
                     holding.append((price, total_amount - amount))
                     break
-        (ret, price) = issue_order_now(symbol, contract, direction, amount, action, globals()['request_price'])
+        (ret, price, amount) = issue_order_now(symbol, contract, direction, amount, action, globals()['request_price'])
         print ('loss ratio=%f%%, %s, closed %d' % (loss, 'yeap' if loss > 0 else 'tough', amount))
-        return (ret, price)
+        return (ret, price, amount)
     total_amount = 0
     addon = ''
     saved_amount = amount
@@ -234,10 +234,11 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
             holding.append((price, l_amount)) # put it back
             break
     if total_amount > 0 : # yes, has positive holdings
-        (ret, price) = issue_order_now(symbol, contract, direction, total_amount, action, globals()['request_price'])
+        (ret, price, amount) = issue_order_now(symbol, contract, direction, total_amount, action, globals()['request_price'])
         addon = ' (%d required, %d closed, %d left)' % (saved_amount, total_amount, (t_amount - total_amount))
+        total_amount = amount
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
-    return (ret, price)
+    return (ret, price, total_amount)
 
 def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=True):
     print ('EMUL ' if options.noaction else '',
@@ -245,10 +246,10 @@ def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_
            action, symbol, direction, amount)
     if options.noaction:
         return 0
-    (ret, price) = issue_order_now_conditional(symbol, globals()['contract'], direction, amount, action, must_positive)
+    (ret, price, amount) = issue_order_now_conditional(symbol, globals()['contract'], direction, amount, action, must_positive)
     if ret == True and action == 'open':
         orders_holding[direction]['holding'].append((price, amount))
-    return (ret, price)
+    return (ret, price, amount)
 
 def issue_quarter_order_now(symbol, direction, amount, action):
     return issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=False)
@@ -880,11 +881,11 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         if greedy_action == 'close': # yes, close action pending
                             if forward_greedy :
                                 if globals()['greedy_same_amount']:
-                                    (ret, price) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+                                    (ret, price, l_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                                     if ret:
                                         globals()['request_price'] = price
                                 if thisweek_amount_pending > 0: 
-                                    l_amount = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
+                                    (ret, price, l_amount) = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
                                     if thisweek_amount_pending >= l_amount: # is ok
                                         thisweek_amount_pending -= l_amount
                                     else:
@@ -898,7 +899,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                     if greedy_count < greedy_count_max:
                                         greedy_count = greedy_count_max
                                     else:
-                                        l_amount = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending, 'open') # as much as possible
+                                        (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending, 'open') # as much as possible
                                         thisweek_amount_pending += l_amount
                                 else:
                                     greedy_count = greedy_count + (1 / greedy_count_max)
@@ -913,13 +914,13 @@ def try_to_trade_tit2tat(subpath, guard=False):
                                 if forward_greedy: # adjust open sequence according to l_dir
                                     if l_dir == 'buy': # first open sell, then open buy
                                         if globals()['greedy_same_amount']:
-                                            (ret, price) = issue_quarter_order_now(symbol, reverse_follow_dir, thisweek_amount * 0.90, 'open')
+                                            (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, thisweek_amount * 0.90, 'open')
                                             if ret:
                                                 globals()['request_price'] = price
                                         issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                                         pass
                                     else:
-                                        (ret, price) = issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                                        (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
                                         if ret:
                                             globals()['request_price'] = price
                                         if globals()['greedy_same_amount']:
