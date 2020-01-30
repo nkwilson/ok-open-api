@@ -95,7 +95,8 @@ parser.add_option('', '--api', dest='api_version',
 (options, args) = parser.parse_args()
 print (type(options), options, args)
 
-backend=__import__('%s_trade_backend' % options.api_version, globals())
+#backend=__import__('%s_trade_backend' % options.api_version)
+import v3_trade_backend as backend
 
 # demo: ok_sub_futureusd_btc_kline_quarter_4hou
 def figure_out_symbol_info(path):
@@ -187,6 +188,8 @@ orders_holding ={'sell':{'reverse':False, 'holding':list()},
 
 # for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
+    if action == 'open':
+        return issue_order_now(symbol, contract, direction, amount, action, globals()['request_price'])
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
     if t_amount == 0:
         return (False, 0, 0) # no operation (ret, price, amount)
@@ -198,8 +201,6 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         holding=orders_holding[direction]['holding']
         holding.sort(reverse=l_reverse)
     if must_positive == False:
-        if action == 'open':
-            return issue_order_now(symbol, contract, direction, amount, action, globals()['request_price'])
         if amount == 0:
             holding.clear()
             amount = t_amount

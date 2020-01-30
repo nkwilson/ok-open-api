@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import okex.account_api as account
+#import okex.account_api as account
 import okex.futures_api as future
-import okex.lever_api as lever
-import okex.spot_api as spot
-import okex.swap_api as swap
-import okex.index_api as index
-import okex.option_api as option
+#import okex.lever_api as lever
+#import okex.spot_api as spot
+#import okex.swap_api as swap
+#import okex.index_api as index
+#import okex.option_api as option
 
 import datetime
 
@@ -15,13 +15,61 @@ secret_key = "7AFDDC3FB2F9D3693B16BC1D6AB441EE"
 IP = "0"
 passphrase = 'v3api0'
 
-futureAPI = future.FutureAPI(api_key, secret_key, passphrase, True)
-
+if 'futureAPI' not in globals().keys():
+    #print ('new futureAPI')
+    futureAPI = future.FutureAPI(api_key, secret_key, passphrase, True)
+else:
+    #print ('cached futureAPI')
+    pass
+    
+# In [3]: backend.futureAPI.get_products()
+# Out[3]: 
+# [{'alias': 'this_week',
+#   'base_currency': 'XRP',
+#   'contract_val': '10',
+#   'contract_val_currency': 'USD',
+#   'delivery': '2020-01-31',
+#   'instrument_id': 'XRP-USD-200131',
+#   'is_inverse': 'true',
+#   'listing': '2020-01-17',
+#   'quote_currency': 'USD',
+#   'settlement_currency': 'XRP',
+#   'tick_size': '0.0001',
+#   'trade_increment': '1',
+#   'underlying': 'XRP-USD',
+#   'underlying_index': 'XRP'},
+# {'alias': 'quarter',
+#   'base_currency': 'TRX',
+#   'contract_val': '10',
+#   'contract_val_currency': 'USD',
+#   'delivery': '2020-03-27',
+#   'instrument_id': 'TRX-USD-200327',
+#   'is_inverse': 'true',
+#   'listing': '2019-12-13',
+#   'quote_currency': 'USD',
+#   'settlement_currency': 'TRX',
+#   'tick_size': '0.00001',
+#   'trade_increment': '1',
+#   'underlying': 'TRX-USD',
+#   'underlying_index': 'TRX'}]
+    
 # symbol is like BTC-USD, contract is like quarter/this_week/next_week
+expire_day = ''
+instrument_id = ''
 def query_instrument_id(symbol, contract):
-    new_contracts = {'quarter':'quarter', 'thisweek': 'this_week', 'nextweek': 'next_week'}
-    result = futureAPI.get_products()
-    return list(filter(lambda i: i['alias'] == new_contracts[contract] and i['underlying'] == symbol.upper().replace('_', '-'), result))[0]['instrument_id']
+    global expire_day, instrument_id
+    #print (expire_day)
+    if expire_day == '' or (datetime.datetime.strptime(expire_day, '%Y-%m-%d') - datetime.datetime.now()).total_seconds() < 0: # need update
+        #print ('query_instrument_id fresh')
+        new_contracts = {'quarter':'quarter', 'thisweek': 'this_week', 'nextweek': 'next_week'}
+        result = futureAPI.get_products()
+        product=list(filter(lambda i: i['alias'] == new_contracts[contract] and i['underlying'] == symbol.upper().replace('_', '-'), result))[0]
+        instrument_id=product['instrument_id']
+        expire_day=product['delivery']
+    else: # check whether it is valid
+        #print ('query_instrument_id cached', instrument_id)
+        pass
+    return instrument_id
 
 def transform_direction(direction):
     new_dirs = {'buy':'long', 'sell':'short'}
@@ -50,48 +98,61 @@ def transform_direction(direction):
 #  'order_id': '4295822327387137',
 #  'result': True}
 
+
+def issue_order(instrument_id, otype, price, size, match_price):
+    try:
+        result=futureAPI.take_order(instrument_id, otype, price, size, match_price=match_price)
+    except Exception as ex:
+        print (type(ex))
+        print (ex)
+        return {'result':False}
+        if result['error_code'] == '32014':
+            # API Request Error(code=32014): Positions that you are closing exceeded the total qty of contracts allowed to close
+            result['result'] = True
+    return result
+        
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype='0'
     if price == '': # use optimized price
         limit=futureAPI.get_limit(inst_id)
-        price=limit['lowest']
-        otype='2' # FOK
-    return futureAPI.take_order(inst_id, 2, price, int(amount), order_type=otype)
+        #print (limit)
+        price=(float(limit['lowest'])+float(limit['highest']))/2
+    #print (symbol, contract, amount, price)
+    return issue_order(inst_id, 2, price, int(amount), match_price='0')
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
 
 def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype='0'
     if price == '': # use optimized price
         limit=futureAPI.get_limit(inst_id)
-        price=limit['highest']
-        otype='2' # FOK
-    return futureAPI.take_order(inst_id, 4, price, int(amount), order_type=otype)
+        #print (limit)
+        price=(float(limit['lowest'])+float(limit['highest']))/2
+    #print (symbol, contract, amount, price)
+    return issue_order(inst_id, 4, price, int(amount), match_price='0')
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '4',                                     '1', '10')
 
 def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype='0'
     if price == '': # use optimized price
         limit=futureAPI.get_limit(inst_id)
-        price=limit['highest']
-        otype='2' # FOK
-    return futureAPI.take_order(inst_id, 1, price, int(amount), order_type=otype)
+        #print (limit)
+        price=(float(limit['lowest'])+float(limit['highest']))/2
+    #print (symbol, contract, amount, price)
+    return issue_order(inst_id, 1, price, int(amount), match_price='0')
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '1',                                     '1', '10')
 
 def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype='0'
     if price == '': # use optimized price
         limit=futureAPI.get_limit(inst_id)
-        price=limit['lowest']
-        otype='2' # FOK
-    return futureAPI.take_order(inst_id, 3, price, int(amount), order_type=otype)
+        #print (limit)
+        price=(float(limit['lowest'])+float(limit['highest']))/2
+    #print (symbol, contract, amount, price)
+    return issue_order(inst_id, 3, price, int(amount), match_price='0')
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
 
 def cancel_order(symbol, contract, orderid):
-    return futureAPI.revoke_order(instrument_id=query_instrument_id(symbol, contract), order_id=orderid)
+    return futureAPI.revoke_order(query_instrument_id(symbol, contract), orderid)
     #return okcoinFuture.future_cancel(symbol, contract, order_id)
 
 # In [2]: backend.query_orderinfo('bch_usd', 'thisweek', 4295822327387137)
@@ -112,9 +173,9 @@ def cancel_order(symbol, contract, orderid):
 #  'status': '2',
 #  'timestamp': '2020-01-29T08:04:06.760Z',
 #  'type': '2'}
-    
+
 def query_orderinfo(symbol, contract, orderid):
-    return futureAPI.get_order_info(instrument_id=query_instrument_id(symbol, contract), order_id=orderid)
+    return futureAPI.get_order_info(query_instrument_id(symbol, contract), orderid)
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
 
 # In [7]: backend.query_kline('bch_usd', '300', 'this_week')
@@ -128,12 +189,12 @@ def query_orderinfo(symbol, contract, orderid):
 #   '233.17'],
 
 def query_kline(symbol, period, contract, ktype=''):
+    #print ('before query_kline')
     kline=futureAPI.get_kline(query_instrument_id(symbol, contract), period)
+    #print ('after query_kline')
     last=kline[-1]
     last[0]=str(datetime.datetime.strptime(last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
-    kline.clear()
-    kline.append(last)
-    return kline
+    return [last]
     #return okcoinFuture.future_kline(symbol, period, contract, ktype)
 
 # In [13]: futureAPI.get_specific_position('BTC-USD-200327')
@@ -174,8 +235,7 @@ def query_kline(symbol, period, contract, ktype=''):
 #  'result': True}
 def check_holdings_profit(symbol, contract, direction):
     nn = (0, 0) # (loss, amount)
-    instrument_id = query_instrument_id(symbol, contract)
-    holding=futureAPI.get_specific_position(instrument_id)
+    holding=futureAPI.get_specific_position(query_instrument_id(symbol, contract))
     if holding['result'] == False:
         return nn
     if len(holding['holding']) == 0:
@@ -192,12 +252,11 @@ def check_holdings_profit(symbol, contract, direction):
 
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, contract, direction):
-    instrument_id = query_instrument_id(symbol, contract)
-    holding=futureAPI.get_specific_position(instrument_id)
+    holding=futureAPI.get_specific_position(query_instrument_id(symbol, contract))
     if holding['result'] != True:
-        return 0
+        return (0,0)
     if len(holding['holding']) == 0:
-        return 0
+        return (0,0)
     # print (holding['holding'])
     l_dir=transform_direction(direction)
     data=holding['holding'][0]
@@ -205,11 +264,10 @@ def real_open_price_and_cost(symbol, contract, direction):
         avg = float(data['%s_avg_cost' % l_dir])
         real = float(data['%s_pnl_ratio' % l_dir])/float(data['%s_leverage' % l_dir])
         return (avg, avg*real)
-    return 0
+    return (0,0)
 
 def query_bond(symbol, contract, direction):
-    instrument_id = query_instrument_id(symbol, contract)
-    holding=futureAPI.get_specific_position(instrument_id)
+    holding=futureAPI.get_specific_position(query_instrument_id(symbol, contract))
     if holding['result'] != True:
         return 0.0 # 0 means failed
     if len(holding['holding']) == 0:
@@ -238,17 +296,14 @@ def query_bond(symbol, contract, direction):
 #  'total_avail_balance': '3.59490925'}
 
 def query_balance(symbol):
-    try:
-        result=futureAPI.get_coin_account(symbol.replace('_', '-').upper())
-        return float(result['equity'])
-    except Exception as ex:
-        return 0.0
+    result=futureAPI.get_coin_account(symbol.replace('_', '-').upper())
+    return float(result['equity'])
 
 if __name__ == '__main__':
-
-    api_key = ""
-    seceret_key = ""
-    passphrase = ""
+    pass
+    # api_key = ""
+    # seceret_key = ""
+    # passphrase = ""
 
     # 资金账户API
     # account api test
