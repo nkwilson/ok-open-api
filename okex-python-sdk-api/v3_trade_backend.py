@@ -243,7 +243,7 @@ def check_holdings_profit(symbol, contract, direction):
     data = holding['holding'][0]
     new_dir=transform_direction(direction)
     loss = float(data['%s_pnl_ratio' % new_dir])
-    amount = float(data['%s_qty' % new_dir])
+    amount = float(data['%s_avail_qty' % new_dir])
 #    margin = float(data['%s_margin' % new_dir])
     if amount < 1:
         return nn
