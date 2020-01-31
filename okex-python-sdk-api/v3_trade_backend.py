@@ -80,6 +80,20 @@ def transform_direction(direction):
     new_dirs = {'buy':'long', 'sell':'short'}
     return new_dirs[direction]
 
+# {'instrument_id': 'XRP-USD-200207', 'highest': '0.2504', 'lowest': '0.2359', 'timestamp': '2020-01-31T07:08:31.394Z'}
+cached_limit = ''
+def query_limit(instrument_id):
+    global cached_limit
+    #print (cached_limit)
+    if cached_limit == '' or \
+       (datetime.datetime.strptime(cached_limit['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ') - datetime.datetime.now()).total_seconds() < 0: # need update
+        #print (query_limit fresh')
+        cached_limit=futureAPI.get_limit(instrument_id)
+    else:
+        # print ('query_limit cached', cached_limit)
+        pass
+    return cached_limit
+
 # In [12]: order_datas=[]
 # In [13]: order_datas.append({'order_type':"1",'price':"386",'size':"1",'type':"2",'match_price':"0"})
 # In [14]: order_datas.append({'order_type':"1",'price':"386",'size':"1",'type':"1",'match_price':"0"})
@@ -102,8 +116,6 @@ def transform_direction(direction):
 #  'error_message': '',
 #  'order_id': '4295822327387137',
 #  'result': True}
-
-
 def issue_order(instrument_id, otype, price, size, match_price, order_type):
     try:
         result=futureAPI.take_order(instrument_id, otype, price, size, match_price=match_price, order_type=order_type)
@@ -122,7 +134,7 @@ def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK
     if True or price == '' or price == 0: # use optimized price
-        limit=futureAPI.get_limit(inst_id)
+        limit=query_limit(inst_id)
         price = float(limit['lowest']) * 1.01
         print (limit, price)
     #print (symbol, contract, amount, price)
@@ -133,7 +145,7 @@ def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK
     if True or price == '' or price == 0: # use optimized price
-        limit=futureAPI.get_limit(inst_id)
+        limit=query_limit(inst_id)
         price=float(limit['highest']) * 0.99
         print (limit, price)
     #print (symbol, contract, amount, price)
@@ -144,7 +156,7 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK        
     if True or price == '' or price == 0: # use optimized price
-        limit=futureAPI.get_limit(inst_id)
+        limit=query_limit(inst_id)
         price=float(limit['highest']) * 0.99
         print (limit, price)
     #print (symbol, contract, amount, price)
@@ -155,7 +167,7 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK        
     if True or price == '' or price == 0: # use optimized price
-        limit=futureAPI.get_limit(inst_id)
+        limit=query_limit(inst_id)
         price=float(limit['lowest']) * 1.01
         print (limit, price)
     #print (symbol, contract, amount, price)
