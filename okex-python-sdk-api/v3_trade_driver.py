@@ -135,7 +135,7 @@ order_infos = {'usd_btc':'btc_usd',
                'buy':{'open':backend.open_order_buy_rate,
                       'close':backend.close_order_buy_rate}}
 
-fast_order = 1 # use optimized price to finish order as fast as possible
+fast_issue = 1 # use optimized price to finish order as fast as possible
 
 reissuing_order = 0
 wait_for_completion = 1 # default is no wait
@@ -191,7 +191,7 @@ orders_holding ={'sell':{'reverse':False, 'holding':list()},
 # for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     if action == 'open':
-        return issue_order_now(symbol, contract, direction, amount, action, '' if globals()['fast_order'] else globals()['request_price'])
+        return issue_order_now(symbol, contract, direction, amount, action, '' if globals()['fast_issue'] else globals()['request_price'])
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
     if t_amount == 0:
         return (False, 0, 0) # no operation (ret, price, amount)
@@ -215,7 +215,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                 if amount > 0 and total_amount > amount:
                     holding.append((price, total_amount - amount))
                     break
-        (ret, price, amount) = issue_order_now(symbol, contract, direction, amount, action, '' if globals()['fast_order'] else globals()['request_price'])
+        (ret, price, amount) = issue_order_now(symbol, contract, direction, amount, action, '' if globals()['fast_issue'] else globals()['request_price'])
         print ('loss ratio=%f%%, %s, closed %d' % (loss, 'yeap' if loss > 0 else 'tough', amount))
         return (ret, price, amount)
     total_amount = 0
@@ -237,7 +237,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
             holding.append((price, l_amount)) # put it back
             break
     if total_amount > 0 : # yes, has positive holdings
-        (ret, price, amount) = issue_order_now(symbol, contract, direction, total_amount, action, '' if globals()['fast_order'] else globals()['request_price'])
+        (ret, price, amount) = issue_order_now(symbol, contract, direction, total_amount, action, '' if globals()['fast_issue'] else globals()['request_price'])
         addon = ' (%d required, %d closed, %d left)' % (saved_amount, total_amount, (t_amount - total_amount))
         total_amount = amount
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
@@ -537,7 +537,7 @@ names_tit2tat = ['trade_file',
                  'guard_timeout', 
                  'forward_greedy',
                  'backward_greedy',
-                 'fast_order', 
+                 'fast_issue', 
                  'enable_guard',
                  'wait_for_completion'];
 
