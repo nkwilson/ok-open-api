@@ -9,6 +9,10 @@ import okex.futures_api as future
 #import okex.option_api as option
 
 import datetime
+import logging
+
+log_format = '%(asctime)s - %(levelname)s - %(message)s'
+logging.basicConfig(filename='order_exceptions.json', filemode='a', format=log_format, level=logging.INFO)
 
 api_key = "9b8f6039-a5db-4862-95b9-183404b95ac6"
 secret_key = "7AFDDC3FB2F9D3693B16BC1D6AB441EE"
@@ -103,12 +107,11 @@ def issue_order(instrument_id, otype, price, size, match_price):
     try:
         result=futureAPI.take_order(instrument_id, otype, price, size, match_price=match_price)
     except Exception as ex:
-        print (type(ex))
         print (ex)
+        logging.info('%s %s %s %s %s' % (instrument_id, otype, price, size, match_price))
+        logging.info(ex)
         return {'result':False}
-        if result['error_code'] == '32014':
-            # API Request Error(code=32014): Positions that you are closing exceeded the total qty of contracts allowed to close
-            result['result'] = True
+    # API Request Error(code=32014): Positions that you are closing exceeded the total qty of contracts allowed to close
     return result
         
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
