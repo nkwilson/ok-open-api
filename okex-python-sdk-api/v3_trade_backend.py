@@ -202,7 +202,9 @@ def cancel_order(symbol, contract, orderid):
 #  'type': '2'}
 
 def query_orderinfo(symbol, contract, orderid):
-    return futureAPI.get_order_info(query_instrument_id(symbol, contract), orderid)
+    result = futureAPI.get_order_info(query_instrument_id(symbol, contract), orderid)
+    # print (result)
+    return result
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
 
 # In [7]: backend.query_kline('bch_usd', '300', 'this_week')
