@@ -64,7 +64,7 @@ instrument_id = ''
 def query_instrument_id(symbol, contract):
     global expire_day, instrument_id
     #print (expire_day)
-    if expire_day == '' or (datetime.datetime.strptime(expire_day, '%Y-%m-%d') - datetime.datetime.now()).total_seconds() < 0: # need update
+    if expire_day == '' or (datetime.datetime.strptime(expire_day, '%Y-%m-%d') - datetime.datetime.utcnow()).total_seconds() < 0: # need update
         #print ('query_instrument_id fresh')
         new_contracts = {'quarter':'quarter', 'thisweek': 'this_week', 'nextweek': 'next_week'}
         result = futureAPI.get_products()
@@ -86,7 +86,7 @@ def query_limit(instrument_id):
     global cached_limit
     #print (cached_limit)
     if cached_limit == '' or \
-       (datetime.datetime.strptime(cached_limit['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ') - datetime.datetime.now()).total_seconds() < 0: # need update
+       (datetime.datetime.strptime(cached_limit['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ') - datetime.datetime.utcnow()).total_seconds() < 0: # need update
         #print (query_limit fresh')
         cached_limit=futureAPI.get_limit(instrument_id)
     else:
