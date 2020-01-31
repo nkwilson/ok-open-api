@@ -136,7 +136,7 @@ def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     if True or price == '' or price == 0: # use optimized price
         limit=query_limit(inst_id)
         price = float(limit['lowest']) * 1.01
-        print (limit, price)
+        # print (limit, price)
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 2, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
@@ -145,9 +145,9 @@ def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK
     if True or price == '' or price == 0: # use optimized price
-        limit=query_limit(inst_id)
-        price=float(limit['highest']) * 0.99
-        print (limit, price)
+        limit = query_limit(inst_id)
+        price = float(limit['highest']) * 0.99
+        # print (limit, price)
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 4, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '4',                                     '1', '10')
@@ -158,7 +158,7 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     if True or price == '' or price == 0: # use optimized price
         limit=query_limit(inst_id)
         price=float(limit['highest']) * 0.99
-        print (limit, price)
+        # print (limit, price)
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 1, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '1',                                     '1', '10')
@@ -169,7 +169,7 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     if True or price == '' or price == 0: # use optimized price
         limit=query_limit(inst_id)
         price=float(limit['lowest']) * 1.01
-        print (limit, price)
+        # print (limit, price)
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 3, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
