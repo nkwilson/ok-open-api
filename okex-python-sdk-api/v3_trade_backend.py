@@ -103,12 +103,12 @@ def transform_direction(direction):
 #  'result': True}
 
 
-def issue_order(instrument_id, otype, price, size, match_price):
+def issue_order(instrument_id, otype, price, size, match_price, order_type):
     try:
-        result=futureAPI.take_order(instrument_id, otype, price, size, match_price=match_price)
+        result=futureAPI.take_order(instrument_id, otype, price, size, match_price=match_price, order_type=order_type)
     except Exception as ex:
         print (ex)
-        logging.info('%s %s %s %s %s' % (instrument_id, otype, price, size, match_price))
+        logging.info('%s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info(ex)
         return {'result':False}
     # API Request Error(code=32014): Positions that you are closing exceeded the total qty of contracts allowed to close
