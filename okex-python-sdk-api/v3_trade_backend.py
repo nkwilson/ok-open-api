@@ -116,42 +116,46 @@ def issue_order(instrument_id, otype, price, size, match_price):
         
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
+    otype = '2' # FOK
     if price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         #print (limit)
-        price=(float(limit['lowest'])+float(limit['highest']))/2
+        price = float(limit['lowest'])
     #print (symbol, contract, amount, price)
-    return issue_order(inst_id, 2, price, int(amount), match_price='0')
+    return issue_order(inst_id, 2, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
 
 def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
+    otype = '2' # FOK
     if price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         #print (limit)
-        price=(float(limit['lowest'])+float(limit['highest']))/2
+        price=float(limit['highest'])
     #print (symbol, contract, amount, price)
-    return issue_order(inst_id, 4, price, int(amount), match_price='0')
+    return issue_order(inst_id, 4, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '4',                                     '1', '10')
 
 def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
+    otype = '2' # FOK        
     if price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         #print (limit)
-        price=(float(limit['lowest'])+float(limit['highest']))/2
+        price=float(limit['highest'])
     #print (symbol, contract, amount, price)
-    return issue_order(inst_id, 1, price, int(amount), match_price='0')
+    return issue_order(inst_id, 1, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '1',                                     '1', '10')
 
 def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
+    otype = '2' # FOK        
     if price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         #print (limit)
-        price=(float(limit['lowest'])+float(limit['highest']))/2
+        price=float(limit['lowest'])
     #print (symbol, contract, amount, price)
-    return issue_order(inst_id, 3, price, int(amount), match_price='0')
+    return issue_order(inst_id, 3, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
 
 def cancel_order(symbol, contract, orderid):
