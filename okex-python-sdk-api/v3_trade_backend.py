@@ -124,7 +124,7 @@ def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     if price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         #print (limit)
-        price = float(limit['lowest'])
+        price = float(limit['lowest']) * 1.2
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 2, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
@@ -135,7 +135,7 @@ def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     if price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         #print (limit)
-        price=float(limit['highest'])
+        price=float(limit['highest']) * 0.8
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 4, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '4',                                     '1', '10')
@@ -146,7 +146,7 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     if price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         #print (limit)
-        price=float(limit['highest'])
+        price=float(limit['highest']) * 0.8
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 1, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '1',                                     '1', '10')
@@ -157,7 +157,7 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     if price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         #print (limit)
-        price=float(limit['lowest'])
+        price=float(limit['lowest']) * 1.2
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 3, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
