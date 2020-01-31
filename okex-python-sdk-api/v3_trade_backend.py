@@ -121,7 +121,7 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK
-    if price == '' or price == 0: # use optimized price
+    if True or price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         price = float(limit['lowest']) * 1.01
         print (limit, price)
@@ -132,7 +132,7 @@ def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
 def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK
-    if price == '' or price == 0: # use optimized price
+    if True or price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         price=float(limit['highest']) * 0.99
         print (limit, price)
@@ -143,7 +143,7 @@ def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
 def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK        
-    if price == '' or price == 0: # use optimized price
+    if True or price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         price=float(limit['highest']) * 0.99
         print (limit, price)
@@ -154,7 +154,7 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
 def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK        
-    if price == '' or price == 0: # use optimized price
+    if True or price == '' or price == 0: # use optimized price
         limit=futureAPI.get_limit(inst_id)
         price=float(limit['lowest']) * 1.01
         print (limit, price)
