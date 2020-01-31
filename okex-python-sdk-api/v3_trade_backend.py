@@ -10,6 +10,7 @@ import okex.futures_api as future
 
 import datetime
 import logging
+import json
 
 log_format = '%(asctime)s - %(levelname)s - %(message)s'
 logging.basicConfig(filename='order_exceptions.json', filemode='a', format=log_format, level=logging.INFO)
@@ -112,8 +113,11 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
         logging.info(ex)
         return {'result':False}
     # API Request Error(code=32014): Positions that you are closing exceeded the total qty of contracts allowed to close
+    if result['result'] == False: # something is wrong
+        logging.info('%s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
+        logging.info("result:" + json.dumps(result))
     return result
-        
+
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '2' # FOK
