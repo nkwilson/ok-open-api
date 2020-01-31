@@ -22,7 +22,7 @@ passphrase = 'v3api0'
 
 if 'futureAPI' not in globals().keys():
     #print ('new futureAPI')
-    futureAPI = future.FutureAPI(api_key, secret_key, passphrase, True)
+    futureAPI = future.FutureAPI(api_key, secret_key, passphrase, False)
 else:
     #print ('cached futureAPI')
     pass
@@ -121,12 +121,12 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
         result=futureAPI.take_order(instrument_id, otype, price, size, match_price=match_price, order_type=order_type)
     except Exception as ex:
         print (ex)
-        logging.info('%s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
+        logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info(ex)
         return {'result':False}
     # API Request Error(code=32014): Positions that you are closing exceeded the total qty of contracts allowed to close
     if result['result'] == False or result['error_code'] != '0': # something is wrong
-        logging.info('%s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
+        logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info("result:" + json.dumps(result))
     return result
 
