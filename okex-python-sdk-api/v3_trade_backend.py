@@ -4,7 +4,7 @@
 import okex.futures_api as future
 #import okex.lever_api as lever
 #import okex.spot_api as spot
-#import okex.swap_api as swap
+import okex.swap_api as swap
 #import okex.index_api as index
 #import okex.option_api as option
 
@@ -19,18 +19,6 @@ api_key = "9b8f6039-a5db-4862-95b9-183404b95ac6"
 secret_key = "7AFDDC3FB2F9D3693B16BC1D6AB441EE"
 IP = "0"
 passphrase = 'v3api0'
-
-if 'futureAPI' not in globals().keys():
-    #print ('new futureAPI')
-    futureAPI = future.FutureAPI(api_key, secret_key, passphrase, False)
-else:
-    #print ('cached futureAPI')
-    pass
-
-if 'swapAPI' not in globals().keys():
-    swapAPI = swap.SwapAPI(api_key, secret_key, passphrase, False)
-else:
-    pass
 
 # In [3]: backend.futureAPI.get_products()
 # Out[3]: 
@@ -66,12 +54,16 @@ else:
 # symbol is like BTC-USD, contract is like quarter/this_week/next_week
 expire_day = ''
 instrument_id = ''
-which_api = futureAPI
+which_api = ''
 def query_instrument_id(symbol, contract):
     global expire_day, instrument_id
     #print (expire_day)
+    if globals()['which_api'] == '':
+        if contract == 'swap':
+            globas()['which_api'] = swap.SwapAPI(api_key, secret_key, passphrase, False)
+        else:
+            globas()['which_api'] = future.FutureAPI(api_key, secret_key, passphrase, False)
     if contract == 'swap': # specific case
-        globals()['which_api'] = swapAPI
         return symbol.upper().replace('_', '-') + '-SWAP'
         pass
     if expire_day == '' or (datetime.datetime.strptime(expire_day, '%Y-%m-%d') - datetime.datetime.utcnow()).total_seconds() < 0: # need update
@@ -189,7 +181,8 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
 
 def cancel_order(symbol, contract, orderid):
-    return globals()['which_api'].revoke_order(query_instrument_id(symbol, contract), orderid)
+    inst_id=query_instrument_id(symbol, contract)
+    return globals()['which_api'].revoke_order(inst_id, orderid)
     #return okcoinFuture.future_cancel(symbol, contract, order_id)
 
 # In [2]: backend.query_orderinfo('bch_usd', 'thisweek', 4295822327387137)
@@ -212,7 +205,8 @@ def cancel_order(symbol, contract, orderid):
 #  'type': '2'}
 
 def query_orderinfo(symbol, contract, orderid):
-    result = globals()['which_api'].get_order_info(query_instrument_id(symbol, contract), orderid)
+    inst_id=query_instrument_id(symbol, contract)
+    result = globals()['which_api'].get_order_info(inst_id, orderid)
     # print (result)
     return result
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
@@ -228,8 +222,9 @@ def query_orderinfo(symbol, contract, orderid):
 #   '233.17'],
 
 def query_kline(symbol, period, contract, ktype=''):
+    inst_id=query_instrument_id(symbol, contract)
     #print ('before query_kline')
-    kline=globals()['which_api'].get_kline(query_instrument_id(symbol, contract), granularity=period)
+    kline=globals()['which_api'].get_kline(inst_id, granularity=period)
     #print ('after query_kline')
     last=kline[-1]
     last[0]=str(datetime.datetime.strptime(last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
@@ -303,8 +298,9 @@ def get_loss_amount_from_swap(holding, direction):
         return (loss, amount)
 
 def check_holdings_profit(symbol, contract, direction):
+    inst_id = query_instrument_id(symbol, contract)
     nn = (0, 0) # (loss, amount)
-    holding=globals()['which_api'].get_specific_position(query_instrument_id(symbol, contract))
+    holding=globals()['which_api'].get_specific_position(inst_id)
     if holding['result'] == False:
         return nn
     if len(holding['holding']) == 0:
@@ -332,7 +328,8 @@ def get_real_open_price_and_cost_from_swap(holding, direction):
 
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, contract, direction):
-    holding=globals()['which_api'].get_specific_position(query_instrument_id(symbol, contract))
+    inst_id = query_instrument_id(symbol, contract)
+    holding=globals()['which_api'].get_specific_position(inst_id)
     if holding['result'] != True:
         return (0,0)
     if len(holding['holding']) == 0:
@@ -356,7 +353,8 @@ def get_bond_from_swap(holding, direction):
     return 0.0
     
 def query_bond(symbol, contract, direction):
-    holding=globals()['which_api'].get_specific_position(query_instrument_id(symbol, contract))
+    inst_id = query_instrument_id(symbol, contract)
+    holding=globals()['which_api'].get_specific_position(inst_id)
     if holding['result'] != True:
         return 0.0 # 0 means failed
     if len(holding['holding']) == 0:
