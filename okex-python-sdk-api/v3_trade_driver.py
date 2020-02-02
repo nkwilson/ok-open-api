@@ -1295,7 +1295,7 @@ def calculate_timeout_for_self_trigger(notify):
     period_s = periods_mapping_s[figure_out_period_info(notify)]
     moduls =int(datetime.datetime.now().strftime('%s')) % period_s
     delta = int(10 * random.random()) + 30
-    timeout = (period_ms - moduls) - delta
+    timeout = (period_s - moduls) - delta
     if timeout > 0:
         return (timeout, delta)
     else:
