@@ -56,13 +56,13 @@ expire_day = ''
 instrument_id = ''
 which_api = ''
 def query_instrument_id(symbol, contract):
-    global expire_day, instrument_id
+    global expire_day, instrument_id, which_api
     #print (expire_day)
-    if globals()['which_api'] == '':
+    if which_api == '':
         if contract == 'swap':
-            globas()['which_api'] = swap.SwapAPI(api_key, secret_key, passphrase, False)
+            which_api = swap.SwapAPI(api_key, secret_key, passphrase, False)
         else:
-            globas()['which_api'] = future.FutureAPI(api_key, secret_key, passphrase, False)
+            which_api = future.FutureAPI(api_key, secret_key, passphrase, False)
     if contract == 'swap': # specific case
         return symbol.upper().replace('_', '-') + '-SWAP'
         pass
@@ -90,7 +90,7 @@ def query_limit(instrument_id):
     if cached_limit == '' or \
        (datetime.datetime.strptime(cached_limit['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ') - datetime.datetime.utcnow()).total_seconds() < 0: # need update
         #print (query_limit fresh')
-        cached_limit=globals()['which_api'].get_limit(instrument_id)
+        cached_limit=which_api.get_limit(instrument_id)
     else:
         # print ('query_limit cached', cached_limit)
         pass
@@ -120,7 +120,7 @@ def query_limit(instrument_id):
 #  'result': True}
 def issue_order(instrument_id, otype, price, size, match_price, order_type):
     try:
-        result=globals()['which_api'].take_order(instrument_id=instrument_id, type=otype, price=price, size=size, match_price=match_price, order_type=order_type)
+        result=which_api.take_order(instrument_id=instrument_id, type=otype, price=price, size=size, match_price=match_price, order_type=order_type)
     except Exception as ex:
         print (ex)
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
