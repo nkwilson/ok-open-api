@@ -1249,7 +1249,7 @@ if options.restore_status and \
     globals()['load_status_%s' % l_signal]()
     print ('trade status restored:\n', globals()['trade_status'])
 
-periods_mapping_ms = { '1day': 24 * 60 * 60,
+periods_mapping_s = { '1day': 24 * 60 * 60,
                        '12hour':12 * 60 * 60,
                        '6hour': 6 * 60 * 60,
                        '4hour': 4 * 60 * 60,
@@ -1265,7 +1265,7 @@ periods_mapping_ms = { '1day': 24 * 60 * 60,
 def prepare_for_self_trigger(notify, signal, l_dir):
     symbol=symbols_mapping[figure_out_symbol_info(notify)]
     contract=figure_out_contract_info(notify)
-    period=figure_out_period_info(notify)
+    period = periods_mapping_s[figure_out_period_info(notify)]  
     try:
         reply=eval('%s' % backend.query_kline(symbol, period, contract, '1'))[0]
         price_filename0 = os.path.join(l_dir, '%s' % (reply[0]))
@@ -1292,8 +1292,8 @@ def prepare_for_self_trigger(notify, signal, l_dir):
         return None
 
 def calculate_timeout_for_self_trigger(notify):
-    period_ms = periods_mapping_ms[figure_out_period_info(notify)]
-    moduls =int(datetime.datetime.now().strftime('%s')) % period_ms
+    period_s = periods_mapping_s[figure_out_period_info(notify)]
+    moduls =int(datetime.datetime.now().strftime('%s')) % period_s
     delta = int(10 * random.random()) + 30
     timeout = (period_ms - moduls) - delta
     if timeout > 0:
