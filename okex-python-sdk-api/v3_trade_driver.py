@@ -725,23 +725,25 @@ def try_to_trade_tit2tat(subpath, guard=False):
             ema_tendency = new_ema_2 - new_ema_1_lo # ema_2 should bigger than ema_1_lo
             reverse_follow_dir = 'buy'
             price_delta = (previous_close - close) / previous_close
-            print ('%9.4f' % -close, '%9.4f' % open_price, l_dir, 
+            print ('%9.4f' % -close, '%9.4f' % previous_close, l_dir, 
                    'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
-                   'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
                    'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_lo),
-                   'greedy : %f' % greedy_count,
-                   'cost: %9.4f:%.2f' % (open_cost, globals()['greedy_cost_multiplier'])
+                   'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
+                   'greedy: %.2f' % greedy_count,
+                   'cost: %2.4f/%.2f' % (open_cost, globals()['greedy_cost_multiplier']),
+                   'delta: %2.4f' % (prices[ID_OPEN] - prices[ID_CLOSE])
             )
         elif l_dir == 'buy': # buy order
             ema_tendency = new_ema_1_up - new_ema_2 # ema_1_up should bigger than ema_2
             reverse_follow_dir = 'sell'
             price_delta = (close - previous_close) / previous_close
-            print ('%9.4f' % close, '%9.4f' % -open_price, l_dir, 
+            print ('%9.4f' % close, '%9.4f' % -previous_close, l_dir, 
                    'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
-                   'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
                    'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_up),
-                   'greedy : %f' % greedy_count,
-                   'cost: %9.4f:%.2f' % (open_cost, globals()['greedy_cost_multiplier'])
+                   'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
+                   'greedy: %.2f' % greedy_count,
+                   'cost: %2.4f/%.2f' % (open_cost, globals()['greedy_cost_multiplier']),
+                   'delta: %2.4f' % (prices[ID_CLOSE] - prices[ID_OPEN])
             )                   
         ema_1 = new_ema_1 # saved now
         ema_1_up = new_ema_1_up
