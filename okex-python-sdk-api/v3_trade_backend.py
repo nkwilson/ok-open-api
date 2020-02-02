@@ -55,14 +55,16 @@ passphrase = 'v3api0'
 expire_day = ''
 instrument_id = ''
 which_api = ''
+swapAPI = swap.SwapAPI(api_key, secret_key, passphrase, False)
+futureAPI = future.FutureAPI(api_key, secret_key, passphrase, False)
 def query_instrument_id(symbol, contract):
     global expire_day, instrument_id, which_api
     #print (expire_day)
     if which_api == '':
         if contract == 'swap':
-            which_api = swap.SwapAPI(api_key, secret_key, passphrase, False)
+            which_api = swapAPI
         else:
-            which_api = future.FutureAPI(api_key, secret_key, passphrase, False)
+            which_api = futureAPI
     if contract == 'swap': # specific case
         return symbol.upper().replace('_', '-') + '-SWAP'
         pass
@@ -222,10 +224,9 @@ def query_orderinfo(symbol, contract, orderid):
 #   '233.17'],
 
 def query_kline(symbol, period, contract, ktype=''):
+    global which_api
     inst_id=query_instrument_id(symbol, contract)
-    #print ('before query_kline')
     kline=which_api.get_kline(inst_id, granularity=period)
-    #print ('after query_kline')
     last=kline[-1]
     last[0]=str(datetime.datetime.strptime(last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
     return [last]
@@ -289,6 +290,8 @@ def query_kline(symbol, period, contract, ktype=''):
 #  'margin_mode': 'crossed',
 #  'timestamp': '2020-02-02T08:17:25.532Z'}
 def get_loss_amount_from_swap(holding, direction):
+    if len(holding) == 0:
+        return (0, 0)
     data=list(filter(lambda i: i['side'] == direction, holding))[0]
     loss = float(data['unrealized_pnl']) * 100 / float(data['margin'])
     amount = float(data['avail_position'])
@@ -301,8 +304,6 @@ def check_holdings_profit(symbol, contract, direction):
     inst_id = query_instrument_id(symbol, contract)
     nn = (0, 0) # (loss, amount)
     holding=which_api.get_specific_position(inst_id)
-    if holding['result'] == False:
-        return nn
     if len(holding['holding']) == 0:
         return nn
     new_dir=transform_direction(direction)
@@ -347,6 +348,8 @@ def real_open_price_and_cost(symbol, contract, direction):
     return (0,0)
 
 def get_bond_from_swap(holding, direction):
+    if len(holding) == 0:
+        return 0.0
     data=list(filter(lambda i: i['side'] == direction, holding))[0]
     if data['position'] != 0:
         return float(data['margin'])/float(data['position'])
@@ -384,10 +387,28 @@ def query_bond(symbol, contract, direction):
 #  'margin_mode': 'fixed',
 #  'total_avail_balance': '3.59490925'}
 
+# In [4]: backend.swapAPI.get_coin_account('EOS-USD-SWAP')
+# Out[4]: 
+# {'info': {'equity': '7.0415',
+#   'fixed_balance': '0.0000',
+#   'instrument_id': 'EOS-USD-SWAP',
+#   'maint_margin_ratio': '0.0100',
+#   'margin': '0.2347',
+#   'margin_frozen': '0.0000',
+#   'margin_mode': 'crossed',
+#   'margin_ratio': '2.9996',
+#   'max_withdraw': '6.8067',
+#   'realized_pnl': '-0.0011',
+#   'timestamp': '2020-02-02T08:17:25.532Z',
+#   'total_avail_balance': '7.0000',
+#   'unrealized_pnl': '0.0426'}}
+
 def query_balance(symbol, contract=''):
     if contract == 'swap':
         suffix='-SWAP'
-    result=which_api.get_coin_account(symbol.replace('_', '-').upper()+suffix)
+        result=which_api.get_coin_account(symbol.replace('_', '-').upper()+suffix)['info']
+    else:
+        result=which_api.get_coin_account(symbol.replace('_', '-').upper())
     return float(result['equity'])
 
 if __name__ == '__main__':
