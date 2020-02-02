@@ -292,7 +292,10 @@ def query_kline(symbol, period, contract, ktype=''):
 def get_loss_amount_from_swap(holding, direction):
     if len(holding) == 0:
         return (0, 0)
-    data=list(filter(lambda i: i['side'] == direction, holding))[0]
+    result=list(filter(lambda i: i['side'] == direction, holding))
+    if len(result) == 0:
+        return (0, 0)
+    data=result[0]
     loss = float(data['unrealized_pnl']) * 100 / float(data['margin'])
     amount = float(data['avail_position'])
     if amount < 1:
@@ -320,7 +323,10 @@ def check_holdings_profit(symbol, contract, direction):
         return (loss, amount) # , margin / amount)
 
 def get_real_open_price_and_cost_from_swap(holding, direction):
-    data=list(filter(lambda i: i['side'] == direction, holding))[0]
+    result=list(filter(lambda i: i['side'] == direction, holding))
+    if len(result) == 0:
+        return (0,0)
+    data=result[0]
     if data['position'] != 0:
         avg = float(data['avg_cost'])
         real = abs(float(data['realized_pnl']))/float(data['margin'])
@@ -348,9 +354,10 @@ def real_open_price_and_cost(symbol, contract, direction):
     return (0,0)
 
 def get_bond_from_swap(holding, direction):
-    if len(holding) == 0:
+    result=list(filter(lambda i: i['side'] == direction, holding))
+    if len(result) == 0:
         return 0.0
-    data=list(filter(lambda i: i['side'] == direction, holding))[0]
+    data=result[0]
     if data['position'] != 0:
         return float(data['margin'])/float(data['position'])
     return 0.0
