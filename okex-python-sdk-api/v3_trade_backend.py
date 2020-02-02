@@ -69,7 +69,7 @@ def query_instrument_id(symbol, contract):
     if expire_day == '' or (datetime.datetime.strptime(expire_day, '%Y-%m-%d') - datetime.datetime.utcnow()).total_seconds() < 0: # need update
         #print ('query_instrument_id fresh')
         new_contracts = {'quarter':'quarter', 'thisweek': 'this_week', 'nextweek': 'next_week'}
-        result = futureAPI.get_products()
+        result = which_api.get_products()
         product=list(filter(lambda i: i['alias'] == new_contracts[contract] and i['underlying'] == symbol.upper().replace('_', '-'), result))[0]
         instrument_id=product['instrument_id']
         expire_day=product['delivery']
@@ -182,7 +182,7 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
 
 def cancel_order(symbol, contract, orderid):
     inst_id=query_instrument_id(symbol, contract)
-    return globals()['which_api'].revoke_order(inst_id, orderid)
+    return which_api.revoke_order(inst_id, orderid)
     #return okcoinFuture.future_cancel(symbol, contract, order_id)
 
 # In [2]: backend.query_orderinfo('bch_usd', 'thisweek', 4295822327387137)
@@ -206,7 +206,7 @@ def cancel_order(symbol, contract, orderid):
 
 def query_orderinfo(symbol, contract, orderid):
     inst_id=query_instrument_id(symbol, contract)
-    result = globals()['which_api'].get_order_info(inst_id, orderid)
+    result = which_api.get_order_info(inst_id, orderid)
     # print (result)
     return result
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
@@ -224,7 +224,7 @@ def query_orderinfo(symbol, contract, orderid):
 def query_kline(symbol, period, contract, ktype=''):
     inst_id=query_instrument_id(symbol, contract)
     #print ('before query_kline')
-    kline=globals()['which_api'].get_kline(inst_id, granularity=period)
+    kline=which_api.get_kline(inst_id, granularity=period)
     #print ('after query_kline')
     last=kline[-1]
     last[0]=str(datetime.datetime.strptime(last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
@@ -300,7 +300,7 @@ def get_loss_amount_from_swap(holding, direction):
 def check_holdings_profit(symbol, contract, direction):
     inst_id = query_instrument_id(symbol, contract)
     nn = (0, 0) # (loss, amount)
-    holding=globals()['which_api'].get_specific_position(inst_id)
+    holding=which_api.get_specific_position(inst_id)
     if holding['result'] == False:
         return nn
     if len(holding['holding']) == 0:
@@ -329,7 +329,7 @@ def get_real_open_price_and_cost_from_swap(holding, direction):
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, contract, direction):
     inst_id = query_instrument_id(symbol, contract)
-    holding=globals()['which_api'].get_specific_position(inst_id)
+    holding=which_api.get_specific_position(inst_id)
     if holding['result'] != True:
         return (0,0)
     if len(holding['holding']) == 0:
@@ -354,7 +354,7 @@ def get_bond_from_swap(holding, direction):
     
 def query_bond(symbol, contract, direction):
     inst_id = query_instrument_id(symbol, contract)
-    holding=globals()['which_api'].get_specific_position(inst_id)
+    holding=which_api.get_specific_position(inst_id)
     if holding['result'] != True:
         return 0.0 # 0 means failed
     if len(holding['holding']) == 0:
@@ -387,7 +387,7 @@ def query_bond(symbol, contract, direction):
 def query_balance(symbol, contract=''):
     if contract == 'swap':
         suffix='-SWAP'
-    result=futureAPI.get_coin_account(symbol.replace('_', '-').upper()+suffix)
+    result=which_api.get_coin_account(symbol.replace('_', '-').upper()+suffix)
     return float(result['equity'])
 
 if __name__ == '__main__':
