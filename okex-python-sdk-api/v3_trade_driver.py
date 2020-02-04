@@ -181,7 +181,14 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         reissuing_order = 0
         return (False, 0, 0)
     print ('try to cancel pending order and reissue', ' amount = %d' % amount)
-    backend.cancel_order(symbol, contract, order_id)
+    try:
+        backend.cancel_order(symbol, contract, order_id)
+    except okex.exceptions.OkexAPIException as apiex:
+        # API Request Error(code=35065): This type of order cannot be canceled
+        if apiex.code == 350655:
+            return (False, 0, 0)
+    except Exception as ex:
+        return (False, 0, 0)
     return issue_order_now(symbol, contract, direction, amount, action, price)
 
 # orders need to close, sorted by price
