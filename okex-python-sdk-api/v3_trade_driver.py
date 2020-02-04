@@ -183,11 +183,9 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     print ('try to cancel pending order and reissue', ' amount = %d' % amount)
     try:
         backend.cancel_order(symbol, contract, order_id)
-    except okex.exceptions.OkexAPIException as apiex:
-        # API Request Error(code=35065): This type of order cannot be canceled
-        if apiex.code == 350655:
-            return (False, 0, 0)
     except Exception as ex:
+        # API Request Error(code=35065): This type of order cannot be canceled
+        # API Request Error(code=35014): Order price is not within limit
         return (False, 0, 0)
     return issue_order_now(symbol, contract, direction, amount, action, price)
 
