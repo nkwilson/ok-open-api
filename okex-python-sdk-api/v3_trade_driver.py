@@ -177,6 +177,8 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
             return (False, 0, 0)
         reissuing_order += 1
         amount = amount / 2
+    if contract == 'swap': # temp logic
+        return (False, 0, 0)
     if reissuing_order > 60: # more than 60 , quit
         reissuing_order = 0
         return (False, 0, 0)
@@ -1299,8 +1301,8 @@ def prepare_for_self_trigger(notify, signal, l_dir):
 def calculate_timeout_for_self_trigger(notify):
     period_s = periods_mapping_s[figure_out_period_info(notify)]
     moduls =int(datetime.datetime.now().strftime('%s')) % period_s
-    delta = int(10 * random.random()) + 30
-    timeout = (period_s - moduls) - delta
+    delta = int(20 * random.random()) + 2
+    timeout = (period_s - moduls) + delta # cross the period 
     if timeout > 0:
         return (timeout, delta)
     else:
