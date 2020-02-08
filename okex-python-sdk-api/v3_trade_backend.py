@@ -68,7 +68,7 @@ def query_instrument_id(symbol, contract):
     if contract == 'swap': # specific case
         return symbol.upper().replace('_', '-') + '-SWAP'
         pass
-    if expire_day == '' or (datetime.datetime.strptime(expire_day, '%Y-%m-%d') - datetime.datetime.utcnow()).total_seconds() < 0: # need update
+    if expire_day <= datetime.datetime.strftime(datetime.datetime.utcnow(), '%Y-%m-%d'): # need update
         #print ('query_instrument_id fresh')
         new_contracts = {'quarter':'quarter', 'thisweek': 'this_week', 'nextweek': 'next_week'}
         result = which_api.get_products()
