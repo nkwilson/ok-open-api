@@ -787,6 +787,8 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     if not options.emulate: # if emualtion, figure it manually
                         (loss, t_amount) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
                     if t_amount <= 0:
+                        # open it un-conditionally
+                        issue_quarter_order_now(symbol, l_dir, 1, 'open')
                         # check if should take normal close action
                         (current_profit, current_profit1, current_profit2, current_profit3) = get_multiple_profit4(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                         if current_profit1 <= -greedy_cost_multiplier * open_cost: # no, negative 
