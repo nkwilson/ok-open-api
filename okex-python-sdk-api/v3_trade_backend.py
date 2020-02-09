@@ -290,48 +290,39 @@ def query_kline(symbol, period, contract, ktype=''):
 #  'margin_mode': 'crossed',
 #  'timestamp': '2020-02-02T08:17:25.532Z'}
 def get_loss_amount_from_swap(holding, direction):
-    if len(holding) == 0:
-        return (0, 0)
-    result=list(filter(lambda i: i['side'] == direction, holding))
-    if len(result) == 0:
-        return (0, 0)
-    data=result[0]
-    loss = float(data['unrealized_pnl']) * 100 / float(data['margin'])
-    amount = float(data['avail_position'])
-    if amount < 1:
-        return (0, 0)
-    else:
+    try:
+        result=list(filter(lambda i: i['side'] == direction, holding))
+        data=result[0]
+        loss = float(data['unrealized_pnl']) * 100 / float(data['margin'])
+        amount = float(data['avail_position'])
         return (loss, amount)
+    except Exception as ex:
+        return (0, 0)
 
 def check_holdings_profit(symbol, contract, direction):
-    inst_id = query_instrument_id(symbol, contract)
-    nn = (0, 0) # (loss, amount)
-    holding=which_api.get_specific_position(inst_id)
-    if len(holding['holding']) == 0:
-        return nn
-    new_dir=transform_direction(direction)
-    if contract == 'swap':
-        return get_loss_amount_from_swap(holding['holding'], new_dir)
-    # future orders
-    data = holding['holding'][0]
-    loss = float(data['%s_pnl_ratio' % new_dir])
-    amount = float(data['%s_avail_qty' % new_dir])
-#    margin = float(data['%s_margin' % new_dir])
-    if amount < 1:
-        return nn
-    else:
+    try:
+        inst_id = query_instrument_id(symbol, contract)
+        holding=which_api.get_specific_position(inst_id)
+        new_dir=transform_direction(direction)
+        if contract == 'swap':
+            return get_loss_amount_from_swap(holding['holding'], new_dir)
+        # future orders
+        data = holding['holding'][0]
+        loss = float(data['%s_pnl_ratio' % new_dir])
+        amount = float(data['%s_avail_qty' % new_dir])
         return (loss, amount) # , margin / amount)
+    except Exception as ex:
+        return (0, 0)
 
 def get_real_open_price_and_cost_from_swap(holding, direction):
-    result=list(filter(lambda i: i['side'] == direction, holding))
-    if len(result) == 0:
-        return (0,0)
-    data=result[0]
-    if data['position'] != 0:
+    try:
+        result=list(filter(lambda i: i['side'] == direction, holding))
+        data=result[0]
         avg = float(data['avg_cost'])
         real = abs(float(data['realized_pnl']))/float(data['margin'])
         return (avg, avg*real)
-    return (0, 0)
+    except Exception as ex:
+        return (0, 0)
 
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, contract, direction):
