@@ -153,30 +153,29 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
 
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype = '0' # not 2 FOK
-    match = 0
+    otype = '2' # not 2 FOK
     if (price == '' or price == 0): # use optimized price
-        otype = 2 # FOK
         ticker=query_ticker(inst_id)
         price = float(ticker['best_bid']) * 0.99 # sell with lower price
+        otype = '2' # FOK
     #print (symbol, contract, amount, price)
-    return issue_order(inst_id, 2, price, int(amount), match_price=match, order_type=otype)
+    return issue_order(inst_id, 2, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
 
 def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype = '0' # not FOK
+    otype = '2' # not FOK
     if price == '' or price == 0: # use optimized price
         ticker=query_ticker(inst_id)
         price = float(ticker['best_ask']) * 1.01 # buy with higher price
-        otype = 2 # FOK
+        otype = '2' # FOK
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 4, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '4',                                     '1', '10')
 
 def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype = '0' # not FOK
+    otype = '2' # not FOK
     if price == '' or price == 0: # use optimized price
         ticker=query_ticker(inst_id)
         price = float(ticker['best_ask']) * 1.01
@@ -187,7 +186,7 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
 
 def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype = '0' # not FOK
+    otype = '2' # not FOK
     if price == '' or price == 0: # use optimized price
         ticker=query_ticker(inst_id)
         price = float(ticker['best_bid']) * 0.99
