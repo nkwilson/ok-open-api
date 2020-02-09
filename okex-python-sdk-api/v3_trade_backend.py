@@ -78,7 +78,7 @@ def query_instrument_id(symbol, contract):
     else: # check whether it is valid
         #print ('query_instrument_id cached', instrument_id)
         pass
-    print (instrument_id)
+    # print (instrument_id)
     return instrument_id
 
 def transform_direction(direction):
@@ -97,7 +97,7 @@ def query_limit(instrument_id):
     else:
         # print ('query_limit cached', cached_limit)
         pass
-    print (cached_limit)
+    # print (cached_limit)
     return cached_limit
 
 # In [6]: backend.which_api.get_specific_ticker('EOS-USD-SWAP')
@@ -112,7 +112,7 @@ def query_limit(instrument_id):
 #  'volume_24h': '8156913'}
 def query_ticker(instrument_id):
     ticker=which_api.get_specific_ticker(instrument_id)
-    print (ticker)
+    # print (ticker)
     return ticker
 
 # In [12]: order_datas=[]
