@@ -157,7 +157,7 @@ def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     otype = '0' # not FOK
     if price == '' or price == 0: # use optimized price
         limit = query_limit(inst_id)
-        price = float(limit['highest']) * 0.99
+        price = float(limit['highest']) * 0.998
         # print (limit, price)
         otype = 2 # FOK
     #print (symbol, contract, amount, price)
@@ -169,7 +169,7 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     otype = '0' # not FOK
     if price == '' or price == 0: # use optimized price
         limit=query_limit(inst_id)
-        price=float(limit['highest']) * 0.99
+        price=float(limit['highest']) * 0.998
         # print (limit, price)
         otype = '2' # FOK        
     #print (symbol, contract, amount, price)
@@ -181,7 +181,7 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     otype = '0' # not FOK
     if price == '' or price == 0: # use optimized price
         limit=query_limit(inst_id)
-        price=float(limit['lowest']) * 1.01
+        price=float(limit['lowest']) * 1.002
         # print (limit, price)
         otype = '2' # FOK        
     #print (symbol, contract, amount, price)
