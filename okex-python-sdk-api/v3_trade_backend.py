@@ -100,6 +100,21 @@ def query_limit(instrument_id):
     print (cached_limit)
     return cached_limit
 
+# In [6]: backend.which_api.get_specific_ticker('EOS-USD-SWAP')
+# Out[6]: 
+# {'best_ask': '4.958',
+#  'best_bid': '4.957',
+#  'high_24h': '5.05',
+#  'instrument_id': 'EOS-USD-SWAP',
+#  'last': '4.956',
+#  'low_24h': '4.735',
+#  'timestamp': '2020-02-09T09:38:15.941Z',
+#  'volume_24h': '8156913'}
+def query_ticker(instrument_id):
+    ticker=which_api.get_specific_ticker(instrument_id)
+    print (ticker)
+    return ticker
+
 # In [12]: order_datas=[]
 # In [13]: order_datas.append({'order_type':"1",'price':"386",'size':"1",'type':"2",'match_price':"0"})
 # In [14]: order_datas.append({'order_type':"1",'price':"386",'size':"1",'type':"1",'match_price':"0"})
@@ -141,13 +156,9 @@ def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     otype = '0' # not 2 FOK
     match = 0
     if (price == '' or price == 0): # use optimized price
-        limit=query_limit(inst_id)
         otype = 2 # FOK
-        if contract == 'swap': # for swap use match policy
-            price = float(limit['lowest']) * 1.002
-        else:
-            price = float(limit['lowest']) * 1.01
-            # print (limit, price)
+        ticker=query_ticker(inst_id)
+        price = float(ticker['best_bid']) * 0.99 # sell with lower price
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 2, price, int(amount), match_price=match, order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
@@ -156,9 +167,8 @@ def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '0' # not FOK
     if price == '' or price == 0: # use optimized price
-        limit = query_limit(inst_id)
-        price = float(limit['highest']) * 0.998
-        # print (limit, price)
+        ticker=query_ticker(inst_id)
+        price = float(ticker['best_ask']) * 1.01 # buy with higher price
         otype = 2 # FOK
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 4, price, int(amount), match_price='0', order_type=otype)
@@ -168,9 +178,8 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '0' # not FOK
     if price == '' or price == 0: # use optimized price
-        limit=query_limit(inst_id)
-        price=float(limit['highest']) * 0.998
-        # print (limit, price)
+        ticker=query_ticker(inst_id)
+        price = float(ticker['best_ask']) * 1.01
         otype = '2' # FOK        
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 1, price, int(amount), match_price='0', order_type=otype)
@@ -180,9 +189,8 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '0' # not FOK
     if price == '' or price == 0: # use optimized price
-        limit=query_limit(inst_id)
-        price=float(limit['lowest']) * 1.002
-        # print (limit, price)
+        ticker=query_ticker(inst_id)
+        price = float(ticker['best_bid']) * 0.99
         otype = '2' # FOK        
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 3, price, int(amount), match_price='0', order_type=otype)
