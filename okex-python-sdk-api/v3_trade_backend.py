@@ -68,7 +68,7 @@ def query_instrument_id(symbol, contract):
     if contract == 'swap': # specific case
         return symbol.upper().replace('_', '-') + '-SWAP'
         pass
-    if expire_day <= datetime.datetime.strftime(datetime.datetime.utcnow(), '%Y-%m-%d'): # need update
+    if True or expire_day <= datetime.datetime.strftime(datetime.datetime.utcnow(), '%Y-%m-%d'): # need update
         #print ('query_instrument_id fresh')
         new_contracts = {'quarter':'quarter', 'thisweek': 'this_week', 'nextweek': 'next_week'}
         result = which_api.get_products()
@@ -78,6 +78,7 @@ def query_instrument_id(symbol, contract):
     else: # check whether it is valid
         #print ('query_instrument_id cached', instrument_id)
         pass
+    print (instrument_id)
     return instrument_id
 
 def transform_direction(direction):
@@ -89,13 +90,14 @@ cached_limit = ''
 def query_limit(instrument_id):
     global cached_limit
     #print (cached_limit)
-    if cached_limit == '' or \
+    if True or cached_limit == '' or \
        (datetime.datetime.strptime(cached_limit['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ') - datetime.datetime.utcnow()).total_seconds() < 0: # need update
         #print (query_limit fresh')
         cached_limit=which_api.get_limit(instrument_id)
     else:
         # print ('query_limit cached', cached_limit)
         pass
+    print (cached_limit)
     return cached_limit
 
 # In [12]: order_datas=[]
