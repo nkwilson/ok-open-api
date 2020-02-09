@@ -139,17 +139,15 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
     otype = '0' # not 2 FOK
+    match = 0
     if (price == '' or price == 0): # use optimized price
+        limit=query_limit(inst_id)
+        otype = 2 # FOK
         if contract == 'swap': # for swap use match policy
-            match = 1
+            price = float(limit['lowest']) * 1.002
         else:
-            limit=query_limit(inst_id)
             price = float(limit['lowest']) * 1.01
             # print (limit, price)
-            match = 0
-        otype = 2 # FOK
-    else:
-        match = '0'
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 2, price, int(amount), match_price=match, order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
