@@ -146,6 +146,7 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
         logging.info(ex)
         return {'result':False}
     # API Request Error(code=32014): Positions that you are closing exceeded the total qty of contracts allowed to close
+    # API Request Error(code=35014): Order price is not within limit
     if result['result'] == False or result['error_code'] != '0': # something is wrong
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info("result:" + json.dumps(result))
@@ -153,7 +154,7 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
 
 def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype = '2' # not 2 FOK
+    otype = '0' # not 2 FOK
     if (price == '' or price == 0): # use optimized price
         ticker=query_ticker(inst_id)
         price = float(ticker['best_bid']) * 0.99 # sell with lower price
@@ -164,7 +165,7 @@ def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
 
 def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype = '2' # not FOK
+    otype = '0' # not FOK
     if price == '' or price == 0: # use optimized price
         ticker=query_ticker(inst_id)
         price = float(ticker['best_ask']) * 1.01 # buy with higher price
@@ -175,7 +176,7 @@ def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
 
 def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype = '2' # not FOK
+    otype = '0' # not FOK
     if price == '' or price == 0: # use optimized price
         ticker=query_ticker(inst_id)
         price = float(ticker['best_ask']) * 1.01
@@ -186,7 +187,7 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
 
 def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id=query_instrument_id(symbol, contract)
-    otype = '2' # not FOK
+    otype = '0' # not FOK
     if price == '' or price == 0: # use optimized price
         ticker=query_ticker(inst_id)
         price = float(ticker['best_bid']) * 0.99
