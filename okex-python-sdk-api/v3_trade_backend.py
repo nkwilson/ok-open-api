@@ -140,6 +140,8 @@ def query_ticker(instrument_id):
 def issue_order(instrument_id, otype, price, size, match_price, order_type):
     try:
         result=which_api.take_order(instrument_id=instrument_id, type=otype, price=price, size=size, match_price=match_price, order_type=order_type)
+        print (instrument_id, otype, price, size, match_price, order_type)
+        print (result)
     except Exception as ex:
         print (ex)
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
