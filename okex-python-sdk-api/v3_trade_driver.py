@@ -72,8 +72,6 @@ parser.add_option('', '--nolog', dest='nolog',
                   help='Do not log to file')
 parser.add_option('', '--ratio', dest='amount_ratio', default=9,
                   help='default trade ratio of total amount')
-parser.add_option('', '--open_start_price', dest='open_start_price',
-                  help='init open_start_price')
 parser.add_option('', '--previous_close', dest='previous_close',
                   help='init previous_close')
 parser.add_option('', '--restore_status', dest='restore_status',
@@ -380,7 +378,6 @@ def get_ema(previous, new_data, period):
 
 open_price = 0
 previous_close = 0
-open_start_price = 0
 last_bond = 0 # means uninitialized
 last_balance = 0
 last_decision_logic=''
@@ -427,7 +424,6 @@ def loadsave_status(signal, load):
 
 names_tit2tat = ['trade_file',
                  'previous_close',
-                 'open_start_price',
                  'open_price',
                  'open_cost',
                  'open_greedy',
@@ -563,7 +559,7 @@ def try_to_trade_tit2tat(subpath):
     global l_trade_file
     global previous_close
     global open_greedy, close_greedy 
-    global open_price, open_start_price
+    global open_price
     global open_cost
     global quarter_amount, thisweek_amount_pending
     global last_bond, last_balance
@@ -646,15 +642,12 @@ def try_to_trade_tit2tat(subpath):
 
                 new_open = True
                 forced_close = False
-                new_open_start_price = 0
                 if trade_file != '':
                     new_open = False
                     if l_dir == 'buy':
                         delta = open_price - prices[ID_LOW]
-                        new_open_start_price = prices[ID_LOW]
                     else: # sell
                         delta = prices[ID_HIGH] - open_price
-                        new_open_start_price = prices[ID_HIGH]
                     if delta < 0.001: # zero means too small
                         t_amount = 1
                     else:
@@ -679,10 +672,6 @@ def try_to_trade_tit2tat(subpath):
                     # clear it
                     thisweek_amount_pending = 0
                     (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
-                    if l_dir == 'buy' and open_start_price < new_open_start_price:
-                        open_start_price = (open_start_price + new_open_start_price) / 2
-                    elif l_dir == 'sell' and open_start_price > new_open_start_price:
-                        open_start_price = (open_start_price + new_open_start_price) / 2
                 new_l_dir = ''
                 if close > previous_close and delta_ema_1 > 0:
                     new_l_dir = 'buy'
@@ -696,7 +685,6 @@ def try_to_trade_tit2tat(subpath):
                     issuing_close = False
                     if ema_tendency <= 0: # take charge of issuing_close signal
                         issuing_close = True
-                        open_start_price = open_price # when seeing this price, should close, init only once
                     else:
                         issuing_close = False
                     # if issuing_close is true, check the new direction first
@@ -705,7 +693,7 @@ def try_to_trade_tit2tat(subpath):
                     greedy_action = ''
                     greedy_status = 'no action'
                     update_quarter_amount = False
-                    if issuing_close == False and (forward_greedy or backward_greedy): # partly no, but still positive consider open_start_price, do greedy process
+                    if issuing_close == False and (forward_greedy or backward_greedy): 
                         # emit open again signal
                         if l_dir == 'buy':
                             if (close - previous_close) > greedy_cost_multiplier * open_cost:
@@ -869,8 +857,6 @@ def try_to_trade_tit2tat(subpath):
                     
                     update_open_cost(symbol, globals()['contract'], l_dir)
                     
-                    if open_start_price == 0:
-                        open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     previous_close = close
     return greedy_status
 
@@ -1082,8 +1068,6 @@ with open(pid_file, 'w') as f:
     f.close()
 print ('sid %d pgrp %d pid %d saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), os.getpid(), pid_file))
 
-if options.open_start_price != None:
-    open_start_price = float(options.open_start_price)
 if options.previous_close != None:
     previous_close = float(options.previous_close)
 
