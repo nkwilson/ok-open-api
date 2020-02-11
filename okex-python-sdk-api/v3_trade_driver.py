@@ -482,18 +482,12 @@ def get_normal_delta(price):
     # print ('normal delta', price, globals()['open_price'])
     return price - globals()['open_price']
 
-def get_quit_delta(price):
-    # print ('quit delta', price, globals()['open_start_price'])
-    return price - globals()['open_start_price']
-
 profit_policy = { 'greedy-tiny': {'multiplier':'greedy_cost_multiplier',
                                   'get_delta':get_greedy_tiny_delta},
                   'greedy': {'multiplier':'greedy_cost_multiplier',
                              'get_delta':get_greedy_delta},
                   'normal': {'multiplier':'profit_cost_multiplier',
                              'get_delta':get_normal_delta},
-                  'quit': {'multiplier':'greedy_cost_multiplier',
-                           'get_delta':get_quit_delta},
                   'trans': {'buy': 1, 'sell': -1}}
 
 def positive_profit_with(price, direction, typeof):
@@ -511,9 +505,6 @@ def positive_greedy_tiny_profit(price, direction):
 
 def positive_normal_profit(price, direction):
     return positive_profit_with(price, direction, 'normal')
-
-def positive_quit_profit(price, direction):
-    return positive_profit_with(price, direction, 'quit')
 
 def update_open_cost(symbol, contract, direction):
     t_bond = backend.query_bond(symbol, contract, direction)
