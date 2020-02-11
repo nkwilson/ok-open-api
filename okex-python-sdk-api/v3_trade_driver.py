@@ -540,12 +540,12 @@ names_tit2tat = ['trade_file',
                  'ema_2_up',
                  'ema_2_lo',
                  'ema_period_2',
-                 'on_guard',
                  'guard_timeout', 
                  'forward_greedy',
                  'backward_greedy',
                  'fast_issue', 
                  'enable_guard',
+                 'open_cost_rate',
                  'wait_for_completion'];
 
 def save_status_tit2tat(subpath=''):
@@ -626,6 +626,7 @@ def update_open_cost(symbol, contract, direction):
 request_price=''
 last_fee = 0
 open_cost = 0
+open_cost_rate = 0 # percent of previous_close 
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2 # 2 times is up threshold
@@ -647,7 +648,6 @@ ema_1_up = 0 # up means high price
 ema_1_lo = 0 # lo means low price
 ema_2_up = 0
 ema_2_lo = 0
-on_guard = False  # if set, do price guard
 forward_greedy = True # following tendency
 backward_greedy = False # following reverse tendency
 guard_timeout = 180 #  3minutes
@@ -656,7 +656,7 @@ update_quarter_amount_forward = True # update it if balance increase
 update_quarter_amount_backward = False # update it if balance decrease
 
 # if guard true, then check and do quick turn 
-def try_to_trade_tit2tat(subpath, guard=False):
+def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
     global old_close, bins, direction
@@ -670,7 +670,6 @@ def try_to_trade_tit2tat(subpath, guard=False):
     global last_decision_logic
     global ema_1, ema_1_up, ema_1_lo
     global ema_2, ema_2_up, ema_2_lo
-    global on_guard
     global enable_guard
     global forward_greedy, backward_greedy
     global update_quarter_amount_forward, update_quarter_amount_backward
@@ -690,16 +689,11 @@ def try_to_trade_tit2tat(subpath, guard=False):
         if trade_file.endswith('.sell') == True: # sell order
             l_dir = 'sell'
             reverse_follow_dir = 'buy'
-            if on_guard and guard: # guard price turn
-                guard_signal = close - ema_1
         elif trade_file.endswith('.buy') == True: # buy order
             l_dir = 'buy'
             reverse_follow_dir = 'sell'
-            if on_guard and guard: # guard price turn
-                guard_signal = ema_1 - close
         if guard_signal > 0: # seen signal
             symbol=symbols_mapping[figure_out_symbol_info(event_path)]
-            on_guard = False # silent now, until next period
             globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
             issue_quarter_order_now(symbol, l_dir, 0, 'close')
             # restart it now
@@ -715,8 +709,6 @@ def try_to_trade_tit2tat(subpath, guard=False):
             if open_start_price == 0:
                 open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
             previous_close = close
-            return
-        if guard: # nothing happend, continue
             return
         new_ema_1 = get_ema(ema_1, close, ema_period_1)
         new_ema_2 = get_ema(ema_2, close, ema_period_2)
@@ -823,7 +815,6 @@ def try_to_trade_tit2tat(subpath, guard=False):
                 elif close < previous_close and delta_ema_1 < 0:
                     new_l_dir = 'sell'                
                 if new_open == False:
-                    on_guard = enable_guard
                     if not forced_close:
                         (current_profit, current_profit1, current_profit2, current_profit3) = get_multiple_profit4(close, previous_close, open_price, open_start_price, l_dir, open_greedy)
                     else:
@@ -847,13 +838,6 @@ def try_to_trade_tit2tat(subpath, guard=False):
                         open_start_price = open_price # when seeing this price, should close, init only once
                     else:
                         issuing_close = False
-                    if on_guard:
-                        if l_dir == 'buy' and delta_ema_1 < 0:
-                            issuing_close = True
-                            open_start_price = open_price # when seeing this price, should close, init only once
-                        elif l_dir == 'sell' and delta_ema_1 > 0:
-                            issuing_close = True
-                            open_start_price = open_price # when seeing this price, should close, init only once
                     # if issuing_close is true, check the new direction first
                     if issuing_close == True and l_dir == new_l_dir: # the same direction, just treat it as a greedy
                         issuing_close = False
@@ -1084,7 +1068,7 @@ def emul_signal_notify(l_dir, l_signal):
 
 fence_count = 0
 
-def wait_signal_notify(notify, signal, shutdown, guard):
+def wait_signal_notify(notify, signal, shutdown):
     global fee_threshold, fee_file, amount_file
     global fence_count
     global amount
@@ -1114,7 +1098,7 @@ def wait_signal_notify(notify, signal, shutdown, guard):
         print ('', end='', flush=True)
         try:
             if options.emulate:
-                globals()['try_to_trade_%s' % signal](notify, guard)
+                globals()['try_to_trade_%s' % signal](notify)
                 globals()['save_status_%s' % signal]()
                 break
             if not options.one_shot and not options.do_self_trigger:
@@ -1132,7 +1116,7 @@ def wait_signal_notify(notify, signal, shutdown, guard):
                 subpath = f.readline().rstrip('\n')
                 f.close()
                 #print (subpath)
-                status = globals()['try_to_trade_%s' % signal](subpath, guard)
+                status = globals()['try_to_trade_%s' % signal](subpath)
                 if status != 'no action':
                     globals()['save_status_%s' % signal](subpath)
                     # print (globals()['trade_status'])
@@ -1357,24 +1341,19 @@ while True:
         if timeout > 0: # wait for triggering
             if guard_count == 0:
                 guard_count = timeout / guard_timeout
-            if on_guard and guard_count > 0: # using guard_timeout
-                guard_count -= 1
-                time.sleep(guard_timeout)
-            else:
-                #print (trade_timestamp(),
-                #       'wait for next period about %dh:%dm:%ds later' %
-                #       (timeout / 60 / 60,
-                #        (timeout % 3600) / 60,
-                #        timeout - int(timeout / 60) * 60))
-                time.sleep(timeout)
-                on_guard = False
-                guard_count = 0
+            #print (trade_timestamp(),
+            #       'wait for next period about %dh:%dm:%ds later' %
+            #       (timeout / 60 / 60,
+            #        (timeout % 3600) / 60,
+            #        timeout - int(timeout / 60) * 60))
+            time.sleep(timeout)
+            guard_count = 0
         else:
             #print (trade_timestamp(), 'trigger safely')
             pass
         prepare_for_self_trigger(signal_notify, l_signal, l_dir)
 
-    wait_signal_notify(signal_notify, l_signal, shutdown_notify, on_guard)
+    wait_signal_notify(signal_notify, l_signal, shutdown_notify)
 
     if options.do_self_trigger:
         time.sleep(delta)
