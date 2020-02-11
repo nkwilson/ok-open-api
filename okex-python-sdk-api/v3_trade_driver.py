@@ -673,7 +673,6 @@ def try_to_trade_tit2tat(subpath):
                         pass
                     else:
                         forced_close = False # let stop it here
-                    issuing_close = False
                     if ema_tendency <= 0: # take charge of issuing_close signal
                         issuing_close = True
                     else:
