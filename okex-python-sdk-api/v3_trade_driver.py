@@ -616,6 +616,13 @@ def get_multiple_profit4(close, previoud_close, open_price, open_start_price, l_
         current_profit3 = previous_close - close
     return (current_profit, current_profit1, current_profit2, current_profit3)
 
+def update_open_cost(symbol, contract, direction):
+    t_bond = backend.query_bond(symbol, contract, direction)
+    if t_bond > 0:
+        globals()['last_bond'] = t_bond
+        t_open_cost = globals()['open_price'] * globals()['last_fee'] / globals()['last_bond']  # just see cost
+        globals()['open_cost'] = max(globals()['open_cost'], t_open_cost)
+
 request_price=''
 last_fee = 0
 open_cost = 0
@@ -704,11 +711,7 @@ def try_to_trade_tit2tat(subpath, guard=False):
             issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
 
             (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
-            t_bond = backend.query_bond(symbol, globals()['contract'], l_dir)
-            if t_bond > 0:
-                last_bond = t_bond
-                t_open_cost = open_price * last_fee / last_bond  # just see cost
-                open_cost = max(open_cost, t_open_cost)
+            update_open_cost(symbol, globals()['contract'], l_dir)
             if open_start_price == 0:
                 open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
             previous_close = close
@@ -1018,11 +1021,9 @@ def try_to_trade_tit2tat(subpath, guard=False):
                     issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
                     
                     (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
-                    t_bond = backend.query_bond(symbol, globals()['contract'], l_dir)
-                    if t_bond > 0:
-                        last_bond = t_bond
-                        t_open_cost = open_price * last_fee / last_bond  # just see cost
-                        open_cost = max(open_cost, t_open_cost)
+                    
+                    update_open_cost(symbol, globals()['contract'], l_dir)
+                    
                     if open_start_price == 0:
                         open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
                     previous_close = close
