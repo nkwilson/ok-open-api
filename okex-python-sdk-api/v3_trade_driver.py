@@ -540,11 +540,9 @@ names_tit2tat = ['trade_file',
                  'ema_2_up',
                  'ema_2_lo',
                  'ema_period_2',
-                 'guard_timeout', 
                  'forward_greedy',
                  'backward_greedy',
                  'fast_issue', 
-                 'enable_guard',
                  'open_cost_rate',
                  'wait_for_completion'];
 
@@ -650,12 +648,9 @@ ema_2_up = 0
 ema_2_lo = 0
 forward_greedy = True # following tendency
 backward_greedy = False # following reverse tendency
-guard_timeout = 180 #  3minutes
-enable_guard = False # default is disabled
 update_quarter_amount_forward = True # update it if balance increase
 update_quarter_amount_backward = False # update it if balance decrease
 
-# if guard true, then check and do quick turn 
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -670,7 +665,6 @@ def try_to_trade_tit2tat(subpath):
     global last_decision_logic
     global ema_1, ema_1_up, ema_1_lo
     global ema_2, ema_2_up, ema_2_lo
-    global enable_guard
     global forward_greedy, backward_greedy
     global update_quarter_amount_forward, update_quarter_amount_backward
     global greedy_count, greedy_count_max
@@ -685,31 +679,12 @@ def try_to_trade_tit2tat(subpath):
     if True: # type 256, new file event
         prices = read_4prices(event_path)
         close = prices[ID_CLOSE]
-        guard_signal = 0
         if trade_file.endswith('.sell') == True: # sell order
             l_dir = 'sell'
             reverse_follow_dir = 'buy'
         elif trade_file.endswith('.buy') == True: # buy order
             l_dir = 'buy'
             reverse_follow_dir = 'sell'
-        if guard_signal > 0: # seen signal
-            symbol=symbols_mapping[figure_out_symbol_info(event_path)]
-            globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-            issue_quarter_order_now(symbol, l_dir, 0, 'close')
-            # restart it now
-            # do open
-            l_dir = reverse_follow_dir
-            trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
-            # print (trade_file)
-            globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
-            issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
-
-            (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
-            update_open_cost(symbol, globals()['contract'], l_dir)
-            if open_start_price == 0:
-                open_start_price = prices[ID_OPEN] # when seeing this price, should close, init only once
-            previous_close = close
-            return
         new_ema_1 = get_ema(ema_1, close, ema_period_1)
         new_ema_2 = get_ema(ema_2, close, ema_period_2)
         new_ema_1_up = get_ema(ema_1_up, prices[ID_HIGH], ema_period_1)
@@ -1298,7 +1273,6 @@ def calculate_timeout_for_self_trigger(notify):
 contract = figure_out_contract_info(signal_notify)
 
 first_prompt = True
-guard_count = 0
 while True:
     orig_startup_notify = startup_notify
     if startup_notify != '':
@@ -1339,15 +1313,12 @@ while True:
         (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
 
         if timeout > 0: # wait for triggering
-            if guard_count == 0:
-                guard_count = timeout / guard_timeout
             #print (trade_timestamp(),
             #       'wait for next period about %dh:%dm:%ds later' %
             #       (timeout / 60 / 60,
             #        (timeout % 3600) / 60,
             #        timeout - int(timeout / 60) * 60))
             time.sleep(timeout)
-            guard_count = 0
         else:
             #print (trade_timestamp(), 'trigger safely')
             pass
