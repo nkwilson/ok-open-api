@@ -222,6 +222,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                     break
         (ret, price, amount) = issue_order_now(symbol, contract, direction, amount, action, '' if globals()['fast_issue'] else globals()['request_price'])
         print ('loss ratio=%f%%, %s, closed %d' % (loss, 'yeap' if loss > 0 else 'tough', amount))
+        orders_holding[direction]['holding']=holding
         return (ret, price, amount)
     total_amount = 0
     addon = ''
@@ -241,10 +242,13 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         else: # not positive
             holding.append((price, l_amount)) # put it back
             break
+    if len(holding) == 0 and total_amount == 0: #just use input amount
+        total_amount = amount
     if total_amount > 0 : # yes, has positive holdings
         (ret, price, amount) = issue_order_now(symbol, contract, direction, total_amount, action, '' if globals()['fast_issue'] else globals()['request_price'])
         addon = ' (%d required, %d closed, %d left)' % (saved_amount, total_amount, (t_amount - total_amount))
         total_amount = amount
+    orders_holding[direction]['holding']=holding
     print ('loss ratio=%f%%, keep holding%s' % (loss, addon))
     return (ret, price, total_amount)
 
