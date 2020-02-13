@@ -426,6 +426,7 @@ names_tit2tat = ['trade_file',
                  'previous_close',
                  'open_price',
                  'open_cost',
+                 'open_cost_rate',                 
                  'open_greedy',
                  'quarter_amount',
                  'thisweek_amount_pending',
@@ -516,7 +517,7 @@ def update_open_cost(symbol, contract, direction):
 request_price=''
 last_fee = 0
 open_cost = 0
-open_cost_rate = 0 # percent of previous_close 
+open_cost_rate = 0.005 # percent of previous_close 
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2 # 2 times is up threshold
