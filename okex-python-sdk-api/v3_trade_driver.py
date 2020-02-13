@@ -162,16 +162,19 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
             globals()['amount_ratio'] = float(order_info['leverage'])
         elif 'contract_val' in order_info.keys():
             globals()['amount_ratio'] = float(order_info['contract_val'])
+        price = float(order_info['price_avg']) 
+        if price == 0:
+            price = float(order_info['price'])
         if order_info['filled_qty'] != order_info['size']:
             if wait_for_completion == 0: # it's ok
                 # no update for last_fee
-                return (True, float(order_info['price_avg']), float(order_info['size']))
+                return (True, price, float(order_info['size']))
             else: # should wait 
                 amount -= int(order_info['filled_qty'])
                 reissuing_order += 1
         else:
             globals()['last_fee'] = abs(float(order_info['fee']))
-            return (True, float(order_info['price_avg']), float(order_info['size']))
+            return (True, price, float(order_info['size']))
     except Exception as ex:
         print (ex)
         if amount < 2: # no balance now
