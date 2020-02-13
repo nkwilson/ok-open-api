@@ -49,8 +49,6 @@ parser.add_option('', '--skip_gate_check', dest='skip_gate_check',
                   help="Should skip checking gate when open trade")
 parser.add_option('', '--cmp_scale', dest='cmp_scale', default='1',
                   help='Should multple it before do compare')
-parser.add_option('', '--policy', dest='policy',
-                  help="use specified trade policy, ema_greedy/close_ema/boll_greedy/simple_greedy")
 parser.add_option('', '--which_ema', dest='which_ema', default=0, 
                   help='using with one of ema')
 parser.add_option('', '--order_num', dest='order_num',
@@ -1045,13 +1043,6 @@ else:
     signal_notify = '%s.%snotify' % (l_dir, l_prefix)
 #logging.info ('signal_notify: %s' % signal_notify)
 print ('signal_notify: %s' % signal_notify)
-
-# should emit signal into policy_notify
-if options.policy != None:
-    policy_notify = '%s.%s_notify' % (l_dir, options.policy)
-else:
-    policy_notify = ''
-print ('policy_notify: %s' % policy_notify)
 
 fee_file = '%s.%sfee' % (l_dir, l_prefix)
 #logging.info ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
