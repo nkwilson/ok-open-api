@@ -911,7 +911,7 @@ def emul_signal_notify(l_dir, l_signal):
 fence_count = 0
 
 def wait_signal_notify(notify, signal, shutdown):
-    global fee_threshold, fee_file, amount_file
+    global fee_threshold, fee_file
     global fence_count
     global amount
     global trade_file
@@ -927,13 +927,6 @@ def wait_signal_notify(notify, signal, shutdown):
                     if t_fee_threshold != fee_threshold: # update if diff
                         fee_threshold = t_fee_threshold
                         print ('fee_threshold updated to %f' % fee_threshold)
-            if os.path.isfile(amount_file) and os.path.getsize(amount_file) > 0:
-                with open(amount_file) as f:
-                    t_amount = int(f.readline())
-                    f.close()
-                    if t_amount != amount: # update amount
-                        print ('amount updated from %d to %d' % (amount, t_amount))
-                        amount = t_amount
         except Exception as ex:
             fee_threshold = default_fee_threshold
             print ('fee_threshold reset to %f' % fee_threshold)
@@ -1011,8 +1004,6 @@ if not os.path.isdir(l_dir):
     print ('%s is not valid direction' % l_dir)
     sys.exit(1)
 
-amount_file = '%s.%samount' % (l_dir, l_prefix)
-
 default_amount_ratio = float(options.amount_ratio) # means use 1/50 of total amount on one trade, if auto_amount
 amount_ratio = default_amount_ratio
 ratio_file = '%s.%sratio' % (l_dir, l_prefix)
@@ -1034,8 +1025,6 @@ print ('trade_notify: %s' % trade_notify)
 status_file = '%s.%strade_status' % (l_dir, l_prefix) # file used to save status
 print ('status_file: %s' % status_file)
 trade_status = dict()
-
-print ('using amount file: %s' % amount_file)
 
 if options.signal_notify != None:
     signal_notify = options.signal_notify
