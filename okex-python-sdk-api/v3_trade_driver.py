@@ -144,7 +144,8 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     else:
         result = json.loads(raw_result)
     # print (result)
-    if result['result'] == False:
+    if result['result'] == False or result['result'] == 'false':
+        print (result)
         reissuing_order += 1
         if amount < 2:
             return (False, 0, 0)
@@ -157,7 +158,10 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     #print (order_info)
     try: # in case amount too much 
         # update amount_ratio from current order's lever_rate field
-        globals()['amount_ratio'] = float(order_info['leverage'])
+        if 'leverage' in order_info.keys() :
+            globals()['amount_ratio'] = float(order_info['leverage'])
+        elif 'contract_val' in order_info.keys():
+            globals()['amount_ratio'] = float(order_info['contract_val'])
         if order_info['filled_qty'] != order_info['size']:
             if wait_for_completion == 0: # it's ok
                 # no update for last_fee
@@ -169,6 +173,7 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
             globals()['last_fee'] = abs(float(order_info['fee']))
             return (True, float(order_info['price_avg']), float(order_info['size']))
     except Exception as ex:
+        print (ex)
         if amount < 2: # no balance now
             return (False, 0, 0)
         reissuing_order += 1
@@ -182,6 +187,7 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     try:
         backend.cancel_order(symbol, contract, order_id)
     except Exception as ex:
+        print (ex)
         # API Request Error(code=35065): This type of order cannot be canceled
         # API Request Error(code=35014): Order price is not within limit
         return (False, 0, 0)
