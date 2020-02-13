@@ -267,8 +267,6 @@ def issue_quarter_order_now(symbol, direction, amount, action):
 old_open_price = 0
 old_close_mean = 0
 trade_file = ''
-default_fee_threshold = 0.0001# baesed on one order's fee
-fee_threshold = default_fee_threshold
 levage_rate = 20
 
 symbols_mapping = { 'usd_btc': 'btc_usd',
@@ -911,25 +909,12 @@ def emul_signal_notify(l_dir, l_signal):
 fence_count = 0
 
 def wait_signal_notify(notify, signal, shutdown):
-    global fee_threshold, fee_file
     global fence_count
     global amount
     global trade_file
     shutdown_on_close = False
     while True:
         command = ['fswatch', '-1', notify, shutdown]
-        try:
-            # check if should read fee from file
-            if os.path.isfile(fee_file) and os.path.getsize(fee_file) > 0:
-                with open(fee_file) as f:
-                    t_fee_threshold = float(f.readline())
-                    f.close()
-                    if t_fee_threshold != fee_threshold: # update if diff
-                        fee_threshold = t_fee_threshold
-                        print ('fee_threshold updated to %f' % fee_threshold)
-        except Exception as ex:
-            fee_threshold = default_fee_threshold
-            print ('fee_threshold reset to %f' % fee_threshold)
         print ('', end='', flush=True)
         try:
             if options.emulate:
@@ -1032,10 +1017,6 @@ else:
     signal_notify = '%s.%snotify' % (l_dir, l_prefix)
 #logging.info ('signal_notify: %s' % signal_notify)
 print ('signal_notify: %s' % signal_notify)
-
-fee_file = '%s.%sfee' % (l_dir, l_prefix)
-#logging.info ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
-print ('fee will read from %s if exist, default is %f' % (fee_file, fee_threshold))
 
 pid_file = '%s.%strade_notify.pid' % (l_dir, l_prefix)
 # os.setsid() # privilge
