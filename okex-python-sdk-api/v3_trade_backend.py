@@ -143,6 +143,7 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
         # print (instrument_id, otype, price, size, match_price, order_type)
         # print (result)
     except Exception as ex:
+        result=ex
         print (ex)
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info(ex)
