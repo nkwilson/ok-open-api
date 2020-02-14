@@ -208,7 +208,7 @@ def cleanup_holdings(symbol, contract, direction, amount): # only keep amount
     holding=orders_holding[direction]['holding']
     if len(holding) == 0: # it's ok
         return
-    holding.sort(revers=orders_holding[direction]['reverse'])
+    holding.sort(reverse=orders_holding[direction]['reverse'])
     saved_amount = t_amount
     while t_amount > amount:
         (price, l_amount) = holding.pop()
