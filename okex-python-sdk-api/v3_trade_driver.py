@@ -214,7 +214,7 @@ def cleanup_holdings(symbol, contract, direction, amount): # only keep amount
         (price, l_amount) = holding.pop()
         t_amount -= l_amount
     orders_holding[direction]['holding']=holding
-    print ('cleanup %d, left %d' % (saved_amount - t_amount, t_amount)
+    print ('cleanup %d, left %d' % (saved_amount - t_amount, t_amount))
 
 # for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
