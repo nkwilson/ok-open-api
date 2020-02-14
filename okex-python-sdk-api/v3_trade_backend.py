@@ -346,14 +346,14 @@ def get_real_open_price_and_cost_from_swap(holding, direction):
 def real_open_price_and_cost(symbol, contract, direction):
     inst_id = query_instrument_id(symbol, contract)
     holding=which_api.get_specific_position(inst_id)
-    if holding['result'] != True:
-        return (0,0)
-    if len(holding['holding']) == 0:
-        return (0,0)
     # print (holding['holding'])
     l_dir=transform_direction(direction)
     if contract == 'swap':
         return get_real_open_price_and_cost_from_swap(holding['holding'], l_dir)
+    if holding['result'] != True:
+        return (0,0)
+    if len(holding['holding']) == 0:
+        return (0,0)
     # future orders
     data=holding['holding'][0]
     if data['%s_qty' % l_dir] != 0:
@@ -374,13 +374,13 @@ def get_bond_from_swap(holding, direction):
 def query_bond(symbol, contract, direction):
     inst_id = query_instrument_id(symbol, contract)
     holding=which_api.get_specific_position(inst_id)
+    l_dir=transform_direction(direction)
+    if contract == 'swap':
+        return get_bond_from_swap(holding['holding'], l_dir)
     if holding['result'] != True:
         return 0.0 # 0 means failed
     if len(holding['holding']) == 0:
         return 0.0
-    l_dir=transform_direction(direction)
-    if contract == 'swap':
-        return get_bond_from_swap(holding['holding'], l_dir)
     data=holding['holding'][0]
     if data['%s_qty' % l_dir] != 0:
         return float(data['%s_margin' % l_dir])/float(data['%s_qty' % l_dir])
