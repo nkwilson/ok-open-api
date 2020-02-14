@@ -149,6 +149,7 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
     # API Request Error(code=32014): Positions that you are closing exceeded the total qty of contracts allowed to close
     # API Request Error(code=35014): Order price is not within limit
     if result['error_code'] == '35014': # try again with zero price
+        print ('(code=35014): Order price is not within limit, try again')
         return issue_order(instrument_id, otype, '', size, match_price='1', order_type='0')
     if result['result'] == False or result['error_code'] != '0': # something is wrong
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
