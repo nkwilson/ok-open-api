@@ -162,6 +162,8 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         elif 'contract_val' in order_info.keys():
             globals()['amount_ratio'] = float(order_info['contract_val'])
         price = float(order_info['price_avg']) 
+        if price == 0 and globals()['fast_issue']:
+            price = float(globals()['request_price']) # use last saved price in request_price
         if price == 0:
             price = float(order_info['price'])
         print (order_info)
@@ -473,6 +475,7 @@ names_tit2tat = ['trade_file',
                  'backward_greedy',
                  'fast_issue', 
                  'open_cost_rate',
+                 'request_price',
                  'wait_for_completion'];
 
 def save_status_tit2tat(subpath=''):
@@ -531,7 +534,7 @@ def update_open_cost(price):
     if float(globals()['open_cost_rate']) > 0:
         globals()['open_cost'] = previous_close * float(globals()['open_cost_rate'])
 
-request_price=''
+request_price='0'
 last_fee = 0
 open_cost = 0
 open_cost_rate = 0.005 # percent of previous_close 
@@ -579,7 +582,7 @@ def try_to_trade_tit2tat(subpath):
     global update_quarter_amount_forward, update_quarter_amount_backward
     global greedy_count, greedy_count_max
 
-    globals()['request_price'] = '' # first clear it
+    globals()['request_price'] = '0' # first clear it
     
     greedy_status = ''    
     #print (subpath)
