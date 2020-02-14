@@ -155,7 +155,6 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     if wait_for_completion > 0: # only valid if positive
         time.sleep(wait_for_completion)
     order_info = backend.query_orderinfo(symbol, contract, order_id)
-    #print (order_info)
     try: # in case amount too much 
         # update amount_ratio from current order's lever_rate field
         if 'leverage' in order_info.keys() :
@@ -165,6 +164,7 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         price = float(order_info['price_avg']) 
         if price == 0:
             price = float(order_info['price'])
+        print (order_info)
         if order_info['filled_qty'] != order_info['size']:
             if wait_for_completion == 0: # it's ok
                 # no update for last_fee
