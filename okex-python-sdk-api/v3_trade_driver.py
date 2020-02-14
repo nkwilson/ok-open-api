@@ -200,6 +200,22 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
 orders_holding ={'sell':{'reverse':False, 'holding':list()},
                  'buy':{'reverse':True, 'holding':list()}}
 
+# cleanup holdings, only when holding of quarter_amount
+def cleanup_holdings(symbol, contract, direction, amount): # only keep amount
+    (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
+    if t_amount <= amount: # it's ok
+        return
+    holding=orders_holding[direction]['holding']
+    if len(holding) == 0: # it's ok
+        return
+    holding.sort(revers=orders_holding[direction]['reverse'])
+    saved_amount = t_amount
+    while t_amount > amount:
+        (price, l_amount) = holding.pop()
+        t_amount -= l_amount
+    orders_holding[direction]['holding']=holding
+    print ('cleanup %d, left %d' % (saved_amount - t_amount, t_amount)
+
 # for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     if action == 'open':
@@ -822,6 +838,8 @@ def try_to_trade_tit2tat(subpath):
                                (do_updating, 
                                 amount, new_quarter_amount, 
                                 old_balance, last_balance, delta_balance))
+                        if thisweek_amount_pending >= 0:
+                            cleanup_holdings(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending)
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
