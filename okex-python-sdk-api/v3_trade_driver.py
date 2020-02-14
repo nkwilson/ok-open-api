@@ -412,16 +412,6 @@ ID_HIGH=1
 ID_LOW=2
 ID_CLOSE=3
 
-# Figure out current holding's amount
-def calculate_amount(symbol):
-    if last_bond == 0.0:
-        return 1  # in case error, just process 1 ticket
-    last_balance = backend.quarter_auto_balance(symbol)
-    if last_balance == 0.0:
-        return 1 # just in case
-    return int(last_balance / last_bond / 10 + 0.5)
-    pass
-
 def try_loadsave_with_names(status, names, load):
     if not load:
         globals()[status].clear()        
@@ -532,12 +522,14 @@ def positive_greedy_tiny_profit(price, direction):
 def positive_normal_profit(price, direction):
     return positive_profit_with(price, direction, 'normal')
 
-def update_open_cost(symbol, contract, direction):
+def update_last_bond(symbol, contract, direction):
     t_bond = backend.query_bond(symbol, contract, direction)
     if t_bond > 0:
         globals()['last_bond'] = t_bond
-        t_open_cost = globals()['open_price'] * globals()['last_fee'] / globals()['last_bond']  # just see cost
-        globals()['open_cost'] = max(globals()['open_cost'], t_open_cost)
+
+def update_open_cost(price):
+    if float(globals()['open_cost_rate']) > 0:
+        globals()['open_cost'] = previous_close * float(globals()['open_cost_rate'])
 
 request_price=''
 last_fee = 0
@@ -729,8 +721,7 @@ def try_to_trade_tit2tat(subpath):
                         if greedy_action != '': # update amount
                             open_greedy = True
                             previous_close = close
-                            if float(globals()['open_cost_rate']) > 0:
-                                globals()['open_cost'] = previous_close * float(globals()['open_cost_rate'])
+                            update_open_cost(close)
                             if globals()['amount_real'] > 0 or globals()['greedy_same_amount']:
                                 thisweek_amount = quarter_amount
                             elif globals()['greedy_whole_balance']:
@@ -840,6 +831,7 @@ def try_to_trade_tit2tat(subpath):
                                 old_balance, last_balance, delta_balance))
                         if thisweek_amount_pending >= 0:
                             cleanup_holdings(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending)
+                        update_last_bond(symbol, globals()['contract'], l_dir)
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
@@ -875,7 +867,7 @@ def try_to_trade_tit2tat(subpath):
                     
                     (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
                     
-                    update_open_cost(symbol, globals()['contract'], l_dir)
+                    update_open_cost(open_price)
                     
                     previous_close = close
     return greedy_status
