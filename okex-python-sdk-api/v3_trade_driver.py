@@ -198,23 +198,30 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         return (False, 0, 0)
     return issue_order_now(symbol, contract, direction, amount, action, price)
 
+def get_sell_deta(old_price, current_price):
+    return old_price - current_price
+
+def get_buy_delta(old_price, current_price):
+    return current_price - old_price
+
 # orders need to close, sorted by price
-orders_holding ={'sell':{'reverse':False, 'holding':list()},
-                 'buy':{'reverse':True, 'holding':list()}}
+orders_holding ={'sell':{'reverse':False, 'holding':list(), 'delta':get_sell_deta},
+                 'buy':{'reverse':True, 'holding':list(), 'delta':get_buy_delta}}
 
 # cleanup holdings, only when holding of quarter_amount
-def cleanup_holdings(symbol, contract, direction, amount): # only keep amount
-    (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
+def cleanup_holdings(symbol, contract, direction, amount, price): # only keep amount around price
     holding=orders_holding[direction]['holding']
     if len(holding) == 0: # it's ok
         return
-    holding.sort(reverse=orders_holding[direction]['reverse'])
-    saved_amount = t_amount
-    while t_amount > amount:
-        (price, l_amount) = holding.pop()
-        t_amount -= l_amount
-    orders_holding[direction]['holding']=holding
-    print ('cleanup %d, left %d' % (saved_amount - t_amount, t_amount))
+    (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
+    orders_holding[direction]['holding'].clear()
+
+    # get real start price
+    delta_price = price * loss / 100
+    adj_price = abs(orders_holding[direction]['delta'](price, delta_price))
+
+    orders_holding[direction]['holding'].append((adj_price, l_amount))
+    print ('price adjust to %d, left %d' % (saved_amount - t_amount, t_amount))
 
 # for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
@@ -831,7 +838,7 @@ def try_to_trade_tit2tat(subpath):
                                 amount, new_quarter_amount, 
                                 old_balance, last_balance, delta_balance))
                         if thisweek_amount_pending >= 0:
-                            cleanup_holdings(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending)
+                            cleanup_holdings(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
                         update_last_bond(symbol, globals()['contract'], l_dir)
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
