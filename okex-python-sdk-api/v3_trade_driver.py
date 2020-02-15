@@ -198,11 +198,11 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         return (False, 0, 0)
     return issue_order_now(symbol, contract, direction, amount, action, price)
 
-def get_sell_delta(old_price, current_price):
-    return old_price - current_price
+def get_sell_delta(old_price, delta_price):
+    return old_price + delta_price
 
-def get_buy_delta(old_price, current_price):
-    return current_price - old_price
+def get_buy_delta(old_price, delta_price):
+    return odl_price - delta_price
 
 # orders need to close, sorted by price
 orders_holding ={'sell':{'reverse':False, 'holding':list()},
