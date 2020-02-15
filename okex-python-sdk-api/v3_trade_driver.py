@@ -205,7 +205,7 @@ def get_buy_delta(old_price, current_price):
     return current_price - old_price
 
 # orders need to close, sorted by price
-orders_holding ={'sell':{'reverse':False, 'holding':list(), 'delta':get_sell_deta},
+orders_holding ={'sell':{'reverse':False, 'holding':list(), 'delta':get_sell_delta},
                  'buy':{'reverse':True, 'holding':list(), 'delta':get_buy_delta}}
 
 # cleanup holdings, only when holding of quarter_amount
