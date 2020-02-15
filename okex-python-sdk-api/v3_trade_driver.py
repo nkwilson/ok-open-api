@@ -220,8 +220,8 @@ def cleanup_holdings(symbol, contract, direction, amount, price): # only keep am
     delta_price = price * loss / 100
     adj_price = abs(globals()['get_%s_delta' % (direction)](price, delta_price))
 
-    orders_holding[direction]['holding'].append((adj_price, l_amount))
-    print ('price adjust to %d, left %d' % (saved_amount - t_amount, t_amount))
+    orders_holding[direction]['holding'].append((adj_price, t_amount))
+    print ('price adjust to %d, left %d' % (adj_price, t_amount))
 
 # for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
