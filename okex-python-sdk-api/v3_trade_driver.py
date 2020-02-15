@@ -205,8 +205,8 @@ def get_buy_delta(old_price, current_price):
     return current_price - old_price
 
 # orders need to close, sorted by price
-orders_holding ={'sell':{'reverse':False, 'holding':list(), 'delta':get_sell_delta},
-                 'buy':{'reverse':True, 'holding':list(), 'delta':get_buy_delta}}
+orders_holding ={'sell':{'reverse':False, 'holding':list()},
+                 'buy':{'reverse':True, 'holding':list()}}
 
 # cleanup holdings, only when holding of quarter_amount
 def cleanup_holdings(symbol, contract, direction, amount, price): # only keep amount around price
@@ -218,7 +218,7 @@ def cleanup_holdings(symbol, contract, direction, amount, price): # only keep am
 
     # get real start price
     delta_price = price * loss / 100
-    adj_price = abs(orders_holding[direction]['delta'](price, delta_price))
+    adj_price = abs(gobals()['get_%s_dela' % (direction)](price, delta_price))
 
     orders_holding[direction]['holding'].append((adj_price, l_amount))
     print ('price adjust to %d, left %d' % (saved_amount - t_amount, t_amount))
