@@ -198,7 +198,7 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         return (False, 0, 0)
     return issue_order_now(symbol, contract, direction, amount, action, price)
 
-def get_sell_deta(old_price, current_price):
+def get_sell_delta(old_price, current_price):
     return old_price - current_price
 
 def get_buy_delta(old_price, current_price):
