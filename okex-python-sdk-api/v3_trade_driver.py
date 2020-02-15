@@ -214,6 +214,10 @@ def cleanup_holdings(symbol, contract, direction, amount, price): # only keep am
     if len(holding) == 0: # it's ok
         return
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
+    amounts = sum([float(x[1]) for x in holdings])
+    if amounts <= amount: # is os
+        return
+    
     orders_holding[direction]['holding'].clear()
 
     # get real start price
