@@ -215,7 +215,7 @@ def cleanup_holdings(symbol, contract, direction, amount, price): # only keep am
         return
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
     amounts = sum([float(x[1]) for x in holding])
-    if amounts <= amount: # is os
+    if amounts <= amount: # is ok
         return
     
     orders_holding[direction]['holding'].clear()
@@ -629,8 +629,8 @@ def try_to_trade_tit2tat(subpath):
                    'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_lo),
                    'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
                    'greedy: %.2f' % greedy_count,
-                   'cost: %2.4f/%.2f' % (open_cost, globals()['greedy_cost_multiplier']),
-                   'delta: %2.4f' % (prices[ID_OPEN] - prices[ID_CLOSE])
+                   'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
+                   'delta: %2.5f' % (prices[ID_OPEN] - prices[ID_CLOSE])
             )
         elif l_dir == 'buy': # buy order
             ema_tendency = new_ema_1_up - new_ema_2 # ema_1_up should bigger than ema_2
@@ -641,8 +641,8 @@ def try_to_trade_tit2tat(subpath):
                    'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_up),
                    'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
                    'greedy: %.2f' % greedy_count,
-                   'cost: %2.4f/%.2f' % (open_cost, globals()['greedy_cost_multiplier']),
-                   'delta: %2.4f' % (prices[ID_CLOSE] - prices[ID_OPEN])
+                   'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
+                   'delta: %2.5f' % (prices[ID_CLOSE] - prices[ID_OPEN])
             )                   
         ema_1 = new_ema_1 # saved now
         ema_1_up = new_ema_1_up
