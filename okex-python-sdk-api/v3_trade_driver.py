@@ -165,8 +165,8 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         if price == 0 and globals()['fast_issue']:
             price = float(globals()['request_price']) # use last saved price in request_price
         if price == 0:
-            price = float(order_info['price'])
-        print (order_info)
+            price = float(globals()['current_close'])
+        print (order_info, 'current_close = %.4f' % (globals()['current_close']))
         if order_info['filled_qty'] != order_info['size']:
             if wait_for_completion == 0: # it's ok
                 # no update for last_fee
@@ -414,6 +414,7 @@ def get_ema(previous, new_data, period):
 
 open_price = 0
 previous_close = 0
+current_close = 0 
 last_bond = 0 # means uninitialized
 last_balance = 0
 last_decision_logic=''
@@ -450,6 +451,7 @@ def loadsave_status(signal, load):
 
 names_tit2tat = ['trade_file',
                  'previous_close',
+                 'current_close',
                  'open_price',
                  'open_cost',
                  'open_cost_rate',                 
@@ -616,6 +618,9 @@ def try_to_trade_tit2tat(subpath):
         delta_ema_1 = new_ema_1 - ema_1
         reverse_follow_dir = ''
         price_delta = 0
+
+        globals()['current_close'] = close # save early
+
         print ('') # add an empty line
         if trade_file == '':
             print ('%9.4f' % close, '-',
@@ -1122,8 +1127,8 @@ def prepare_for_self_trigger(notify, signal, l_dir):
 def calculate_timeout_for_self_trigger(notify):
     period_s = periods_mapping_s[figure_out_period_info(notify)]
     moduls =int(datetime.datetime.now().strftime('%s')) % period_s
-    delta = int(20 * random.random()) + 2
-    timeout = (period_s - moduls) + delta # cross the period 
+    delta = int(30 * random.random())
+    timeout = (period_s - moduls) - delta # should in current period, for correct high/low
     if timeout > 0:
         return (timeout, delta)
     else:
