@@ -143,7 +143,7 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
         # print (instrument_id, otype, price, size, match_price, order_type)
         # print (result)
     except Exception as ex:
-        result=ex
+        result={'error_code':ex.code, 'result':False}
         print (ex)
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info(ex)
@@ -152,10 +152,10 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
     # API Request Error(code=35008): Risk ratio too high
     # API Request Error(code=32016): Risk rate lower than 100% after opening position
     # API Request Error(code=32015): Risk rate lower than 100% before opening positio
-    if type(result) == dict and result['error_code'] == '35014' or '35014' in result: # try again with zero price
-        print ('(code=35014): Order price is not within limit, try             again')
-        return issue_order(instrument_id, otype, '', size, match_price='1', order_type='0')
     if result['result'] == False or result['error_code'] != '0': # something is wrong
+        if result['error_code'] == '35014': # try again with zero price
+            print ('(code=35014): Order price is not within limit, try again')
+            return issue_order(instrument_id, otype, '', size, match_price='1', order_type='0')
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info("result:" + json.dumps(result))
     return result
