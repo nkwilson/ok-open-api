@@ -354,17 +354,14 @@ def real_open_price_and_cost(symbol, contract, direction):
     l_dir=transform_direction(direction)
     if contract == 'swap':
         return get_real_open_price_and_cost_from_swap(holding['holding'], l_dir)
-    if holding['result'] != True:
-        return (0,0)
-    if len(holding['holding']) == 0:
-        return (0,0)
-    # future orders
-    data=holding['holding'][0]
-    if data['%s_qty' % l_dir] != 0:
+    try: 
+        # future orders
+        data=holding['holding'][0]
         avg = float(data['%s_avg_cost' % l_dir])
         real = float(data['%s_pnl_ratio' % l_dir])/float(data['%s_leverage' % l_dir])
         return (avg, avg*real)
-    return (0,0)
+    except Exception as ex:
+        return (0, 0)
 
 def get_bond_from_swap(holding, direction):
     result=list(filter(lambda i: i['side'] == direction, holding))
