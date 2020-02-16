@@ -215,7 +215,7 @@ def cleanup_holdings(symbol, contract, direction, amount, price): # only keep am
         return
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = sum([float(x[1]) for x in holding])
-    if int(total_amounts) == int(t_amount): # is ok
+    if total_amounts <= t_amount * 1.2: # is ok
         return
 
     orders_holding[direction]['holding'].clear()
