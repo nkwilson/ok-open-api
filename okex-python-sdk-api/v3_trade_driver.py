@@ -451,7 +451,6 @@ def loadsave_status(signal, load):
 
 names_tit2tat = ['trade_file',
                  'previous_close',
-                 'current_close',
                  'open_price',
                  'open_cost',
                  'open_cost_rate',                 
