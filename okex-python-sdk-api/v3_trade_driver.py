@@ -198,34 +198,34 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         return (False, 0, 0)
     return issue_order_now(symbol, contract, direction, amount, action, price)
 
-def get_sell_delta(old_price, delta_price):
-    return old_price + delta_price
-
-def get_buy_delta(old_price, delta_price):
-    return old_price - delta_price
+def adjust_with_delta(old_price, delta_price, direction):
+    if direction == 'sell':
+        return old_price + delta_price
+    else: # buy
+        return old_price - delta_price
 
 # orders need to close, sorted by price
 orders_holding ={'sell':{'reverse':False, 'holding':list()},
                  'buy':{'reverse':True, 'holding':list()}}
 
-# cleanup holdings, only when holding of quarter_amount
+# cleanup holdings, only when holding of quarter_amount, simplifiy logic, just cleanup all of holdings
 def cleanup_holdings(symbol, contract, direction, amount, price): # only keep amount around price
     holding=orders_holding[direction]['holding']
     if len(holding) == 0: # it's ok
         return
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
-    amounts = sum([float(x[1]) for x in holding])
-    if amounts <= amount: # is ok
+    total_amounts = sum([float(x[1]) for x in holding])
+    if int(total_amounts) == int(t_amount): # is ok
         return
-    
+
     orders_holding[direction]['holding'].clear()
 
     # get real start price
     delta_price = price * loss / 100
-    adj_price = abs(globals()['get_%s_delta' % (direction)](price, delta_price))
+    adj_price = abs(adjust_with_delta(price, delta_price, direction))
 
     orders_holding[direction]['holding'].append((adj_price, t_amount))
-    print ('price adjust to %.4f, left %d' % (adj_price, t_amount))
+    print ('price adjust to %.4f, cleanup %d, left %d' % (adj_price, total_amounts - t_amount, t_amount))
 
 # for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
