@@ -151,8 +151,9 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
     # API Request Error(code=35014): Order price is not within limit
     # API Request Error(code=35008): Risk ratio too high
     # API Request Error(code=32016): Risk rate lower than 100% after opening position
-    if result['error_code'] == '35014': # try again with zero price
-        print ('(code=35014): Order price is not within limit, try again')
+    # API Request Error(code=32015): Risk rate lower than 100% before opening positio
+    if type(result) == dict and result['error_code'] == '35014' or '35014' in result: # try again with zero price
+        print ('(code=35014): Order price is not within limit, try             again')
         return issue_order(instrument_id, otype, '', size, match_price='1', order_type='0')
     if result['result'] == False or result['error_code'] != '0': # something is wrong
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
@@ -380,14 +381,11 @@ def query_bond(symbol, contract, direction):
     l_dir=transform_direction(direction)
     if contract == 'swap':
         return get_bond_from_swap(holding['holding'], l_dir)
-    if holding['result'] != True:
-        return 0.0 # 0 means failed
-    if len(holding['holding']) == 0:
-        return 0.0
-    data=holding['holding'][0]
-    if data['%s_qty' % l_dir] != 0:
+    try:
+        data=holding['holding'][0]
         return float(data['%s_margin' % l_dir])/float(data['%s_qty' % l_dir])
-    return 0.0
+    except Exception as ex:
+        return 0.0
 
 # In [25]: futureAPI.get_coin_account('BTC-USD')
 # Out[25]: 
