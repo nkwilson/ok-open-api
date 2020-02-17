@@ -221,7 +221,7 @@ def cleanup_holdings(symbol, contract, direction, amount, price): # only keep am
     orders_holding[direction]['holding'].clear()
 
     # get real start price
-    delta_price = price * loss / 100
+    delta_price = price * loss / 100 / float(globals()['amount_ratio'])
     adj_price = abs(adjust_with_delta(price, delta_price, direction))
 
     orders_holding[direction]['holding'].append((adj_price, t_amount))
