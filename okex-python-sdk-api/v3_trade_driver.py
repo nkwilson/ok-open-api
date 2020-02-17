@@ -166,7 +166,8 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
             price = float(globals()['request_price']) # use last saved price in request_price
         if price == 0:
             price = float(globals()['current_close'])
-        print (order_info, 'current_close = %.4f' % (globals()['current_close']))
+        # print (order_info, 'current_close = %.4f' % (globals()['current_close']))
+        print (order_info)
         if order_info['filled_qty'] != order_info['size']:
             if wait_for_completion == 0: # it's ok
                 # no update for last_fee
