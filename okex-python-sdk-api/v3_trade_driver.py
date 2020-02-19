@@ -212,7 +212,7 @@ orders_holding ={'sell':{'reverse':False, 'holding':list()},
 # cleanup holdings, only when holding of quarter_amount, simplifiy logic, just cleanup all of holdings
 def cleanup_holdings(symbol, contract, direction, amount, price): # only keep amount around price
     holding=orders_holding[direction]['holding']
-    if len(holding) == 0: # it's ok
+    if len(holding) < 2: # it's ok
         return
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = sum([float(x[1]) for x in holding])
