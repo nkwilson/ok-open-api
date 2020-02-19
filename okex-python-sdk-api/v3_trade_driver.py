@@ -837,18 +837,22 @@ def try_to_trade_tit2tat(subpath):
                             new_quarter_amount = math.ceil(base_amount / amount_ratio + base_amount * amount_ratio_plus)
                         if new_quarter_amount < 1:
                             new_quarter_amount = quarter_amount # means no real update
-                        do_updating = 'no '
+                        do_updating = ''
                         if update_quarter_amount_forward and delta_balance > 0 and quarter_amount < new_quarter_amount : # auto update
                             do_updating = 'do '
                             quarter_amount = new_quarter_amount
                         elif update_quarter_amount_backward and delta_balance < 0 and quarter_amount > new_quarter_amount  : # auto update
                             do_updating = 'do '
                             quarter_amount = new_quarter_amount
-                        print (trade_timestamp(), '%supdate quarter_amount from %s=>%s, balance=%f=>%f,%f%%' %
-                               (do_updating, 
-                                amount, new_quarter_amount, 
-                                old_balance, last_balance, delta_balance))
-                        update_last_bond(symbol, globals()['contract'], l_dir)
+                        if do_updating != '':
+                            print (trade_timestamp(), '%supdate quarter_amount from %s=>%s' %
+                                   (do_updating, 
+                                    amount, new_quarter_amount), end='')
+                            if greedy_action == 'close':
+                                print (', balance=%f=>%f,%f%%' %
+                                       (old_balance, last_balance, delta_balance), end='')
+                            print ('')
+                            update_last_bond(symbol, globals()['contract'], l_dir)
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
