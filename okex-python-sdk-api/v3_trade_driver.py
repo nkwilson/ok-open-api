@@ -714,7 +714,7 @@ def try_to_trade_tit2tat(subpath):
                     if issuing_close == True and l_dir == new_l_dir: # the same direction, just treat it as a greedy
                         issuing_close = False
                     greedy_action = ''
-                    greedy_status = 'no action'
+                    greedy_status = ''
                     update_quarter_amount = False
                     if issuing_close == False and (forward_greedy or backward_greedy): 
                         # emit open again signal
@@ -732,7 +732,8 @@ def try_to_trade_tit2tat(subpath):
                             elif (close - previous_close) > greedy_cost_multiplier * open_cost:
                                 greedy_action = 'open'
                                 greedy_status = 'holding'
-                        print (trade_timestamp(), 'greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
+                        if greedy_status != '':
+                            print (trade_timestamp(), 'greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
                         if greedy_action != '': # update amount
                             open_greedy = True
                             previous_close = close
