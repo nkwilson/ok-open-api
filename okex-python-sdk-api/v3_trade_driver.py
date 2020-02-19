@@ -781,6 +781,7 @@ def try_to_trade_tit2tat(subpath):
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
+                            cleanup_holdings(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, previous_close)                                
                             if greedy_count < 1.0: # must bigger than 1
                                 issue_quarter_order_now(symbol, l_dir, thisweek_amount * greedy_count_max - 1, 'close') # forced, left 1 in case empty holding
                                 thisweek_amount_pending -= thisweek_amount * greedy_count_max - 1
@@ -811,8 +812,6 @@ def try_to_trade_tit2tat(subpath):
                                     issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
                         if greedy_action == '' or greedy_count >= greedy_count_max : # update balance
                             update_quarter_amount = True
-                        if greedy_action == 'open': # when open, cleanup and update holding's price
-                            cleanup_holdings(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, previous_close)                                
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                         issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False) # use zero to close all 
