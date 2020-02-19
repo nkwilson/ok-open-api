@@ -216,8 +216,6 @@ def cleanup_holdings(symbol, contract, direction, amount, price): # only keep am
         return
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = sum([float(x[1]) for x in holding])
-    if total_amounts == t_amount: # is ok
-        return
 
     orders_holding[direction]['holding'].clear()
 
@@ -849,8 +847,8 @@ def try_to_trade_tit2tat(subpath):
                                (do_updating, 
                                 amount, new_quarter_amount, 
                                 old_balance, last_balance, delta_balance))
-                        if thisweek_amount_pending >= 0:
-                            cleanup_holdings(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
+                        if greedy_action == 'open': # when open, cleanup and update holding's price
+                            cleanup_holdings(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)                                
                         update_last_bond(symbol, globals()['contract'], l_dir)
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
