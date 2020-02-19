@@ -224,7 +224,7 @@ def cleanup_holdings(symbol, contract, direction, amount, price): # only keep am
     adj_price = total_ticks / total_amounts
 
     orders_holding[direction]['holding'].append((adj_price, t_amount))
-    print ('price adjust to %.4f, cleanup %d, left %d' % (adj_price, total_amounts - t_amount, t_amount))
+    print ('    price adjust to %.4f, cleanup %d, left %d' % (adj_price, total_amounts - t_amount, t_amount))
 
 # for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
