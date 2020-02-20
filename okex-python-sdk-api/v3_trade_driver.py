@@ -230,6 +230,9 @@ def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only
     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = holding[0][1]
 
+    if contract == 'swap': # for swap, loss is 100 times value
+        loss = loss / 100
+
     # get real start price
     if direction == 'buy':
         origin_price = price  / (1 + loss / leverage)
