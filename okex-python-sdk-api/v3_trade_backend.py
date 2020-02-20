@@ -317,9 +317,10 @@ def get_loss_amount_from_swap(holding, direction):
         data=result[0]
         loss = float(data['unrealized_pnl']) * 100 / float(data['margin'])
         amount = float(data['avail_position'])
-        return (loss, amount)
+        leverage = float(data['leverage'])
+        return (loss, amount, leverage)
     except Exception as ex:
-        return (0, 0)
+        return (0, 0, 0)
 
 def check_holdings_profit(symbol, contract, direction):
     try:
@@ -332,9 +333,13 @@ def check_holdings_profit(symbol, contract, direction):
         data = holding['holding'][0]
         loss = float(data['%s_pnl_ratio' % new_dir])
         amount = float(data['%s_avail_qty' % new_dir])
-        return (loss, amount) # , margin / amount)
+        if 'leverage' in data.keys():
+            leverage = float(data['leverage'])
+        else:
+            leverage = float(data['%s_leverage' % new_dir])
+        return (loss, amount, leverage)
     except Exception as ex:
-        return (0, 0)
+        return (0, 0, 0)
 
 def get_real_open_price_and_cost_from_swap(holding, direction):
     try:

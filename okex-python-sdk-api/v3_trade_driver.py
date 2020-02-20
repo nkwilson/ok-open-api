@@ -156,11 +156,6 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         time.sleep(wait_for_completion)
     order_info = backend.query_orderinfo(symbol, contract, order_id)
     try: # in case amount too much 
-        # update amount_ratio from current order's lever_rate field
-        if 'leverage' in order_info.keys() :
-            globals()['amount_ratio'] = float(order_info['leverage'])
-        elif 'contract_val' in order_info.keys():
-            globals()['amount_ratio'] = float(order_info['contract_val'])
         price = float(order_info['price_avg']) 
         if price == 0 and globals()['fast_issue']:
             price = float(globals()['request_price']) # use last saved price in request_price
@@ -214,10 +209,12 @@ def cleanup_holdings_atopen(symbol, contract, direction, amount, price): # only 
     holding=orders_holding[direction]['holding']
     if len(holding) < 3: # it's ok to keep 2 as unbalanced
         return
-    (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
+    (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = sum([float(x[1]) for x in holding])
     total_ticks = sum([float(x[1]) * float(x[0]) for x in holding])
-    
+
+    globals()['amount_ratio'] = leverage
+
     orders_holding[direction]['holding'].clear()
 
     # get real start price
@@ -230,14 +227,15 @@ def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only
     holding=orders_holding[direction]['holding']
     if len(holding) != 1: # only when single
         return
-    (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
+    (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = holding[0][1]
 
     # get real start price
     if direction == 'buy':
-        origin_price = price * 100 / (100 + loss / float(globals()['amount_ratio']))
+        origin_price = price * 100 / (100 + loss / leverage)
     else:
-        origin_price = price * 100 / (100 - loss / float(globals()['amount_ratio']))
+        origin_price = price * 100 / (100 - loss / leverage)
+    globals()['amount_ratio'] = leverage
 
     orders_holding[direction]['holding'][0] = (origin_price, t_amount)
     print ('    atclose price adjust to %.4f, cleanup %d, left %d' % (origin_price, total_amounts - t_amount, t_amount))
@@ -246,7 +244,7 @@ def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     if action == 'open':
         return issue_order_now(symbol, contract, direction, amount, action, '' if globals()['fast_issue'] else globals()['request_price'])
-    (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
+    (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
     if t_amount == 0:
         return (False, 0, 0) # no operation (ret, price, amount)
     holding=orders_holding[direction]['holding']
@@ -693,7 +691,8 @@ def try_to_trade_tit2tat(subpath):
                     else:
                         t_amount = open_price - delta * amount_ratio # calcuate by forced close probability
                     if not options.emulate: # if emualtion, figure it manually
-                        (loss, t_amount) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+                        (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+                        globals()['amount_ratio'] = leverage
                     if t_amount <= 0:
                         # open it un-conditionally
                         issue_quarter_order_now(symbol, l_dir, 1, 'open')
