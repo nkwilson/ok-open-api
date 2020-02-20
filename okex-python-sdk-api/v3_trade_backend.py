@@ -331,7 +331,7 @@ def check_holdings_profit(symbol, contract, direction):
             return get_loss_amount_from_swap(holding['holding'], new_dir)
         # future orders
         data = holding['holding'][0]
-        loss = float(data['%s_pnl_ratio' % new_dir])
+        loss = float(data['%s_pnl_ratio' % new_dir]) * 100 # loss is float value less than 100
         amount = float(data['%s_avail_qty' % new_dir])
         if 'leverage' in data.keys():
             leverage = float(data['leverage'])
