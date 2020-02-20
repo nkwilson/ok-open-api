@@ -232,9 +232,9 @@ def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only
 
     # get real start price
     if direction == 'buy':
-        origin_price = price * 100 / (100 + loss / leverage)
+        origin_price = price  / (1 + loss / leverage)
     else:
-        origin_price = price * 100 / (100 - loss / leverage)
+        origin_price = price  / (1 - loss / leverage)
     globals()['amount_ratio'] = leverage
 
     orders_holding[direction]['holding'][0] = (origin_price, t_amount)
