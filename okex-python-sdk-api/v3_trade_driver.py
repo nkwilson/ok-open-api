@@ -210,7 +210,7 @@ orders_holding ={'sell':{'reverse':False, 'holding':list()},
                  'buy':{'reverse':True, 'holding':list()}}
 
 # cleanup holdings, only when holding of quarter_amount, simplifiy logic, just cleanup all of holdings
-def cleanup_holdings(symbol, contract, direction, amount, price): # only keep amount around price
+def cleanup_holdings_atopen(symbol, contract, direction, amount, price): # only keep amount around price
     holding=orders_holding[direction]['holding']
     if len(holding) < 3: # it's ok to keep 2 as unbalanced
         return
@@ -224,7 +224,25 @@ def cleanup_holdings(symbol, contract, direction, amount, price): # only keep am
     adj_price = total_ticks / total_amounts
 
     orders_holding[direction]['holding'].append((adj_price, t_amount))
-    print ('    price adjust to %.4f, cleanup %d, left %d' % (adj_price, total_amounts - t_amount, t_amount))
+    print ('    atopen price adjust to %.4f, cleanup %d, left %d' % (adj_price, total_amounts - t_amount, t_amount))
+
+def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only keep amount around price
+    holding=orders_holding[direction]['holding']
+    if len(holding) > 1: # only when single
+        return
+    (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
+    total_amounts = sum([float(x[1]) for x in holding])
+
+    orders_holding[direction]['holding'].clear()
+
+    # get real start price
+    if direction == 'buy':
+        origin_price = price * 100 / (100 + math.floor(loss))
+    else:
+        origin_price = price * 100 / (100 - math.floor(loss))
+
+    orders_holding[direction]['holding'].append((origin_price, t_amount))
+    print ('    atclose price adjust to %.4f, cleanup %d, left %d' % (origin_price, total_amounts - t_amount, t_amount))
 
 # for both open and close
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
@@ -779,10 +797,11 @@ def try_to_trade_tit2tat(subpath):
                                         thisweek_amount_pending += l_amount
                                 else:
                                     greedy_count = greedy_count + (1 / greedy_count_max)
+
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
-                            cleanup_holdings(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, previous_close)                                
+                            cleanup_holdings_atopen(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
                             if greedy_count < 1.0: # must bigger than 1
                                 issue_quarter_order_now(symbol, l_dir, thisweek_amount * greedy_count_max - 1, 'close') # forced, left 1 in case empty holding
                                 thisweek_amount_pending -= thisweek_amount * greedy_count_max - 1
@@ -813,6 +832,8 @@ def try_to_trade_tit2tat(subpath):
                                     issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
                         if greedy_action == '' or greedy_count >= greedy_count_max : # update balance
                             update_quarter_amount = True
+                        if greedy_action != 'open':
+                            cleanup_holdings_atclose(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
                     if issuing_close == True:
                         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
                         issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False) # use zero to close all 
