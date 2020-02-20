@@ -237,9 +237,9 @@ def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only
 
     # get real start price
     if direction == 'buy':
-        origin_price = price * 100 / (100 + math.floor(loss))
+        origin_price = price * 100 / (100 + loss)
     else:
-        origin_price = price * 100 / (100 - math.floor(loss))
+        origin_price = price * 100 / (100 - loss)
 
     orders_holding[direction]['holding'].append((origin_price, t_amount))
     print ('    atclose price adjust to %.4f, cleanup %d, left %d' % (origin_price, total_amounts - t_amount, t_amount))
