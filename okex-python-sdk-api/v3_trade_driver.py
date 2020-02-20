@@ -228,12 +228,10 @@ def cleanup_holdings_atopen(symbol, contract, direction, amount, price): # only 
 
 def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only keep amount around price
     holding=orders_holding[direction]['holding']
-    if len(holding) > 1: # only when single
+    if len(holding) != 1: # only when single
         return
     (loss, t_amount) = backend.check_holdings_profit(symbol, contract, direction)
-    total_amounts = sum([float(x[1]) for x in holding])
-
-    orders_holding[direction]['holding'].clear()
+    total_amounts = holding[0][1]
 
     # get real start price
     if direction == 'buy':
@@ -241,7 +239,7 @@ def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only
     else:
         origin_price = price * 100 / (100 - loss)
 
-    orders_holding[direction]['holding'].append((origin_price, t_amount))
+    orders_holding[direction]['holding'][0] = (origin_price, t_amount)
     print ('    atclose price adjust to %.4f, cleanup %d, left %d' % (origin_price, total_amounts - t_amount, t_amount))
 
 # for both open and close
