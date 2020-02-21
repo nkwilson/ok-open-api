@@ -12,6 +12,8 @@ import datetime
 import logging
 import json
 
+import time
+
 log_format = '%(asctime)s - %(levelname)s - %(message)s'
 logging.basicConfig(filename='order_exceptions.json', filemode='a', format=log_format, level=logging.INFO)
 
@@ -137,6 +139,7 @@ def query_ticker(instrument_id):
 #  'error_message': '',
 #  'order_id': '4295822327387137',
 #  'result': True}
+
 def issue_order(instrument_id, otype, price, size, match_price, order_type):
     try:
         result=which_api.take_order(instrument_id=instrument_id, type=otype, price=price, size=size, match_price=match_price, order_type=order_type)
@@ -228,12 +231,40 @@ def cancel_order(symbol, contract, orderid):
 #  'timestamp': '2020-01-29T08:04:06.760Z',
 #  'type': '2'}
 
+# state字段标记订单查询结果
+# state	String	订单状态
+# -2：失败 
+# -1：撤单成功 
+# 0：等待成交 
+# 1：部分成交 
+# 2：完全成交 
+# 3：下单中 
+# 4：撤单中
+
 def query_orderinfo(symbol, contract, orderid):
     inst_id=query_instrument_id(symbol, contract)
     result = which_api.get_order_info(inst_id, orderid)
     # print (result)
     return result
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
+
+def query_orderinfo_wait(symbol, contract, orderid):
+    try:
+        state = 0
+        loops = 10
+        while  state >= 0 and loop > 0: 
+            result = query_orderinfo(symbol, contract, orderid)
+            # print (result)
+            state = int(result['state'])
+            if state == 2: # yes, full
+                return result
+            time.sleep(1) # wait 1 second
+            loop -= 1
+            continue;
+        return result
+    except Exception as ex:
+        print (ex)
+        return ex
 
 # In [7]: backend.query_kline('bch_usd', '300', 'this_week')
 # Out[7]: 
