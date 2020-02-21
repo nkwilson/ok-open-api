@@ -252,14 +252,14 @@ def query_orderinfo_wait(symbol, contract, orderid):
     try:
         state = 0
         loops = 10
-        while  state >= 0 and loop > 0: 
+        while  state >= 0 and loops > 0: 
             result = query_orderinfo(symbol, contract, orderid)
             # print (result)
             state = int(result['state'])
             if state == 2: # yes, full
                 return result
             time.sleep(1) # wait 1 second
-            loop -= 1
+            loops -= 1
             continue;
         return result
     except Exception as ex:
