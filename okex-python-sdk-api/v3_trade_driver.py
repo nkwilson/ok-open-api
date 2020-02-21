@@ -797,7 +797,7 @@ def try_to_trade_tit2tat(subpath):
                                         thisweek_amount_pending += l_amount
                                 else:
                                     #greedy_count = greedy_count + (1 / greedy_count_max)
-                                    greedy_count = greedy_count + 1
+                                    greedy_count = min(greedy_count + 1, greedy_count_max)
 
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
