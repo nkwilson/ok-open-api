@@ -802,7 +802,8 @@ def try_to_trade_tit2tat(subpath):
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
-                            reverse_amount = thisweek_amount * 0.90
+                            r_rate = 0.90
+                            reverse_amount = thisweek_amount * r_rate
                             if reverse_amount < 1:
                                 reverse_amount = 1
 
@@ -811,7 +812,7 @@ def try_to_trade_tit2tat(subpath):
                             if greedy_count < 1.0: # must bigger than 1
                                 # open reverse order
                                 (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
-                                if thisweek_amount_pending > 0 and t_amount < thisweek_amount_pending: # no enough reverse orders
+                                if thisweek_amount_pending > 0 and t_amount < thisweek_amount_pending * r_rate: # no enough reverse orders
                                     if globals()['greedy_same_amount']:
                                         (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
                                         if ret:
