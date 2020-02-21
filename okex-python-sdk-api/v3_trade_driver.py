@@ -808,7 +808,7 @@ def try_to_trade_tit2tat(subpath):
                             else:
                                 greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                                 if forward_greedy: # adjust open sequence according to l_dir
-                                    reverse_amount = thisweek_amount * 0.80
+                                    reverse_amount = thisweek_amount * 0.90
                                     if reverse_amount < 1:
                                         reverse_amount = 1
                                     if l_dir == 'buy': # first open sell, then open buy
