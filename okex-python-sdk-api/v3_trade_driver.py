@@ -608,7 +608,7 @@ def try_to_trade_tit2tat(subpath):
     global update_quarter_amount_forward, update_quarter_amount_backward
     global greedy_count, greedy_count_max
 
-    globals()['request_price'] = '0' # first clear it
+    globals()['request_price'] = '' # first clear it
     
     greedy_status = ''    
     #print (subpath)
