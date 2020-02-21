@@ -154,7 +154,10 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     #print (order_id)
     if wait_for_completion > 0: # only valid if positive
         time.sleep(wait_for_completion)
-    order_info = backend.query_orderinfo(symbol, contract, order_id)
+    if not price: # if empty, must wait for complete
+        order_info = backend.query_orderinfo_wait(symbol, contract, order_id)
+    else:
+        order_info = backend.query_orderinfo(symbol, contract, order_id)
     try: # in case amount too much 
         price = float(order_info['price_avg']) 
         if price == 0 and globals()['fast_issue']:
