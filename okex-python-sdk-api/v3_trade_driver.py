@@ -210,7 +210,7 @@ orders_holding ={'sell':{'reverse':False, 'holding':list()},
 # cleanup holdings, only when holding of quarter_amount, simplifiy logic, just cleanup all of holdings
 def cleanup_holdings_atopen(symbol, contract, direction, amount, price): # only keep amount around price
     holding=orders_holding[direction]['holding']
-    if len(holding) < 3: # it's ok to keep 2 as unbalanced
+    if len(holding) < int(globals()['greedy_count_max']) + 2: # it's ok to keep some as unbalanced
         return
     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = sum([float(x[1]) for x in holding])
