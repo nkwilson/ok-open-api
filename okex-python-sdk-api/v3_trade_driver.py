@@ -856,6 +856,8 @@ def try_to_trade_tit2tat(subpath):
                         update_quarter_amount = True
                         trade_file = '' # clear it
                     if update_quarter_amount == True:
+                        update_last_bond(symbol, globals()['contract'], l_dir)
+
                         old_balance = last_balance
                         last_balance = backend.query_balance(symbol, globals()['contract'])
                         if last_balance == 0:
@@ -884,7 +886,6 @@ def try_to_trade_tit2tat(subpath):
                                 print (', balance=%f=>%f,%f%%' %
                                        (old_balance, last_balance, delta_balance), end='')
                             print ('')
-                            update_last_bond(symbol, globals()['contract'], l_dir)
                 if close_greedy == True:
                     print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
                                                                                        'forced ' if forced_close == True else '',  'closed'))
