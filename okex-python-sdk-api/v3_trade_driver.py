@@ -809,14 +809,18 @@ def try_to_trade_tit2tat(subpath):
 
                             cleanup_holdings_atopen(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
 
-                            if greedy_count < 1.0: # must bigger than 1
+                            do_makeup = False
+                            # first take reverse into account and do some makeup
+                            (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
+                            if thisweek_amount_pending > 0 and t_amount < int(reverse_amount) * int(thisweek_amount_pending / quarter_amount): # no enough reverse orders
+                                do_makeup = True
+                            
+                            if greedy_count < 1.0 or do_makeup: # must bigger than 1
                                 # open reverse order
-                                (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
-                                if thisweek_amount_pending > 0 and t_amount < int(reverse_amount) * int(thisweek_amount_pending / quarter_amount): # no enough reverse orders
-                                    if globals()['greedy_same_amount']:
-                                        (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
-                                        if ret:
-                                            globals()['request_price'] = price
+                                if globals()['greedy_same_amount']:
+                                    (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
+                                    if ret:
+                                        globals()['request_price'] = price
                             else:
                                 #greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                                 greedy_count -= 1
