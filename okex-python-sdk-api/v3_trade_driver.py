@@ -563,7 +563,7 @@ def update_open_cost(price):
 request_price='0'
 last_fee = 0
 open_cost = 0
-open_cost_rate = 0.005 # percent of previous_close 
+open_cost_rate = 0.008 # percent of previous_close 
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2 # 2 times is up threshold
@@ -802,7 +802,7 @@ def try_to_trade_tit2tat(subpath):
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
-                            r_rate = 0.90
+                            r_rate = 0.87 # 0.13 plus with 0.8 cost rate, bigger than fee rate (0.015 + 0.03) * 2
                             reverse_amount = thisweek_amount * r_rate
                             if reverse_amount < 1:
                                 reverse_amount = 1
