@@ -560,10 +560,21 @@ def update_open_cost(price):
     if float(globals()['open_cost_rate']) > 0:
         globals()['open_cost'] = previous_close * float(globals()['open_cost_rate'])
 
+# when do greedy trade, should choose aproperiate open_cost_rate x and reverse_amount_rate p
+# assume leverage is 21, buy amount is 0.05, total is 21 * 0.05 = 1.05
+# 0.0015 is open fee rate, 0.03 is close fee rate
+# using this formula:
+# 1.05 * (0.0015 + 0.003) * ( 1 + p) <= 1.05 * ( 1 - p) * x * 21
+# 0.0045 / 21 * (1 + p) / ( 1 - p ) <= x
+# let t = x * 21 / 0.0045
+# p <=  (t - 1)/(t + 1)
+# if x = 0.008, p should less than 0.947
+# if x = 0.005, p should less than 0.917
 request_price='0'
 last_fee = 0
 open_cost = 0
-open_cost_rate = 0.008 # percent of previous_close 
+open_cost_rate = 0.0055 # percent of previous_close
+reverse_amount_rate = 0.9 
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2 # 2 times is up threshold
@@ -802,7 +813,7 @@ def try_to_trade_tit2tat(subpath):
                             if backward_greedy:
                                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         elif greedy_action == 'open': # yes, open action pending
-                            r_rate = 0.87 # 0.13 plus with 0.8 cost rate, bigger than fee rate (0.015 + 0.03) * 2
+                            r_rate = globals()['reverse_amount_rate']
                             reverse_amount = thisweek_amount * r_rate
                             if reverse_amount < 1:
                                 reverse_amount = 1
