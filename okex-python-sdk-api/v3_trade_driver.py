@@ -775,16 +775,15 @@ def try_to_trade_tit2tat(subpath):
                     thisweek_amount = math.ceil((quarter_amount / ( 1 / amount_ratio + amount_ratio_plus) - quarter_amount) / greedy_count_max)
                 else:
                     thisweek_amount = math.floor((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
-ending
-直接买入quarter_amount , greedy_count = max, pending = 0
-greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
-greedy_count < 1, 减少持仓， - (quarter_amount - 1), 更新 pending
-新 balance，quarter_amount
-pending==0, greedy_count += 1/ max ;  == 重复该过程
-pending > 0, 减少持仓pending， 根据减少的比例增加 greedy_count
-pending < 0, greedy_count = max
-pending < 0, greedy_count >= max，则直接增加持仓为 -pending
-
+#  持续更新 pending
+#  开始状态，直接买入quarter_amount , greedy_count = max, pending = 0
+#  逆向发展，greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
+#  逆向发展，greedy_count < 1, 减少持仓， - (quarter_amount - 1), 更新 pending
+#  无动作，更新 balance，quarter_amount
+#  同向发展，pending==0, greedy_count += 1/ max ;  == 重复该过程
+#  同向发展，pending > 0, 减少持仓pending， 根据减少的比例增加 greedy_count
+#  同向发展，pending < 0, greedy_count = max
+#  同向发展，pending < 0, greedy_count >= max，则直接增加持仓为 -pending
             if greedy_action == 'close': # yes, close action pending
                 if forward_greedy :
                     if globals()['greedy_same_amount']:
