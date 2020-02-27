@@ -515,6 +515,11 @@ def save_status_tit2tat(subpath=''):
 def load_status_tit2tat(subpath=''):
     loadsave_status('tit2tat', load=True)
 
+def save_balance_tit2tat(subpath, symbol, price, balance):
+    with open('%s.balance' % (subpath), 'w+') as w:
+        w.write('%s\n' % ([datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), symbol, price, balance]))
+        w.close()
+
 def get_greedy_tiny_delta(price):
     # print ('greedy delta', globals()['previous_close'], price)
     return 10 * (globals()['previous_close'] - price) # 'previous_close is update to current price'
@@ -939,6 +944,10 @@ def try_to_trade_tit2tat(subpath):
                     update_open_cost(open_price)
                     
                     previous_close = close
+                # save balance when midnight
+                midnight = datetime.datetime.utcnow()
+                if midnight.hour == 0:
+                    save_balance_tit2tat(subpath, symbol, close, backend.query_balance(symbol, globals()['contract']))
     return greedy_status
 
 direction = 0
