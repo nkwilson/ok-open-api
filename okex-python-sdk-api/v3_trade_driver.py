@@ -631,323 +631,320 @@ def try_to_trade_tit2tat(subpath):
     event_path=subpath
     l_index = os.path.basename(event_path)
     # print (l_index, event_path)
-    if True: # type 256, new file event
-        prices = read_4prices(event_path)
-        close = prices[ID_CLOSE]
-        if trade_file.endswith('.sell') == True: # sell order
-            l_dir = 'sell'
-            reverse_follow_dir = 'buy'
-        elif trade_file.endswith('.buy') == True: # buy order
-            l_dir = 'buy'
-            reverse_follow_dir = 'sell'
-        new_ema_1 = get_ema(ema_1, close, ema_period_1)
-        new_ema_2 = get_ema(ema_2, close, ema_period_2)
-        new_ema_1_up = get_ema(ema_1_up, prices[ID_HIGH], ema_period_1)
-        new_ema_1_lo = get_ema(ema_1_lo, prices[ID_LOW], ema_period_1)
-        new_ema_2_up = get_ema(ema_2_up, prices[ID_HIGH], ema_period_2)
-        new_ema_2_lo = get_ema(ema_2_lo, prices[ID_LOW], ema_period_2)        
-        delta_ema_1 = new_ema_1 - ema_1
-        reverse_follow_dir = ''
-        price_delta = 0
+    prices = read_4prices(event_path)
+    close = prices[ID_CLOSE]
+    if trade_file.endswith('.sell') == True: # sell order
+        l_dir = 'sell'
+        reverse_follow_dir = 'buy'
+    elif trade_file.endswith('.buy') == True: # buy order
+        l_dir = 'buy'
+        reverse_follow_dir = 'sell'
+    new_ema_1 = get_ema(ema_1, close, ema_period_1)
+    new_ema_2 = get_ema(ema_2, close, ema_period_2)
+    new_ema_1_up = get_ema(ema_1_up, prices[ID_HIGH], ema_period_1)
+    new_ema_1_lo = get_ema(ema_1_lo, prices[ID_LOW], ema_period_1)
+    new_ema_2_up = get_ema(ema_2_up, prices[ID_HIGH], ema_period_2)
+    new_ema_2_lo = get_ema(ema_2_lo, prices[ID_LOW], ema_period_2)        
+    delta_ema_1 = new_ema_1 - ema_1
+    reverse_follow_dir = ''
+    price_delta = 0
 
-        globals()['current_close'] = close # save early
+    globals()['current_close'] = close # save early
 
-        print ('') # add an empty line
-        if trade_file == '':
-            print ('%9.4f' % close, '-',
-                   'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
-        elif l_dir == 'sell': # sell order
-            ema_tendency = new_ema_2 - new_ema_1_lo # ema_2 should bigger than ema_1_lo
-            reverse_follow_dir = 'buy'
-            price_delta = (previous_close - close) / previous_close
-            print ('%9.4f' % -close, '%9.4f' % previous_close, l_dir, 
-                   'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
-                   'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_lo),
-                   'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
-                   'greedy: %.2f' % greedy_count,
-                   'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
-                   'delta: %2.5f' % (prices[ID_OPEN] - prices[ID_CLOSE])
-            )
-        elif l_dir == 'buy': # buy order
-            ema_tendency = new_ema_1_up - new_ema_2 # ema_1_up should bigger than ema_2
-            reverse_follow_dir = 'sell'
-            price_delta = (close - previous_close) / previous_close
-            print ('%9.4f' % close, '%9.4f' % -previous_close, l_dir, 
-                   'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
-                   'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_up),
-                   'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
-                   'greedy: %.2f' % greedy_count,
-                   'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
-                   'delta: %2.5f' % (prices[ID_CLOSE] - prices[ID_OPEN])
-            )                   
-        ema_1 = new_ema_1 # saved now
-        ema_1_up = new_ema_1_up
-        ema_1_lo = new_ema_1_lo
-        ema_2 = new_ema_2 # saved now
-        ema_2_up = new_ema_2_up
-        ema_2_lo = new_ema_2_lo
-        if close == 0: # in case read failed
-            return
-        if True:
-            if True:
-                if previous_close == 0:
-                    previous_close = close
-                    close_greedy = False
-                    return
-                
-                symbol=symbols_mapping[figure_out_symbol_info(event_path)]
+    print ('') # add an empty line
+    if trade_file == '':
+        print ('%9.4f' % close, '-',
+               'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
+    elif l_dir == 'sell': # sell order
+        ema_tendency = new_ema_2 - new_ema_1_lo # ema_2 should bigger than ema_1_lo
+        reverse_follow_dir = 'buy'
+        price_delta = (previous_close - close) / previous_close
+        print ('%9.4f' % -close, '%9.4f' % previous_close, l_dir, 
+               'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
+               'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_lo),
+               'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
+               'greedy: %.2f' % greedy_count,
+               'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
+               'delta: %2.5f' % (prices[ID_OPEN] - prices[ID_CLOSE])
+        )
+    elif l_dir == 'buy': # buy order
+        ema_tendency = new_ema_1_up - new_ema_2 # ema_1_up should bigger than ema_2
+        reverse_follow_dir = 'sell'
+        price_delta = (close - previous_close) / previous_close
+        print ('%9.4f' % close, '%9.4f' % -previous_close, l_dir, 
+               'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
+               'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_up),
+               'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
+               'greedy: %.2f' % greedy_count,
+               'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
+               'delta: %2.5f' % (prices[ID_CLOSE] - prices[ID_OPEN])
+        )                   
+    ema_1 = new_ema_1 # saved now
+    ema_1_up = new_ema_1_up
+    ema_1_lo = new_ema_1_lo
+    ema_2 = new_ema_2 # saved now
+    ema_2_up = new_ema_2_up
+    ema_2_lo = new_ema_2_lo
+    if close == 0: # in case read failed
+        return
+    if previous_close == 0:
+        previous_close = close
+        close_greedy = False
+        return
+    
+    symbol=symbols_mapping[figure_out_symbol_info(event_path)]
 
-                new_open = True
-                forced_close = False
-                if trade_file != '':
-                    new_open = False
-                    if l_dir == 'buy':
-                        delta = open_price - prices[ID_LOW]
-                    else: # sell
-                        delta = prices[ID_HIGH] - open_price
-                    if delta < 0.001: # zero means too small
-                        t_amount = 1
-                    else:
-                        t_amount = open_price - delta * amount_ratio # calcuate by forced close probability
-                    if not options.emulate: # if emualtion, figure it manually
-                        (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
-                        globals()['amount_ratio'] = leverage
-                    if t_amount <= 0:
-                        # open it un-conditionally
-                        issue_quarter_order_now(symbol, l_dir, 1, 'open')
-                        # check if should take normal close action
-                        forced_close = True
-                    else:
-                        thisweek_amount_pending = math.ceil(t_amount - quarter_amount)
-                if forced_close:
-                    open_greedy = True
-                    # suffered forced close
-                    globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                    print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
-                    # action likes new_open equals true, but take original l_dir as it
-                    mini_amount = max(1, math.ceil(quarter_amount / 8))
-                    issue_quarter_order_now(symbol, l_dir, mini_amount, 'open')
-                    # clear it
-                    thisweek_amount_pending = 0
-                    (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
-                new_l_dir = ''
-                if close > previous_close and delta_ema_1 > 0:
-                    new_l_dir = 'buy'
-                elif close < previous_close and delta_ema_1 < 0:
-                    new_l_dir = 'sell'                
-                if new_open == False:
-                    if not forced_close:
-                        pass
-                    else:
-                        forced_close = False # let stop it here
-                    if ema_tendency <= 0: # take charge of issuing_close signal
-                        issuing_close = True
-                    else:
-                        issuing_close = False
-                    # if issuing_close is true, check the new direction first
-                    if issuing_close == True and l_dir == new_l_dir: # the same direction, just treat it as a greedy
-                        issuing_close = False
-                    greedy_action = ''
-                    greedy_status = ''
-                    update_quarter_amount = False
-                    if issuing_close == False and (forward_greedy or backward_greedy): 
-                        # emit open again signal
-                        if l_dir == 'buy':
-                            if (close - previous_close) > greedy_cost_multiplier * open_cost:
-                                greedy_action = 'close'
-                                greedy_status = 'maybe closed'
-                            elif (close - previous_close) < - greedy_cost_multiplier * open_cost:
-                                greedy_action = 'open'
-                                greedy_status = 'holding'
-                        elif l_dir == 'sell':
-                            if (close - previous_close) < - greedy_cost_multiplier * open_cost:
-                                greedy_action = 'close'
-                                greedy_status = 'maybe closed'
-                            elif (close - previous_close) > greedy_cost_multiplier * open_cost:
-                                greedy_action = 'open'
-                                greedy_status = 'holding'
-                        if greedy_status != '':
-                            print (trade_timestamp(), 'greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
-                        if greedy_action != '': # update amount
-                            open_greedy = True
-                            previous_close = close
-                            update_open_cost(close)
-                            if globals()['amount_real'] > 0 or globals()['greedy_same_amount']:
-                                thisweek_amount = quarter_amount
-                            elif globals()['greedy_whole_balance']:
-                                thisweek_amount = math.ceil((quarter_amount / ( 1 / amount_ratio + amount_ratio_plus) - quarter_amount) / greedy_count_max)
-                            else:
-                                thisweek_amount = math.floor((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
-#  持续更新 pending
-#  开始状态，直接买入quarter_amount , greedy_count = max, pending = 0
-#  逆向发展，greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
-#  逆向发展，greedy_count < 1, 减少持仓， - (quarter_amount - 1), 更新 pending
-#  无动作，更新 balance，quarter_amount
-#  同向发展，pending==0, greedy_count += 1/ max ;  == 重复该过程
-#  同向发展，pending > 0, 减少持仓pending， 根据减少的比例增加 greedy_count
-#  同向发展，pending < 0, greedy_count = max
-#  同向发展，pending < 0, greedy_count >= max，则直接增加持仓为 -pending
-#  
-                        if greedy_action == 'close': # yes, close action pending
-                            if forward_greedy :
-                                if globals()['greedy_same_amount']:
-                                    (ret, price, l_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
-                                    if ret:
-                                        globals()['request_price'] = price
-                                if thisweek_amount_pending > 0: 
-                                    (ret, price, l_amount) = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
-                                    if thisweek_amount_pending >= l_amount: # is ok
-                                        thisweek_amount_pending -= l_amount
-                                    else:
-                                        print ('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
-                                        thisweek_amount_pending = 0;
-                                    if thisweek_amount_pending == 0: # fresh go
-                                        greedy_count = greedy_count_max # increase it to threshold
-                                    else:
-                                        greedy_count += (l_amount / thisweek_amount)                                    
-                                elif thisweek_amount_pending < 0 : # if less holdings, increase it
-                                    if greedy_count < greedy_count_max:
-                                        greedy_count = greedy_count_max
-                                    else:
-                                        (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending, 'open') # as much as possible
-                                        thisweek_amount_pending += l_amount
-                                else:
-                                    #greedy_count = greedy_count + (1 / greedy_count_max)
-                                    greedy_count = min(greedy_count + 1, greedy_count_max)
+    new_open = True
+    forced_close = False
+    if trade_file != '':
+        new_open = False
+        if l_dir == 'buy':
+            delta = open_price - prices[ID_LOW]
+        else: # sell
+            delta = prices[ID_HIGH] - open_price
+        if delta < 0.001: # zero means too small
+            t_amount = 1
+        else:
+            t_amount = open_price - delta * amount_ratio # calcuate by forced close probability
+        if not options.emulate: # if emualtion, figure it manually
+            (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+            globals()['amount_ratio'] = leverage
+        if t_amount <= 0:
+            # open it un-conditionally
+            issue_quarter_order_now(symbol, l_dir, 1, 'open')
+            # check if should take normal close action
+            forced_close = True
+        else:
+            thisweek_amount_pending = math.ceil(t_amount - quarter_amount)
+    if forced_close:
+        open_greedy = True
+        # suffered forced close
+        globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+        print (trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
+        # action likes new_open equals true, but take original l_dir as it
+        mini_amount = max(1, math.ceil(quarter_amount / 8))
+        issue_quarter_order_now(symbol, l_dir, mini_amount, 'open')
+        # clear it
+        thisweek_amount_pending = 0
+        (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
+    new_l_dir = ''
+    if close > previous_close and delta_ema_1 > 0:
+        new_l_dir = 'buy'
+    elif close < previous_close and delta_ema_1 < 0:
+        new_l_dir = 'sell'                
+    if new_open == False:
+        if not forced_close:
+            pass
+        else:
+            forced_close = False # let stop it here
+        if ema_tendency <= 0: # take charge of issuing_close signal
+            issuing_close = True
+        else:
+            issuing_close = False
+        # if issuing_close is true, check the new direction first
+        if issuing_close == True and l_dir == new_l_dir: # the same direction, just treat it as a greedy
+            issuing_close = False
+        greedy_action = ''
+        greedy_status = ''
+        update_quarter_amount = False
+        if issuing_close == False and (forward_greedy or backward_greedy): 
+            # emit open again signal
+            if l_dir == 'buy':
+                if (close - previous_close) > greedy_cost_multiplier * open_cost:
+                    greedy_action = 'close'
+                    greedy_status = 'maybe closed'
+                elif (close - previous_close) < - greedy_cost_multiplier * open_cost:
+                    greedy_action = 'open'
+                    greedy_status = 'holding'
+            elif l_dir == 'sell':
+                if (close - previous_close) < - greedy_cost_multiplier * open_cost:
+                    greedy_action = 'close'
+                    greedy_status = 'maybe closed'
+                elif (close - previous_close) > greedy_cost_multiplier * open_cost:
+                    greedy_action = 'open'
+                    greedy_status = 'holding'
+            if greedy_status != '':
+                print (trade_timestamp(), 'greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
+            if greedy_action != '': # update amount
+                open_greedy = True
+                previous_close = close
+                update_open_cost(close)
+                if globals()['amount_real'] > 0 or globals()['greedy_same_amount']:
+                    thisweek_amount = quarter_amount
+                elif globals()['greedy_whole_balance']:
+                    thisweek_amount = math.ceil((quarter_amount / ( 1 / amount_ratio + amount_ratio_plus) - quarter_amount) / greedy_count_max)
+                else:
+                    thisweek_amount = math.floor((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
+ending
+直接买入quarter_amount , greedy_count = max, pending = 0
+greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
+greedy_count < 1, 减少持仓， - (quarter_amount - 1), 更新 pending
+新 balance，quarter_amount
+pending==0, greedy_count += 1/ max ;  == 重复该过程
+pending > 0, 减少持仓pending， 根据减少的比例增加 greedy_count
+pending < 0, greedy_count = max
+pending < 0, greedy_count >= max，则直接增加持仓为 -pending
 
-                            if backward_greedy:
-                                issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
-                        elif greedy_action == 'open': # yes, open action pending
-                            r_rate = globals()['reverse_amount_rate']
-                            reverse_amount = thisweek_amount * r_rate
-                            if reverse_amount < 1:
-                                reverse_amount = 1
-
-                            cleanup_holdings_atopen(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
-
-                            do_makeup = False
-                            # first take reverse into account and do some makeup
-                            (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
-                            if thisweek_amount_pending > 0 and t_amount < int(reverse_amount) * int(thisweek_amount_pending / quarter_amount): # no enough reverse orders
-                                do_makeup = True
-                            
-                            if greedy_count < 1.0 or do_makeup: # must bigger than 1
-                                # open reverse order
-                                if globals()['greedy_same_amount']:
-                                    (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
-                                    if ret:
-                                        globals()['request_price'] = price
-                            else:
-                                #greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
-                                greedy_count -= 1
-                                if forward_greedy: # adjust open sequence according to l_dir
-                                    if l_dir == 'buy': # first open sell, then open buy
-                                        if globals()['greedy_same_amount']:
-                                            (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
-                                            if ret:
-                                                globals()['request_price'] = price
-                                        issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
-                                        pass
-                                    else:
-                                        (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
-                                        if ret:
-                                            globals()['request_price'] = price
-                                        if globals()['greedy_same_amount']:
-                                            issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
-                                        pass
-                                    thisweek_amount_pending += thisweek_amount
-                                if backward_greedy:
-                                    issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
-                                    # secondly open new order
-                                    issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
-                        if greedy_action == '' or greedy_count >= greedy_count_max : # update balance
-                            update_quarter_amount = True
-                        if greedy_action != 'open':
-                            cleanup_holdings_atclose(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
-                    if issuing_close == True:
-                        globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-                        issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False) # use zero to close all 
-                        # and open again, just like new_open == True
-                        new_open = True
-                        if open_greedy == True :
-                            close_greedy = backward_greedy # only if backward_greedy is true
-                            open_greedy = False
-                            thisweek_amount_pending = 0
-                        update_quarter_amount = True
-                        trade_file = '' # clear it
-                    if update_quarter_amount == True:
-                        update_last_bond(symbol, globals()['contract'], l_dir)
-
-                        old_balance = last_balance
-                        last_balance = backend.query_balance(symbol, globals()['contract'])
-                        if last_balance == 0:
-                            last_balance = old_balance # in case quary failed
-                        delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
-                        amount = quarter_amount
-                        base_amount = last_balance / last_bond if last_bond > 0 else 1
-                        if amount_real > 0: # if set, just use it
-                            new_quarter_amount = math.ceil(base_amount * amount_real)
+            if greedy_action == 'close': # yes, close action pending
+                if forward_greedy :
+                    if globals()['greedy_same_amount']:
+                        (ret, price, l_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+                        if ret:
+                            globals()['request_price'] = price
+                    if thisweek_amount_pending > 0: 
+                        (ret, price, l_amount) = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
+                        if thisweek_amount_pending >= l_amount: # is ok
+                            thisweek_amount_pending -= l_amount
                         else:
-                            new_quarter_amount = math.ceil(base_amount / amount_ratio + base_amount * amount_ratio_plus)
-                        if new_quarter_amount < 1:
-                            new_quarter_amount = quarter_amount # means no real update
-                        do_updating = ''
-                        if update_quarter_amount_forward and delta_balance > 0 and quarter_amount < new_quarter_amount : # auto update
-                            do_updating = 'do '
-                            quarter_amount = new_quarter_amount
-                        elif update_quarter_amount_backward and delta_balance < 0 and quarter_amount > new_quarter_amount  : # auto update
-                            do_updating = 'do '
-                            quarter_amount = new_quarter_amount
-                        if do_updating != '':
-                            print (trade_timestamp(), '%supdate quarter_amount from %s=>%s' %
-                                   (do_updating, 
-                                    amount, new_quarter_amount), end='')
-                            if greedy_action == 'close':
-                                print (', balance=%f=>%f,%f%%' %
-                                       (old_balance, last_balance, delta_balance), end='')
-                            print ('')
-                if close_greedy == True:
-                    print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
-                                                                                       'forced ' if forced_close == True else '',  'closed'))
-                    if forward_greedy:
-                        if globals()['greedy_same_amount']:
-                            issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
-                        issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', False)
-                    if backward_greedy:    
-                        issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
-                    thisweek_amount_pending = 0
-                    close_greedy = False
-                if new_open == True:
-                    if new_l_dir == '': 
-                        previous_close = close
-                        return
+                            print ('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
+                            thisweek_amount_pending = 0;
+                        if thisweek_amount_pending == 0: # fresh go
+                            greedy_count = greedy_count_max # increase it to threshold
+                        else:
+                            greedy_count += (l_amount / thisweek_amount)                                    
+                    elif thisweek_amount_pending < 0 : # if less holdings, increase it
+                        if greedy_count < greedy_count_max:
+                            greedy_count = greedy_count_max
+                        else:
+                            (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending, 'open') # as much as possible
+                            thisweek_amount_pending += l_amount
                     else:
-                        l_dir = new_l_dir
-                    trade_file = ''
-                    open_greedy = False
-                    close_greedy = False
-                    open_price = 0.0
-                    greedy_count = greedy_count_max
-                    
-                    if l_dir == '': # no updating
-                        previous_close = close
-                        return
-                    
-                    # do open
-                    trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
-                    # print (trade_file)
-                    globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
-                    issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
-                    
-                    (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
-                    
-                    update_open_cost(open_price)
-                    
-                    previous_close = close
-                # save balance when midnight
-                midnight = datetime.datetime.utcnow()
-                if midnight.hour == 0:
-                    save_balance_tit2tat(subpath, symbol, close, backend.query_balance(symbol, globals()['contract']))
+                        #greedy_count = greedy_count + (1 / greedy_count_max)
+                        greedy_count = min(greedy_count + 1, greedy_count_max)
+
+                if backward_greedy:
+                    issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+            elif greedy_action == 'open': # yes, open action pending
+                r_rate = globals()['reverse_amount_rate']
+                reverse_amount = thisweek_amount * r_rate
+                if reverse_amount < 1:
+                    reverse_amount = 1
+
+                cleanup_holdings_atopen(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
+
+                do_makeup = False
+                # first take reverse into account and do some makeup
+                (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
+                if thisweek_amount_pending > 0 and t_amount < int(reverse_amount) * int(thisweek_amount_pending / quarter_amount): # no enough reverse orders
+                    do_makeup = True
+                
+                if greedy_count < 1.0 or do_makeup: # must bigger than 1
+                    # open reverse order
+                    if globals()['greedy_same_amount']:
+                        (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
+                        if ret:
+                            globals()['request_price'] = price
+                else:
+                    #greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
+                    greedy_count -= 1
+                    if forward_greedy: # adjust open sequence according to l_dir
+                        if l_dir == 'buy': # first open sell, then open buy
+                            if globals()['greedy_same_amount']:
+                                (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
+                                if ret:
+                                    globals()['request_price'] = price
+                            issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                            pass
+                        else:
+                            (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
+                            if ret:
+                                globals()['request_price'] = price
+                            if globals()['greedy_same_amount']:
+                                issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
+                            pass
+                        thisweek_amount_pending += thisweek_amount
+                    if backward_greedy:
+                        issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
+                        # secondly open new order
+                        issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
+            if greedy_action == '' or greedy_count >= greedy_count_max : # update balance
+                update_quarter_amount = True
+            if greedy_action != 'open':
+                cleanup_holdings_atclose(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
+        if issuing_close == True:
+            globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
+            issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False) # use zero to close all 
+            # and open again, just like new_open == True
+            new_open = True
+            if open_greedy == True :
+                close_greedy = backward_greedy # only if backward_greedy is true
+                open_greedy = False
+                thisweek_amount_pending = 0
+            update_quarter_amount = True
+            trade_file = '' # clear it
+        if update_quarter_amount == True:
+            update_last_bond(symbol, globals()['contract'], l_dir)
+
+            old_balance = last_balance
+            last_balance = backend.query_balance(symbol, globals()['contract'])
+            if last_balance == 0:
+                last_balance = old_balance # in case quary failed
+            delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
+            amount = quarter_amount
+            base_amount = last_balance / last_bond if last_bond > 0 else 1
+            if amount_real > 0: # if set, just use it
+                new_quarter_amount = math.ceil(base_amount * amount_real)
+            else:
+                new_quarter_amount = math.ceil(base_amount / amount_ratio + base_amount * amount_ratio_plus)
+            if new_quarter_amount < 1:
+                new_quarter_amount = quarter_amount # means no real update
+            do_updating = ''
+            if update_quarter_amount_forward and delta_balance > 0 and quarter_amount < new_quarter_amount : # auto update
+                do_updating = 'do '
+                quarter_amount = new_quarter_amount
+            elif update_quarter_amount_backward and delta_balance < 0 and quarter_amount > new_quarter_amount  : # auto update
+                do_updating = 'do '
+                quarter_amount = new_quarter_amount
+            if do_updating != '':
+                print (trade_timestamp(), '%supdate quarter_amount from %s=>%s' %
+                       (do_updating, 
+                        amount, new_quarter_amount), end='')
+                if greedy_action == 'close':
+                    print (', balance=%f=>%f,%f%%' %
+                           (old_balance, last_balance, delta_balance), end='')
+                print ('')
+    if close_greedy == True:
+        print (trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
+                                                                           'forced ' if forced_close == True else '',  'closed'))
+        if forward_greedy:
+            if globals()['greedy_same_amount']:
+                issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+            issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', False)
+        if backward_greedy:    
+            issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+        thisweek_amount_pending = 0
+        close_greedy = False
+    if new_open == True:
+        if new_l_dir == '': 
+            previous_close = close
+            return
+        else:
+            l_dir = new_l_dir
+        trade_file = ''
+        open_greedy = False
+        close_greedy = False
+        open_price = 0.0
+        greedy_count = greedy_count_max
+        
+        if l_dir == '': # no updating
+            previous_close = close
+            return
+        
+        # do open
+        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
+        # print (trade_file)
+        globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
+        issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
+        
+        (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
+        
+        update_open_cost(open_price)
+        
+        previous_close = close
+    # save balance when midnight
+    midnight = datetime.datetime.utcnow()
+    if midnight.hour == 0:
+        save_balance_tit2tat(subpath, symbol, close, backend.query_balance(symbol, globals()['contract']))
     return greedy_status
 
 direction = 0
