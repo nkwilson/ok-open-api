@@ -691,6 +691,9 @@ def try_to_trade_tit2tat(subpath):
         previous_close = close
         close_greedy = False
         return
+
+    # save balance when midnight
+    midnight = datetime.datetime.utcnow()
     
     symbol=symbols_mapping[figure_out_symbol_info(event_path)]
 
@@ -940,9 +943,7 @@ def try_to_trade_tit2tat(subpath):
         update_open_cost(open_price)
         
         previous_close = close
-    # save balance when midnight
-    midnight = datetime.datetime.utcnow()
-    if midnight.hour == 0:
+    if midnight.hour == 23:
         save_balance_tit2tat(subpath, symbol, close, backend.query_balance(symbol, globals()['contract']))
     return greedy_status
 
