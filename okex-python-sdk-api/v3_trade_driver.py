@@ -14,7 +14,6 @@ from datetime import datetime as dt
 import subprocess
 from subprocess import PIPE
 
-
 import logging
 
 import locale
@@ -28,6 +27,8 @@ limit_direction = ''  # 'buy'/'sell'
 
 def check_limit_direction(direction):
     return limit_direction == '' or limit_direction == direction
+
+
 limit_price = 0
 limit_symbol = ''
 limit_amount = 0
@@ -37,58 +38,62 @@ import json
 
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("", "--signal_notify", dest="signal_notify",
-                  help="specify signal notifier")
-parser.add_option("", "--startup_notify", dest="startup_notify",
-                  help="specify startup notifier")
-parser.add_option("", "--shutdown_notify", dest="shutdown_notify",
-                  help="specify shutdown notifier")
-parser.add_option('', '--emulate', dest='emulate',
-                  action="store_true", default=False,
+parser.add_option("", "--signal_notify", dest="signal_notify", help="specify signal notifier")
+parser.add_option("", "--startup_notify", dest="startup_notify", help="specify startup notifier")
+parser.add_option("", "--shutdown_notify", dest="shutdown_notify", help="specify shutdown notifier")
+parser.add_option('',
+                  '--emulate',
+                  dest='emulate',
+                  action="store_true",
+                  default=False,
                   help="try to emulate trade notify")
-parser.add_option('', '--skip_gate_check', dest='skip_gate_check',
-                  action="store_false", default=True,
+parser.add_option('',
+                  '--skip_gate_check',
+                  dest='skip_gate_check',
+                  action="store_false",
+                  default=True,
                   help="Should skip checking gate when open trade")
-parser.add_option('', '--cmp_scale', dest='cmp_scale', default='1',
-                  help='Should multple it before do compare')
-parser.add_option('', '--which_ema', dest='which_ema', default=0,
-                  help='using with one of ema')
-parser.add_option('', '--order_num', dest='order_num',
-                  help='how much orders')
-parser.add_option('', '--fee_amount', dest='fee_amount',
-                  help='take amount int account with fee')
-parser.add_option('', '--signal', dest='signals', default=['tit2tat'],
+parser.add_option('', '--cmp_scale', dest='cmp_scale', default='1', help='Should multple it before do compare')
+parser.add_option('', '--which_ema', dest='which_ema', default=0, help='using with one of ema')
+parser.add_option('', '--order_num', dest='order_num', help='how much orders')
+parser.add_option('', '--fee_amount', dest='fee_amount', help='take amount int account with fee')
+parser.add_option('',
+                  '--signal',
+                  dest='signals',
+                  default=['tit2tat'],
                   action='append',
                   help='use wich signal to generate trade notify and also as prefix, boll, simple, tit2tat')
-parser.add_option('', '--latest', dest='latest_to_read', default='1000',
-                  help='only keep that much old values')
-parser.add_option('', '--dir', dest='dirs', default=[],
-                  action='append',
-                  help='target dir should processing')
-parser.add_option('', '--bins', dest='bins', default=0,
-                  help='wait how many reverse, 0=once, 1=twice')
-parser.add_option('', '--nolog', dest='nolog',
-                  action='store_true', default=False,
-                  help='Do not log to file')
-parser.add_option('', '--ratio', dest='amount_ratio', default=9,
-                  help='default trade ratio of total amount')
-parser.add_option('', '--previous_close', dest='previous_close',
-                  help='init previous_close')
-parser.add_option('', '--restore_status', dest='restore_status',
-                  action='store_false', default=True,
+parser.add_option('', '--latest', dest='latest_to_read', default='1000', help='only keep that much old values')
+parser.add_option('', '--dir', dest='dirs', default=[], action='append', help='target dir should processing')
+parser.add_option('', '--bins', dest='bins', default=0, help='wait how many reverse, 0=once, 1=twice')
+parser.add_option('', '--nolog', dest='nolog', action='store_true', default=False, help='Do not log to file')
+parser.add_option('', '--ratio', dest='amount_ratio', default=9, help='default trade ratio of total amount')
+parser.add_option('', '--previous_close', dest='previous_close', help='init previous_close')
+parser.add_option('',
+                  '--restore_status',
+                  dest='restore_status',
+                  action='store_false',
+                  default=True,
                   help='restore status from status_file')
-parser.add_option('', '--one_shot', dest='one_shot',
-                  action='store_true', default=False,
+parser.add_option('',
+                  '--one_shot',
+                  dest='one_shot',
+                  action='store_true',
+                  default=False,
                   help='just run once, save status and quit')
-parser.add_option('', '--self_trigger', dest='do_self_trigger',
-                  action='store_false', default=True,
+parser.add_option('',
+                  '--self_trigger',
+                  dest='do_self_trigger',
+                  action='store_false',
+                  default=True,
                   help='read price by myself and do following trade')
-parser.add_option('', '--noaction', dest='noaction',
-                  action='store_true', default=False,
+parser.add_option('',
+                  '--noaction',
+                  dest='noaction',
+                  action='store_true',
+                  default=False,
                   help='dry run, no real buy/sell action')
-parser.add_option('', '--api', dest='api_version',
-                  default='v3',
-                  help='use specified api version[v1|v3], default is v3')
+parser.add_option('', '--api', dest='api_version', default='v3', help='use specified api version[v1|v3], default is v3')
 
 (options, args) = parser.parse_args()
 print(type(options), options, args)
@@ -96,8 +101,8 @@ print(type(options), options, args)
 #backend=__import__('%s_trade_backend' % options.api_version)
 import v3_trade_backend as backend
 
-
 # demo: ok_sub_futureusd_btc_kline_quarter_4hou
+
 
 def figure_out_symbol_info(path):
     path = os.path.splitext(path)[0]
@@ -126,28 +131,35 @@ def figure_out_period_info(path):
     # print('period is %s' % (path[start:]))
     return path[start:]
 
-order_infos = {'usd_btc':'btc_usd',
-               'usd_ltc':'ltc_usd',
-               'usd_eth':'eth_usd',
-               'usd_eos':'eos_usd',
-               'usd_bch':'bch_usd',
-               'usd_xrp':'xrp_usd',
-               'sell':{'open': backend.open_order_sell_rate,
-                       'close':backend.close_order_sell_rate},
-               'buy':{'open':backend.open_order_buy_rate,
-                      'close':backend.close_order_buy_rate}}
 
-fast_issue = 1 # use optimized price to finish order as fast as possible
+order_infos = {
+    'usd_btc': 'btc_usd',
+    'usd_ltc': 'ltc_usd',
+    'usd_eth': 'eth_usd',
+    'usd_eos': 'eos_usd',
+    'usd_bch': 'bch_usd',
+    'usd_xrp': 'xrp_usd',
+    'sell': {
+        'open': backend.open_order_sell_rate,
+        'close': backend.close_order_sell_rate
+    },
+    'buy': {
+        'open': backend.open_order_buy_rate,
+        'close': backend.close_order_buy_rate
+    }
+}
+
+fast_issue = 1  # use optimized price to finish order as fast as possible
 
 reissuing_order = 0
-wait_for_completion = 1 # default is no wait
+wait_for_completion = 1  # default is no wait
 
 
 def issue_order_now(symbol, contract, direction, amount, action, price=''):
     global reissuing_order, wait_for_completion
     # print(symbol, direction, amount, action)
     raw_result = order_infos[direction][action](symbol, contract, amount, price)
-    if type(raw_result) == dict :
+    if type(raw_result) == dict:
         result = raw_result
     else:
         result = json.loads(raw_result)
@@ -158,27 +170,27 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         if amount < 2:
             return (False, 0, 0)
         return issue_order_now(symbol, contract, direction, amount / 2, action, price)
-    order_id = str(result['order_id']) # no exceptions, means successed
+    order_id = str(result['order_id'])  # no exceptions, means successed
     #print(order_id)
-    if wait_for_completion > 0: # only valid if positive
+    if wait_for_completion > 0:  # only valid if positive
         time.sleep(wait_for_completion)
-    if not price: # if empty, must wait for complete
+    if not price:  # if empty, must wait for complete
         order_info = backend.query_orderinfo_wait(symbol, contract, order_id)
     else:
         order_info = backend.query_orderinfo(symbol, contract, order_id)
-    try: # in case amount too much
+    try:  # in case amount too much
         price = float(order_info['price_avg'])
         if price == 0 and globals()['fast_issue']:
-            price = float(globals()['request_price']) # use last saved price in request_price
+            price = float(globals()['request_price'])  # use last saved price in request_price
         if price == 0:
             price = float(globals()['current_close'])
         # print(order_info, 'current_close = %.4f' % (globals()['current_close']))
         print(order_info)
         if order_info['filled_qty'] != order_info['size']:
-            if wait_for_completion == 0: # it's ok
+            if wait_for_completion == 0:  # it's ok
                 # no update for last_fee
                 return (True, price, float(order_info['size']))
-            else: # should wait
+            else:  # should wait
                 amount -= int(order_info['filled_qty'])
                 reissuing_order += 1
         else:
@@ -186,13 +198,13 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
             return (True, price, float(order_info['size']))
     except Exception as ex:
         print(ex)
-        if amount < 2: # no balance now
+        if amount < 2:  # no balance now
             return (False, 0, 0)
         reissuing_order += 1
         amount = amount / 2
-    if contract == 'swap': # temp logic
+    if contract == 'swap':  # temp logic
         return (False, 0, 0)
-    if reissuing_order > 60: # more than 60 , quit
+    if reissuing_order > 60:  # more than 60 , quit
         reissuing_order = 0
         return (False, 0, 0)
     print('try to cancel pending order and reissue', ' amount = %d' % amount)
@@ -209,18 +221,19 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
 def adjust_with_delta(old_price, delta_price, direction):
     if direction == 'sell':
         return old_price + delta_price
-    else: # buy
+    else:  # buy
         return old_price - delta_price
 
+
 # orders need to close, sorted by price
-orders_holding ={'sell':{'reverse':False, 'holding':list()},
-                 'buy':{'reverse':True, 'holding':list()}}
+orders_holding = {'sell': {'reverse': False, 'holding': list()}, 'buy': {'reverse': True, 'holding': list()}}
 
 # cleanup holdings, only when holding of quarter_amount, simplifiy logic, just cleanup all of holdings
 
-def cleanup_holdings_atopen(symbol, contract, direction, amount, price): # only keep amount around price
-    holding=orders_holding[direction]['holding']
-    if len(holding) < int(globals()['greedy_count_max']) + 2: # it's ok to keep some as unbalanced
+
+def cleanup_holdings_atopen(symbol, contract, direction, amount, price):  # only keep amount around price
+    holding = orders_holding[direction]['holding']
+    if len(holding) < int(globals()['greedy_count_max']) + 2:  # it's ok to keep some as unbalanced
         return
     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = sum([float(x[1]) for x in holding])
@@ -237,9 +250,9 @@ def cleanup_holdings_atopen(symbol, contract, direction, amount, price): # only 
     print('    atopen price adjust to %.4f, cleanup %d, left %d' % (adj_price, total_amounts - t_amount, t_amount))
 
 
-def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only keep amount around price
-    holding=orders_holding[direction]['holding']
-    if len(holding) != 1: # only when single
+def cleanup_holdings_atclose(symbol, contract, direction, amount, price):  # only keep amount around price
+    holding = orders_holding[direction]['holding']
+    if len(holding) != 1:  # only when single
         return
     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = holding[0][1]
@@ -254,27 +267,30 @@ def cleanup_holdings_atclose(symbol, contract, direction, amount, price): # only
     orders_holding[direction]['holding'][0] = (origin_price, t_amount)
     print('    atclose price adjust to %.4f, cleanup %d, left %d' % (origin_price, total_amounts - t_amount, t_amount))
 
+
 # for both open and close
+
 
 def issue_order_now_conditional(symbol, contract, direction, amount, action, must_positive=True):
     if action == 'open':
-        return issue_order_now(symbol, contract, direction, amount, action, '' if globals()['fast_issue'] else globals()['request_price'])
+        return issue_order_now(symbol, contract, direction, amount, action,
+                               '' if globals()['fast_issue'] else globals()['request_price'])
     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
     if t_amount == 0:
-        return (False, 0, 0) # no operation (ret, price, amount)
-    holding=orders_holding[direction]['holding']
-    l_reverse=orders_holding[direction]['reverse']
+        return (False, 0, 0)  # no operation (ret, price, amount)
+    holding = orders_holding[direction]['holding']
+    l_reverse = orders_holding[direction]['reverse']
     # print(holding)
     if len(holding) > 1:
         orders_holding[direction]['holding'] = [(float(x[0]), float(x[1])) for x in holding]
-        holding=orders_holding[direction]['holding']
+        holding = orders_holding[direction]['holding']
         holding.sort(reverse=l_reverse)
     if must_positive == False:
         if amount == 0:
             holding.clear()
             amount = t_amount
         else:
-            amount = min(t_amount, amount) # get little one
+            amount = min(t_amount, amount)  # get little one
             total_amount = 0
             while len(holding) > 0:
                 (price, l_amount) = holding.pop()
@@ -282,18 +298,19 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                 if amount > 0 and total_amount > amount:
                     holding.append((price, total_amount - amount))
                     break
-        (ret, price, amount) = issue_order_now(symbol, contract, direction, amount, action, '' if globals()['fast_issue'] else globals()['request_price'])
+        (ret, price, amount) = issue_order_now(symbol, contract, direction, amount, action,
+                                               '' if globals()['fast_issue'] else globals()['request_price'])
         print('loss ratio=%f%%, %s, closed %d' % (loss, 'yeap' if loss > 0 else 'tough', amount))
-        orders_holding[direction]['holding']=holding
+        orders_holding[direction]['holding'] = holding
         return (ret, price, amount)
     total_amount = 0
     addon = ''
     saved_amount = amount
-    amount = min(t_amount, amount) # get little on
-    price=0
-    ret=False
+    amount = min(t_amount, amount)  # get little on
+    price = 0
+    ret = False
     while len(holding) > 0:
-        (price, l_amount)=holding.pop()
+        (price, l_amount) = holding.pop()
         if globals()['positive_greedy_profit'](price, direction) == True:
             # print('(%s, %s) selected' % (price, l_amount))
             total_amount += l_amount
@@ -301,27 +318,28 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                 holding.append((price, total_amount - amount))
                 total_amount = amount
                 break
-        else: # not positive
-            holding.append((price, l_amount)) # put it back
+        else:  # not positive
+            holding.append((price, l_amount))  # put it back
             break
-    if len(holding) == 0 and total_amount == 0: #just use input amount
+    if len(holding) == 0 and total_amount == 0:  #just use input amount
         total_amount = amount
-    if total_amount > 0 : # yes, has positive holdings
-        (ret, price, amount) = issue_order_now(symbol, contract, direction, total_amount, action, '' if globals()['fast_issue'] else globals()['request_price'])
+    if total_amount > 0:  # yes, has positive holdings
+        (ret, price, amount) = issue_order_now(symbol, contract, direction, total_amount, action,
+                                               '' if globals()['fast_issue'] else globals()['request_price'])
         addon = ' (%d required, %d closed, %d left)' % (saved_amount, total_amount, (t_amount - total_amount))
         total_amount = amount
-    orders_holding[direction]['holding']=holding
+    orders_holding[direction]['holding'] = holding
     print('loss ratio=%f%%, keep holding%s' % (loss, addon))
     return (ret, price, total_amount)
 
 
 def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=True):
-    print('EMUL ' if options.noaction else '',
-           'issue quarter order%s: ' % (' conditional' if must_positive else ''),
-           action, symbol, direction, amount)
+    print('EMUL ' if options.noaction else '', 'issue quarter order%s: ' % (' conditional' if must_positive else ''),
+          action, symbol, direction, amount)
     if options.noaction:
         return 0
-    (ret, price, amount) = issue_order_now_conditional(symbol, globals()['contract'], direction, amount, action, must_positive)
+    (ret, price, amount) = issue_order_now_conditional(symbol,
+                                                       globals()['contract'], direction, amount, action, must_positive)
     if ret == True and action == 'open':
         orders_holding[direction]['holding'].append((price, amount))
     return (ret, price, amount)
@@ -330,27 +348,31 @@ def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_
 def issue_quarter_order_now(symbol, direction, amount, action):
     return issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=False)
 
+
 old_open_price = 0
 old_close_mean = 0
 trade_file = ''
 levage_rate = 20
 
-symbols_mapping = { 'usd_btc': 'btc_usd',
-                    'usd_ltc': 'ltc_usd',
-                    'usd_eth': 'eth_usd',
-                    'usd_eos': 'eos_usd',
-                    'usd_xrp': 'xrp_usd',
-                    'usd_bch': 'bch_usd'}
-
+symbols_mapping = {
+    'usd_btc': 'btc_usd',
+    'usd_ltc': 'ltc_usd',
+    'usd_eth': 'eth_usd',
+    'usd_eos': 'eos_usd',
+    'usd_xrp': 'xrp_usd',
+    'usd_bch': 'bch_usd'
+}
 
 
 def trade_timestamp():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+
 # open sell order now
 
+
 def signal_open_order_with_sell(l_index, filename, close, multiple=False):
-    if not options.emulate and os.path.isfile(filename) == True: # already ordered
+    if not options.emulate and os.path.isfile(filename) == True:  # already ordered
         return
     mode = 'w' if multiple == False else 'a'
     append = '' if multiple == False else '\n'
@@ -364,10 +386,12 @@ def signal_open_order_with_sell(l_index, filename, close, multiple=False):
         f.write('%s.open' % filename)
         f.close()
 
+
 # close sell order now
 
+
 def signal_close_order_with_buy(l_index, filename, close):
-    if os.path.isfile(filename) == False: # no order opened
+    if os.path.isfile(filename) == False:  # no order opened
         return
     line = ' closed at %s with %0.7f\n' % (l_index, close)
     with open(filename, 'a') as f:
@@ -382,8 +406,9 @@ def signal_close_order_with_buy(l_index, filename, close):
 
 # open buy order now
 
+
 def signal_open_order_with_buy(l_index, filename, close, multiple=False):
-    if not options.emulate and os.path.isfile(filename) == True: # already ordered
+    if not options.emulate and os.path.isfile(filename) == True:  # already ordered
         return
     mode = 'w' if multiple == False else 'a'
     append = '' if multiple == False else '\n'
@@ -397,10 +422,12 @@ def signal_open_order_with_buy(l_index, filename, close, multiple=False):
         f.write('%s.open' % filename)
         f.close()
 
+
 # close buy order now
 
+
 def signal_close_order_with_sell(l_index, filename, close):
-    if os.path.isfile(filename) == False: # no order opened
+    if os.path.isfile(filename) == False:  # no order opened
         return
     line = ' closed at %s with %0.7f\n' % (l_index, close)
     with open(filename, 'a') as f:
@@ -419,23 +446,24 @@ def generate_trade_filename_new(dir, l_index, order_type, prefix=''):
 
 
 def generate_trade_filename(dir, l_index, order_type):
-        global l_prefix
-        global new_trade_file
-        return generate_trade_filename_new(dir, l_index, order_type, l_prefix)
+    global l_prefix
+    global new_trade_file
+    return generate_trade_filename_new(dir, l_index, order_type, l_prefix)
 
 
 # open, high, low, close == 4 prices
+
 
 def read_4prices(filename):
     prices = None
     # drop suffix
     filename = os.path.splitext(filename)[0]
     # print(filename)
-    if os.path.isfile(filename) == False: # in case not exist
+    if os.path.isfile(filename) == False:  # in case not exist
         return prices
     try:
         with open(filename, 'r') as f:
-            line=f.readline().rstrip('\n')
+            line = f.readline().rstrip('\n')
             # print(line, eval(line))
             prices = [float(x) for x in eval(line)]
             # print(prices)
@@ -446,39 +474,42 @@ def read_4prices(filename):
     # print(close)
     return prices
 
+
 # previou is calcuated ema with period , re
+
 
 def get_ema(previous, new_data, period):
     return (previous * (period - 1) + 2 * new_data) / (period + 1)
 
+
 open_price = 0
 previous_close = 0
 current_close = 0
-last_bond = 0 # means uninitialized
+last_bond = 0  # means uninitialized
 last_balance = 0
-last_decision_logic=''
+last_decision_logic = ''
 
-ID_OPEN=0
-ID_HIGH=1
-ID_LOW=2
-ID_CLOSE=3
+ID_OPEN = 0
+ID_HIGH = 1
+ID_LOW = 2
+ID_CLOSE = 3
 
 
 def try_loadsave_with_names(status, names, load):
     if not load:
         globals()[status].clear()
     for name in globals()[names]:
-        if load: # from status to individual names
-            if name in globals()[status].keys(): # in case name not exist
+        if load:  # from status to individual names
+            if name in globals()[status].keys():  # in case name not exist
                 globals()[name] = globals()[status][name]
-        else: # collect individual names to status
+        else:  # collect individual names to status
             globals()[status][name] = globals()[name]
 
 
 def loadsave_status(signal, load):
-    if load: # load from file
+    if load:  # load from file
         mode = 'r'
-    else: # save to file
+    else:  # save to file
         mode = 'w'
     # process file
     with open(globals()['status_file'], mode) as f:
@@ -490,51 +521,23 @@ def loadsave_status(signal, load):
             json.dump(globals()['trade_status'], f)
         f.close()
 
-names_tit2tat = ['trade_file',
-                 'previous_close',
-                 'open_price',
-                 'open_cost',
-                 'open_cost_rate',
-                 'open_greedy',
-                 'quarter_amount',
-                 'thisweek_amount_pending',
-                 'quarter_amount_multiplier',
-                 'greedy_count',
-                 'greedy_count_max',
-                 'greedy_whole_balance',
-                 'greedy_same_amount',
-                 'last_balance',
-                 'last_bond',
-                 'update_quarter_amount_forward',
-                 'update_quarter_amount_backward',
-                 'profit_cost_multiplier',
-                 'greedy_cost_multiplier',
-                 'last_fee',
-                 'amount_ratio',
-                 'amount_ratio_plus',
-                 'amount_real',
-                 'orders_holding',
-                 'ema_1',
-                 'ema_1_up',
-                 'ema_1_lo',
-                 'ema_period_1',
-                 'ema_2',
-                 'ema_2_up',
-                 'ema_2_lo',
-                 'ema_period_2',
-                 'forward_greedy',
-                 'backward_greedy',
-                 'fast_issue',
-                 'open_cost_rate',
-                 'request_price',
-                 'wait_for_completion'];
+
+names_tit2tat = [
+    'trade_file', 'previous_close', 'open_price', 'open_cost', 'open_cost_rate', 'open_greedy', 'quarter_amount',
+    'thisweek_amount_pending', 'quarter_amount_multiplier', 'greedy_count', 'greedy_count_max', 'greedy_whole_balance',
+    'greedy_same_amount', 'last_balance', 'last_bond', 'update_quarter_amount_forward',
+    'update_quarter_amount_backward', 'profit_cost_multiplier', 'greedy_cost_multiplier', 'last_fee', 'amount_ratio',
+    'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
+    'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'open_cost_rate',
+    'request_price', 'wait_for_completion'
+]
 
 
 def save_status_tit2tat(subpath=''):
     loadsave_status('tit2tat', load=False)
     with open(globals()['status_file'], 'r') as r:
         with open('%s.trade_status' % (subpath), 'w') as w:
-            w.write(r.read()) # read whole file and write all
+            w.write(r.read())  # read whole file and write all
             w.close()
         r.close()
 
@@ -551,25 +554,37 @@ def save_balance_tit2tat(subpath, symbol, price, balance):
 
 def get_greedy_tiny_delta(price):
     # print('greedy delta', globals()['previous_close'], price)
-    return 10 * (globals()['previous_close'] - price) # 'previous_close is update to current price'
+    return 10 * (globals()['previous_close'] - price)  # 'previous_close is update to current price'
 
 
 def get_greedy_delta(price):
     # print('greedy delta', globals()['previous_close'], price)
-    return globals()['previous_close'] - price # 'previous_close is update to current price'
+    return globals()['previous_close'] - price  # 'previous_close is update to current price'
 
 
 def get_normal_delta(price):
     # print('normal delta', price, globals()['open_price'])
     return price - globals()['open_price']
 
-profit_policy = { 'greedy-tiny': {'multiplier':'greedy_cost_multiplier',
-                                  'get_delta':get_greedy_tiny_delta},
-                  'greedy': {'multiplier':'greedy_cost_multiplier',
-                             'get_delta':get_greedy_delta},
-                  'normal': {'multiplier':'profit_cost_multiplier',
-                             'get_delta':get_normal_delta},
-                  'trans': {'buy': 1, 'sell': -1}}
+
+profit_policy = {
+    'greedy-tiny': {
+        'multiplier': 'greedy_cost_multiplier',
+        'get_delta': get_greedy_tiny_delta
+    },
+    'greedy': {
+        'multiplier': 'greedy_cost_multiplier',
+        'get_delta': get_greedy_delta
+    },
+    'normal': {
+        'multiplier': 'profit_cost_multiplier',
+        'get_delta': get_normal_delta
+    },
+    'trans': {
+        'buy': 1,
+        'sell': -1
+    }
+}
 
 
 def positive_profit_with(price, direction, typeof):
@@ -602,6 +617,7 @@ def update_open_cost(price):
     if float(globals()['open_cost_rate']) > 0:
         globals()['open_cost'] = previous_close * float(globals()['open_cost_rate'])
 
+
 # when do greedy trade, should choose aproperiate open_cost_rate x and reverse_amount_rate p
 # assume leverage is 21, buy amount is 0.05, total is 21 * 0.05 = 1.05
 # 0.0015 is open fee rate, 0.03 is close fee rate
@@ -612,36 +628,36 @@ def update_open_cost(price):
 # p <=  (t - 1)/(t + 1)
 # if x = 0.008, p should less than 0.947
 # if x = 0.005, p should less than 0.917
-request_price='0'
+request_price = '0'
 last_fee = 0
 open_cost = 0
-open_cost_rate = 0.0055 # percent of previous_close
+open_cost_rate = 0.0055  # percent of previous_close
 reverse_amount_rate = 0.9
 quarter_amount = 1
 thisweek_amount_pending = 0
-quarter_amount_multiplier = 2 # 2 times is up threshold
-greedy_count_max = 2 # limit this times pending greedy
-greedy_count = 0 # current pending greedy
-greedy_whole_balance = False # greedy will cover whole balance
-greedy_same_amount = False # greedy use the same as quarter_amount
+quarter_amount_multiplier = 2  # 2 times is up threshold
+greedy_count_max = 2  # limit this times pending greedy
+greedy_count = 0  # current pending greedy
+greedy_whole_balance = False  # greedy will cover whole balance
+greedy_same_amount = False  # greedy use the same as quarter_amount
 close_greedy = False
 open_greedy = False
-amount_ratio_plus = 0.05 # percent of total amount
-profit_cost_multiplier = 0.2 # times of profit with open_cost
-greedy_cost_multiplier = 1 # times of greedy with open_cost
-amount_real = 0 # supercede on amount_ratio, as percent of amount
-ema_period_1 = 2 # signal period
-ema_period_2 = 20 # tendency period
+amount_ratio_plus = 0.05  # percent of total amount
+profit_cost_multiplier = 0.2  # times of profit with open_cost
+greedy_cost_multiplier = 1  # times of greedy with open_cost
+amount_real = 0  # supercede on amount_ratio, as percent of amount
+ema_period_1 = 2  # signal period
+ema_period_2 = 20  # tendency period
 ema_1 = 0
 ema_2 = 0
-ema_1_up = 0 # up means high price
-ema_1_lo = 0 # lo means low price
+ema_1_up = 0  # up means high price
+ema_1_lo = 0  # lo means low price
 ema_2_up = 0
 ema_2_lo = 0
-forward_greedy = True # following tendency
-backward_greedy = False # following reverse tendency
-update_quarter_amount_forward = True # update it if balance increase
-update_quarter_amount_backward = False # update it if balance decrease
+forward_greedy = True  # following tendency
+backward_greedy = False  # following reverse tendency
+update_quarter_amount_forward = True  # update it if balance increase
+update_quarter_amount_backward = False  # update it if balance decrease
 
 
 def try_to_trade_tit2tat(subpath):
@@ -662,19 +678,19 @@ def try_to_trade_tit2tat(subpath):
     global update_quarter_amount_forward, update_quarter_amount_backward
     global greedy_count, greedy_count_max
 
-    globals()['request_price'] = '' # first clear it
+    globals()['request_price'] = ''  # first clear it
 
     greedy_status = ''
     #print(subpath)
-    event_path=subpath
+    event_path = subpath
     l_index = os.path.basename(event_path)
     # print(l_index, event_path)
     prices = read_4prices(event_path)
     close = prices[ID_CLOSE]
-    if trade_file.endswith('.sell') == True: # sell order
+    if trade_file.endswith('.sell') == True:  # sell order
         l_dir = 'sell'
         reverse_follow_dir = 'buy'
-    elif trade_file.endswith('.buy') == True: # buy order
+    elif trade_file.endswith('.buy') == True:  # buy order
         l_dir = 'buy'
         reverse_follow_dir = 'sell'
     new_ema_1 = get_ema(ema_1, close, ema_period_1)
@@ -687,43 +703,37 @@ def try_to_trade_tit2tat(subpath):
     reverse_follow_dir = ''
     price_delta = 0
 
-    globals()['current_close'] = close # save early
+    globals()['current_close'] = close  # save early
 
-    print('') # add an empty line
+    print('')  # add an empty line
     if trade_file == '':
-        print('%9.4f' % close, '-',
-               'ema_%d:%9.4f' % (ema_period_1, new_ema_1), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
-    elif l_dir == 'sell': # sell order
-        ema_tendency = new_ema_2 - new_ema_1_lo # ema_2 should bigger than ema_1_lo
+        print('%9.4f' % close, '-', 'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
+              'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
+    elif l_dir == 'sell':  # sell order
+        ema_tendency = new_ema_2 - new_ema_1_lo  # ema_2 should bigger than ema_1_lo
         reverse_follow_dir = 'buy'
         price_delta = (previous_close - close) / previous_close
-        print('%9.4f' % -close, '%9.4f' % previous_close, l_dir,
-               'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
-               'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_lo),
-               'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
-               'greedy: %.2f' % greedy_count,
-               'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
-               'delta: %2.5f' % (prices[ID_OPEN] - prices[ID_CLOSE])
-        )
-    elif l_dir == 'buy': # buy order
-        ema_tendency = new_ema_1_up - new_ema_2 # ema_1_up should bigger than ema_2
+        print('%9.4f' % -close, '%9.4f' % previous_close, l_dir, 'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
+              'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_lo), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
+              'greedy: %.2f' % greedy_count,
+              'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
+              'delta: %2.5f' % (prices[ID_OPEN] - prices[ID_CLOSE]))
+    elif l_dir == 'buy':  # buy order
+        ema_tendency = new_ema_1_up - new_ema_2  # ema_1_up should bigger than ema_2
         reverse_follow_dir = 'sell'
         price_delta = (close - previous_close) / previous_close
-        print('%9.4f' % close, '%9.4f' % -previous_close, l_dir,
-               'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
-               'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_up),
-               'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
-               'greedy: %.2f' % greedy_count,
-               'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
-               'delta: %2.5f' % (prices[ID_CLOSE] - prices[ID_OPEN])
-        )
-    ema_1 = new_ema_1 # saved now
+        print('%9.4f' % close, '%9.4f' % -previous_close, l_dir, 'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
+              'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_up), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
+              'greedy: %.2f' % greedy_count,
+              'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
+              'delta: %2.5f' % (prices[ID_CLOSE] - prices[ID_OPEN]))
+    ema_1 = new_ema_1  # saved now
     ema_1_up = new_ema_1_up
     ema_1_lo = new_ema_1_lo
-    ema_2 = new_ema_2 # saved now
+    ema_2 = new_ema_2  # saved now
     ema_2_up = new_ema_2_up
     ema_2_lo = new_ema_2_lo
-    if close == 0: # in case read failed
+    if close == 0:  # in case read failed
         return
     if previous_close == 0:
         previous_close = close
@@ -733,7 +743,7 @@ def try_to_trade_tit2tat(subpath):
     # save balance when midnight
     midnight = datetime.datetime.utcnow()
 
-    symbol=symbols_mapping[figure_out_symbol_info(event_path)]
+    symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
     new_open = True
     forced_close = False
@@ -741,13 +751,13 @@ def try_to_trade_tit2tat(subpath):
         new_open = False
         if l_dir == 'buy':
             delta = open_price - prices[ID_LOW]
-        else: # sell
+        else:  # sell
             delta = prices[ID_HIGH] - open_price
-        if delta < 0.001: # zero means too small
+        if delta < 0.001:  # zero means too small
             t_amount = 1
         else:
-            t_amount = open_price - delta * amount_ratio # calcuate by forced close probability
-        if not options.emulate: # if emualtion, figure it manually
+            t_amount = open_price - delta * amount_ratio  # calcuate by forced close probability
+        if not options.emulate:  # if emualtion, figure it manually
             (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
             globals()['amount_ratio'] = leverage
         if t_amount <= 0:
@@ -767,7 +777,10 @@ def try_to_trade_tit2tat(subpath):
         issue_quarter_order_now(symbol, l_dir, mini_amount, 'open')
         # clear it
         thisweek_amount_pending = 0
-        (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
+        (open_price,
+         no_use) = backend.real_open_price_and_cost(symbol,
+                                                    globals()['contract'], l_dir) if not options.emulate else (close,
+                                                                                                               0.001)
     new_l_dir = ''
     if close > previous_close and delta_ema_1 > 0:
         new_l_dir = 'buy'
@@ -777,13 +790,13 @@ def try_to_trade_tit2tat(subpath):
         if not forced_close:
             pass
         else:
-            forced_close = False # let stop it here
-        if ema_tendency <= 0: # take charge of issuing_close signal
+            forced_close = False  # let stop it here
+        if ema_tendency <= 0:  # take charge of issuing_close signal
             issuing_close = True
         else:
             issuing_close = False
         # if issuing_close is true, check the new direction first
-        if issuing_close == True and l_dir == new_l_dir: # the same direction, just treat it as a greedy
+        if issuing_close == True and l_dir == new_l_dir:  # the same direction, just treat it as a greedy
             issuing_close = False
         greedy_action = ''
         greedy_status = ''
@@ -794,28 +807,32 @@ def try_to_trade_tit2tat(subpath):
                 if (close - previous_close) > greedy_cost_multiplier * open_cost:
                     greedy_action = 'close'
                     greedy_status = 'maybe closed'
-                elif (close - previous_close) < - greedy_cost_multiplier * open_cost:
+                elif (close - previous_close) < -greedy_cost_multiplier * open_cost:
                     greedy_action = 'open'
                     greedy_status = 'holding'
             elif l_dir == 'sell':
-                if (close - previous_close) < - greedy_cost_multiplier * open_cost:
+                if (close - previous_close) < -greedy_cost_multiplier * open_cost:
                     greedy_action = 'close'
                     greedy_status = 'maybe closed'
                 elif (close - previous_close) > greedy_cost_multiplier * open_cost:
                     greedy_action = 'open'
                     greedy_status = 'holding'
             if greedy_status != '':
-                print(trade_timestamp(), 'greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
-            if greedy_action != '': # update amount
+                print(trade_timestamp(),
+                      'greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
+            if greedy_action != '':  # update amount
                 open_greedy = True
                 previous_close = close
                 update_open_cost(close)
                 if globals()['amount_real'] > 0 or globals()['greedy_same_amount']:
                     thisweek_amount = quarter_amount
                 elif globals()['greedy_whole_balance']:
-                    thisweek_amount = math.ceil((quarter_amount / ( 1 / amount_ratio + amount_ratio_plus) - quarter_amount) / greedy_count_max)
+                    thisweek_amount = math.ceil(
+                        (quarter_amount / (1 / amount_ratio + amount_ratio_plus) - quarter_amount) / greedy_count_max)
                 else:
                     thisweek_amount = math.floor((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
+
+
 #  持续更新 pending
 #  开始状态，直接买入quarter_amount , greedy_count = max, pending = 0
 #  逆向发展，greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
@@ -825,28 +842,32 @@ def try_to_trade_tit2tat(subpath):
 #  同向发展，pending > 0, 减少持仓pending， 根据减少的比例增加 greedy_count
 #  同向发展，pending < 0, greedy_count = max
 #  同向发展，pending < 0, greedy_count >= max，则直接增加持仓为 -pending
-            if greedy_action == 'close': # yes, close action pending
-                if forward_greedy :
+            if greedy_action == 'close':  # yes, close action pending
+                if forward_greedy:
                     if globals()['greedy_same_amount']:
-                        (ret, price, l_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+                        (ret, price,
+                         l_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
                         if ret:
                             globals()['request_price'] = price
                     if thisweek_amount_pending > 0:
-                        (ret, price, l_amount) = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close') # as much as possible
-                        if thisweek_amount_pending >= l_amount: # is ok
+                        (ret, price,
+                         l_amount) = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending,
+                                                                         'close')  # as much as possible
+                        if thisweek_amount_pending >= l_amount:  # is ok
                             thisweek_amount_pending -= l_amount
                         else:
                             print('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
-                            thisweek_amount_pending = 0;
-                        if thisweek_amount_pending == 0: # fresh go
-                            greedy_count = greedy_count_max # increase it to threshold
+                            thisweek_amount_pending = 0
+                        if thisweek_amount_pending == 0:  # fresh go
+                            greedy_count = greedy_count_max  # increase it to threshold
                         else:
                             greedy_count += (l_amount / thisweek_amount)
-                    elif thisweek_amount_pending < 0 : # if less holdings, increase it
+                    elif thisweek_amount_pending < 0:  # if less holdings, increase it
                         if greedy_count < greedy_count_max:
                             greedy_count = greedy_count_max
                         else:
-                            (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending, 'open') # as much as possible
+                            (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
+                                                                             'open')  # as much as possible
                             thisweek_amount_pending += l_amount
                     else:
                         #greedy_count = greedy_count + (1 / greedy_count_max)
@@ -854,33 +875,37 @@ def try_to_trade_tit2tat(subpath):
 
                 if backward_greedy:
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
-            elif greedy_action == 'open': # yes, open action pending
+            elif greedy_action == 'open':  # yes, open action pending
                 r_rate = globals()['reverse_amount_rate']
                 reverse_amount = thisweek_amount * r_rate
                 if reverse_amount < 1:
                     reverse_amount = 1
 
-                cleanup_holdings_atopen(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
+                cleanup_holdings_atopen(symbol,
+                                        globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
 
                 do_makeup = False
                 # first take reverse into account and do some makeup
                 (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
-                if thisweek_amount_pending > 0 and t_amount < int(reverse_amount) * int(thisweek_amount_pending / quarter_amount): # no enough reverse orders
+                if thisweek_amount_pending > 0 and t_amount < int(reverse_amount) * int(
+                        thisweek_amount_pending / quarter_amount):  # no enough reverse orders
                     do_makeup = True
 
-                if greedy_count < 1.0 or do_makeup: # must bigger than 1
+                if greedy_count < 1.0 or do_makeup:  # must bigger than 1
                     # open reverse order
                     if globals()['greedy_same_amount']:
-                        (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
+                        (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
+                                                                         'open')
                         if ret:
                             globals()['request_price'] = price
                 else:
                     #greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                     greedy_count -= 1
-                    if forward_greedy: # adjust open sequence according to l_dir
-                        if l_dir == 'buy': # first open sell, then open buy
+                    if forward_greedy:  # adjust open sequence according to l_dir
+                        if l_dir == 'buy':  # first open sell, then open buy
                             if globals()['greedy_same_amount']:
-                                (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
+                                (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir,
+                                                                                 reverse_amount, 'open')
                                 if ret:
                                     globals()['request_price'] = price
                             issue_quarter_order_now(symbol, l_dir, thisweek_amount, 'open')
@@ -897,55 +922,56 @@ def try_to_trade_tit2tat(subpath):
                         issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                         # secondly open new order
                         issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
-            if greedy_action == '' or greedy_count >= greedy_count_max : # update balance
+            if greedy_action == '' or greedy_count >= greedy_count_max:  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open':
-                cleanup_holdings_atclose(symbol, globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
+                cleanup_holdings_atclose(symbol,
+                                         globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
         if issuing_close == True:
             globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-            issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False) # use zero to close all
+            issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)  # use zero to close all
             # and open again, just like new_open == True
             new_open = True
-            if open_greedy == True :
-                close_greedy = backward_greedy # only if backward_greedy is true
+            if open_greedy == True:
+                close_greedy = backward_greedy  # only if backward_greedy is true
                 open_greedy = False
                 thisweek_amount_pending = 0
             update_quarter_amount = True
-            trade_file = '' # clear it
+            trade_file = ''  # clear it
         if update_quarter_amount == True:
             update_last_bond(symbol, globals()['contract'], l_dir)
 
             old_balance = last_balance
             last_balance = backend.query_balance(symbol, globals()['contract'])
             if last_balance == 0:
-                last_balance = old_balance # in case quary failed
+                last_balance = old_balance  # in case quary failed
             delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
             amount = quarter_amount
             base_amount = last_balance / last_bond if last_bond > 0 else 1
-            if amount_real > 0: # if set, just use it
+            if amount_real > 0:  # if set, just use it
                 new_quarter_amount = math.ceil(base_amount * amount_real)
             else:
                 new_quarter_amount = math.ceil(base_amount / amount_ratio + base_amount * amount_ratio_plus)
             if new_quarter_amount < 1:
-                new_quarter_amount = quarter_amount # means no real update
+                new_quarter_amount = quarter_amount  # means no real update
             do_updating = ''
-            if update_quarter_amount_forward and delta_balance > 0 and quarter_amount < new_quarter_amount : # auto update
+            if update_quarter_amount_forward and delta_balance > 0 and quarter_amount < new_quarter_amount:  # auto update
                 do_updating = 'do '
                 quarter_amount = new_quarter_amount
-            elif update_quarter_amount_backward and delta_balance < 0 and quarter_amount > new_quarter_amount  : # auto update
+            elif update_quarter_amount_backward and delta_balance < 0 and quarter_amount > new_quarter_amount:  # auto update
                 do_updating = 'do '
                 quarter_amount = new_quarter_amount
             if do_updating != '':
-                print(trade_timestamp(), '%supdate quarter_amount from %s=>%s' %
-                       (do_updating,
-                        amount, new_quarter_amount), end='')
+                print(trade_timestamp(),
+                      '%supdate quarter_amount from %s=>%s' % (do_updating, amount, new_quarter_amount),
+                      end='')
                 if greedy_action == 'close':
-                    print(', balance=%f=>%f,%f%%' %
-                           (old_balance, last_balance, delta_balance), end='')
+                    print(', balance=%f=>%f,%f%%' % (old_balance, last_balance, delta_balance), end='')
                 print('')
     if close_greedy == True:
-        print(trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' % (l_dir, previous_close, close, price_delta,
-                                                                           'forced ' if forced_close == True else '',  'closed'))
+        print(
+            trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' %
+            (l_dir, previous_close, close, price_delta, 'forced ' if forced_close == True else '', 'closed'))
         if forward_greedy:
             if globals()['greedy_same_amount']:
                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
@@ -966,7 +992,7 @@ def try_to_trade_tit2tat(subpath):
         open_price = 0.0
         greedy_count = greedy_count_max
 
-        if l_dir == '': # no updating
+        if l_dir == '':  # no updating
             previous_close = close
             return
 
@@ -976,7 +1002,10 @@ def try_to_trade_tit2tat(subpath):
         globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
         issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
 
-        (open_price, no_use) = backend.real_open_price_and_cost(symbol, globals()['contract'], l_dir) if not options.emulate else (close, 0.001)
+        (open_price,
+         no_use) = backend.real_open_price_and_cost(symbol,
+                                                    globals()['contract'], l_dir) if not options.emulate else (close,
+                                                                                                               0.001)
 
         update_open_cost(open_price)
 
@@ -1009,7 +1038,9 @@ def with_scandir_tit2tat(l_dir):
                 files.append(entry.name)
     return files
 
+
 # try to emulate signal notification
+
 
 def emul_signal_notify(l_dir, l_signal):
     global old_close_mean, signal_notify, trade_notify
@@ -1018,16 +1049,17 @@ def emul_signal_notify(l_dir, l_signal):
         files = globals()['with_scandir_%s' % l_signal](l_dir)
         files.sort()
         total_files = len(files)
-        to_read = int (random.random() * total_files)
-        start_at = int (random.random() * (total_files - to_read))
+        to_read = int(random.random() * total_files)
+        start_at = int(random.random() * (total_files - to_read))
         print('Total %d files, read latest %d from %d' % (total_files, to_read, start_at))
-        for fname in files[start_at:start_at+to_read]:
+        for fname in files[start_at:start_at + to_read]:
             fpath = os.path.join(l_dir, fname)
             # print(fpath)
             wait_signal_notify(fpath, l_signal, '')
         files = None
         if total_orders > 0:
-            msg = 'Total revenue %.2f average %.2f(%d) with %d data from %d' % (total_revenue, total_revenue / total_orders, total_orders, to_read, start_at)
+            msg = 'Total revenue %.2f average %.2f(%d) with %d data from %d' % (
+                total_revenue, total_revenue / total_orders, total_orders, to_read, start_at)
             with open("%s_new_result.txt" % l_dir, 'a') as f:
                 f.write('%s\n' % msg)
                 f.close()
@@ -1035,6 +1067,7 @@ def emul_signal_notify(l_dir, l_signal):
         #print(close_mean)
     except Exception as ex:
         print(traceback.format_exc())
+
 
 # ['Path', 'is', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min\n']
 # ['Watching', '/Users/zhangyuehui/workspace/okcoin/websocket/python/ok_sub_futureusd_btc_kline_quarter_1min\n']
@@ -1057,7 +1090,7 @@ def wait_signal_notify(notify, signal, shutdown):
                 globals()['save_status_%s' % signal]()
                 break
             if not options.one_shot and not options.do_self_trigger:
-                result = subprocess.run(command, stdout=PIPE, encoding=default_encoding) # wait file modified
+                result = subprocess.run(command, stdout=PIPE, encoding=default_encoding)  # wait file modified
                 # if received shutdown notify, close all order
                 if shutdown != '' and shutdown in result.stdout:
                     shutdown_on_close = True
@@ -1088,14 +1121,14 @@ def wait_signal_notify(notify, signal, shutdown):
             fence_count += 1
             print(ex)
             print(traceback.format_exc())
-            if fence_count > 20: # exceptions 20 continiously
+            if fence_count > 20:  # exceptions 20 continiously
                 break
             continue
 
 
 def read_int_var(filename, var_name):
     l_var = globals()[var_name]
-    if os.path.isfile(filename) and os.path.getsize(filename)>0:
+    if os.path.isfile(filename) and os.path.getsize(filename) > 0:
         # check if should read from file
         with open(filename) as f:
             old_var = l_var
@@ -1125,16 +1158,14 @@ if not os.path.isdir(l_dir):
     print('%s is not valid direction' % l_dir)
     sys.exit(1)
 
-default_amount_ratio = float(options.amount_ratio) # means use 1/50 of total amount on one trade, if auto_amount
+default_amount_ratio = float(options.amount_ratio)  # means use 1/50 of total amount on one trade, if auto_amount
 amount_ratio = default_amount_ratio
 ratio_file = '%s.%sratio' % (l_dir, l_prefix)
 # print('ratio will read from %s if exist, default is %d' % (ratio_file, amount_ratio), flush=True)
 
-trade_notify = '%s.%strade_notify' % (l_dir, l_prefix) # file used to notify trade
-logfile='%s.log' % trade_notify
-logging.basicConfig(filename=logfile,
-                    format='%(asctime)s %(message)s',
-                    level=logging.DEBUG)
+trade_notify = '%s.%strade_notify' % (l_dir, l_prefix)  # file used to notify trade
+logfile = '%s.log' % trade_notify
+logging.basicConfig(filename=logfile, format='%(asctime)s %(message)s', level=logging.DEBUG)
 #logging.info('trade_notify: %s' % trade_notify)
 if not options.nolog:
     saved_stdout = sys.stdout
@@ -1143,7 +1174,7 @@ if not options.nolog:
 print(dt.now())
 print('trade_notify: %s' % trade_notify)
 
-status_file = '%s.%strade_status' % (l_dir, l_prefix) # file used to save status
+status_file = '%s.%strade_status' % (l_dir, l_prefix)  # file used to save status
 print('status_file: %s' % status_file)
 trade_status = dict()
 
@@ -1182,26 +1213,29 @@ if options.restore_status and \
     globals()['load_status_%s' % l_signal]()
     print('trade status restored:\n', globals()['trade_status'])
 
-periods_mapping_s = { '1day': 24 * 60 * 60,
-                       '12hour':12 * 60 * 60,
-                       '6hour': 6 * 60 * 60,
-                       '4hour': 4 * 60 * 60,
-                       '2hour': 2 * 60 * 60,
-                       '1hour': 1 * 60 * 60,
-                       '30min': 30 * 60,
-                       '15min': 15 * 60,
-                       '5min': 5 * 60,
-                       '3min': 3 * 60,
-                       '1min': 60}
+periods_mapping_s = {
+    '1day': 24 * 60 * 60,
+    '12hour': 12 * 60 * 60,
+    '6hour': 6 * 60 * 60,
+    '4hour': 4 * 60 * 60,
+    '2hour': 2 * 60 * 60,
+    '1hour': 1 * 60 * 60,
+    '30min': 30 * 60,
+    '15min': 15 * 60,
+    '5min': 5 * 60,
+    '3min': 3 * 60,
+    '1min': 60
+}
 
 # logic copied from signal_notify.py
 
+
 def prepare_for_self_trigger(notify, signal, l_dir):
-    symbol=symbols_mapping[figure_out_symbol_info(notify)]
-    contract=figure_out_contract_info(notify)
+    symbol = symbols_mapping[figure_out_symbol_info(notify)]
+    contract = figure_out_contract_info(notify)
     period = periods_mapping_s[figure_out_period_info(notify)]
     try:
-        reply=eval('%s' % backend.query_kline(symbol, period, contract, '1'))[0]
+        reply = eval('%s' % backend.query_kline(symbol, period, contract, '1'))[0]
         price_filename0 = os.path.join(l_dir, '%s' % (reply[0]))
         price_filename = os.path.join(l_dir, '%s.%s' % (reply[0], signal))
         if os.path.isfile(price_filename) and os.path.getsize(price_filename) > 0:
@@ -1209,12 +1243,10 @@ def prepare_for_self_trigger(notify, signal, l_dir):
             return price_filename
         # print('save price to %s' % price_filename)
         with open(price_filename0, 'w') as f:
-            f.write('%s, %s, %s, %s, %s, %s' %
-                    (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
+            f.write('%s, %s, %s, %s, %s, %s' % (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
             f.close()
         with open(price_filename, 'w') as f:
-            f.write('%s, %s, %s, %s, %s, %s' %
-                    (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
+            f.write('%s, %s, %s, %s, %s, %s' % (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
             f.close()
         with open(notify, 'w') as f:
             f.write(price_filename)
@@ -1228,13 +1260,14 @@ def prepare_for_self_trigger(notify, signal, l_dir):
 
 def calculate_timeout_for_self_trigger(notify):
     period_s = periods_mapping_s[figure_out_period_info(notify)]
-    moduls =int(datetime.datetime.now().strftime('%s')) % period_s
+    moduls = int(datetime.datetime.now().strftime('%s')) % period_s
     delta = int(30 * random.random())
-    timeout = (period_s - moduls) - delta # should in current period, for correct high/low
+    timeout = (period_s - moduls) - delta  # should in current period, for correct high/low
     if timeout > 0:
         return (timeout, delta)
     else:
-        return (-1, delta) # wait at least this long time of seconds
+        return (-1, delta)  # wait at least this long time of seconds
+
 
 contract = figure_out_contract_info(signal_notify)
 
@@ -1244,8 +1277,8 @@ while True:
     if startup_notify != '':
         print(trade_timestamp(), 'Waiting for startup signal', flush=True)
         command = ['fswatch', '-1', startup_notify]
-        result = subprocess.run(command, stdout=PIPE) # wait file modified
-        if result.returncode < 0: # means run failed
+        result = subprocess.run(command, stdout=PIPE)  # wait file modified
+        if result.returncode < 0:  # means run failed
             os.sys.exit(result.returncode)
         print('%s received startup signal from %s' % (trade_timestamp(), startup_notify))
         limit_direction = ''
@@ -1255,11 +1288,11 @@ while True:
         read_int_var(ratio_file, 'amount_ratio')
         with open(startup_notify, 'r') as f:
             # f is a formated map type,just eval it
-            line=f.readline()
+            line = f.readline()
             print('order_info: %s', line)
             order_info = eval(line)
             f.close()
-            dirs = ['', 'buy', 'sell', '', ''] # 1:buy, 2:sell
+            dirs = ['', 'buy', 'sell', '', '']  # 1:buy, 2:sell
             if order_info['result'] == True:
                 limit_direction = dirs[order_info['orders'][0]['type']]
                 limit_price = order_info['orders'][0]['price']
@@ -1278,7 +1311,7 @@ while True:
     if options.do_self_trigger:
         (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
 
-        if timeout > 0: # wait for triggering
+        if timeout > 0:  # wait for triggering
             #print(trade_timestamp(),
             #       'wait for next period about %dh:%dm:%ds later' %
             #       (timeout / 60 / 60,
