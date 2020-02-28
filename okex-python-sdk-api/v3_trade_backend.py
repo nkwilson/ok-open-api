@@ -23,7 +23,7 @@ IP = "0"
 passphrase = 'v3api0'
 
 # In [3]: backend.futureAPI.get_products()
-# Out[3]: 
+# Out[3]:
 # [{'alias': 'this_week',
 #   'base_currency': 'XRP',
 #   'contract_val': '10',
@@ -52,7 +52,7 @@ passphrase = 'v3api0'
 #   'trade_increment': '1',
 #   'underlying': 'TRX-USD',
 #   'underlying_index': 'TRX'}]
-    
+
 # symbol is like BTC-USD, contract is like quarter/this_week/next_week
 expire_day = ''
 instrument_id = ''
@@ -106,7 +106,7 @@ def query_limit(instrument_id):
     return cached_limit
 
 # In [6]: backend.which_api.get_specific_ticker('EOS-USD-SWAP')
-# Out[6]: 
+# Out[6]:
 # {'best_ask': '4.958',
 #  'best_bid': '4.957',
 #  'high_24h': '5.05',
@@ -129,7 +129,7 @@ def query_ticker(instrument_id):
 # In [13]: order_datas.append({'order_type':"1",'price':"386",'size':"1",'type':"2",'match_price':"0"})
 # In [14]: order_datas.append({'order_type':"1",'price':"386",'size':"1",'type':"1",'match_price':"0"})
 # In [15]: baskend.futureAPI.take_orders('BCH-USD-200131', order_datas)
-# Out[15]: 
+# Out[15]:
 # {'order_info': [{'error_code': '0',
 #    'error_message': '',
 #    'order_id': '4297413100522497'},
@@ -139,10 +139,10 @@ def query_ticker(instrument_id):
 
 # In [2]: backend.open_order_sell_rate('bch_usd', 'thisweek', 1)
 # url: https://www.okex.com/api/futures/v3/instruments
-# body: 
+# body:
 # url: https://www.okex.com/api/futures/v3/order
 # body: {"client_oid": "", "instrument_id": "BCH-USD-200131", "type": 2, "order_type": "0", "price": "", "size": 1, "match_price": 1}
-# Out[2]: 
+# Out[2]:
 # {'error_code': '0',
 #  'error_message': '',
 #  'order_id': '4295822327387137',
@@ -199,7 +199,7 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     if price == '' or price == 0: # use optimized price
         ticker=query_ticker(inst_id)
         price = float(ticker['best_ask']) * 1.01
-        otype = '2' # FOK        
+        otype = '2' # FOK
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 1, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '1',                                     '1', '10')
@@ -210,7 +210,7 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     if price == '' or price == 0: # use optimized price
         ticker=query_ticker(inst_id)
         price = float(ticker['best_bid']) * 0.99
-        otype = '2' # FOK        
+        otype = '2' # FOK
     #print (symbol, contract, amount, price)
     return issue_order(inst_id, 3, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
@@ -225,7 +225,7 @@ def cancel_order(symbol, contract, orderid):
     # return okcoinFuture.future_cancel(symbol, contract, order_id)
 
 # In [2]: backend.query_orderinfo('bch_usd', 'thisweek', 4295822327387137)
-# Out[2]: 
+# Out[2]:
 # {'client_oid': '',
 #  'contract_val': '10',
 #  'fee': '-0.00001276',
@@ -245,12 +245,12 @@ def cancel_order(symbol, contract, orderid):
 
 # state字段标记订单查询结果
 # state	String	订单状态
-# -2：失败 
-# -1：撤单成功 
-# 0：等待成交 
-# 1：部分成交 
-# 2：完全成交 
-# 3：下单中 
+# -2：失败
+# -1：撤单成功
+# 0：等待成交
+# 1：部分成交
+# 2：完全成交
+# 3：下单中
 # 4：撤单中
 
 
@@ -270,7 +270,7 @@ def query_orderinfo_wait(symbol, contract, orderid):
     try:
         state = 0
         loops = 10
-        while  state >= 0 and loops > 0: 
+        while  state >= 0 and loops > 0:
             result = query_orderinfo(symbol, contract, orderid)
             # print (result)
             state = int(result['state'])
@@ -286,7 +286,7 @@ def query_orderinfo_wait(symbol, contract, orderid):
         return ex
 
 # In [7]: backend.query_kline('bch_usd', '300', 'this_week')
-# Out[7]: 
+# Out[7]:
 # [['2020-01-28T11:20:00.000Z',
 #   '372.63',
 #   '372.85',
@@ -306,7 +306,7 @@ def query_kline(symbol, period, contract, ktype=''):
     # return okcoinFuture.future_kline(symbol, period, contract, ktype)
 
 # In [13]: futureAPI.get_specific_position('BTC-USD-200327')
-# Out[13]: 
+# Out[13]:
 # {'holding': [{'created_at': '2019-12-13T11:59:47.180Z',
 #    'instrument_id': 'BTC-USD-200327',
 #    'last': '9255.96',
@@ -344,7 +344,7 @@ def query_kline(symbol, period, contract, ktype=''):
 
 # for swap position, result is as such:
 # In [47]: swapAPI.get_specific_position('EOS-USD-SWAP')
-# Out[47]: 
+# Out[47]:
 # {'holding': [{'avail_position': '1',
 #    'avg_cost': '4.184',
 #    'instrument_id': 'EOS-USD-SWAP',
@@ -410,7 +410,7 @@ def real_open_price_and_cost(symbol, contract, direction):
     l_dir=transform_direction(direction)
     if contract == 'swap':
         return get_real_open_price_and_cost_from_swap(holding['holding'], l_dir)
-    try: 
+    try:
         # future orders
         data=holding['holding'][0]
         avg = float(data['%s_avg_cost' % l_dir])
@@ -427,7 +427,7 @@ def get_bond_from_swap(holding, direction):
     if data['position'] != 0:
         return float(data['margin'])/float(data['position'])
     return 0.0
-    
+
 def query_bond(symbol, contract, direction):
     inst_id = query_instrument_id(symbol, contract)
     holding=which_api.get_specific_position(inst_id)
@@ -441,7 +441,7 @@ def query_bond(symbol, contract, direction):
         return 0.0
 
 # In [25]: futureAPI.get_coin_account('BTC-USD')
-# Out[25]: 
+# Out[25]:
 # {'auto_margin': '1',
 #  'can_withdraw': '3.59490925',
 #  'contracts': [{'available_qty': '3.59490925',
@@ -458,7 +458,7 @@ def query_bond(symbol, contract, direction):
 #  'total_avail_balance': '3.59490925'}
 
 # In [4]: backend.swapAPI.get_coin_account('EOS-USD-SWAP')
-# Out[4]: 
+# Out[4]:
 # {'info': {'equity': '7.0415',
 #   'fixed_balance': '0.0000',
 #   'instrument_id': 'EOS-USD-SWAP',
