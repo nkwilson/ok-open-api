@@ -94,8 +94,11 @@ def query_limit(instrument_id):
     #print (cached_limit)
     if True or cached_limit == '' or \
        (datetime.datetime.strptime(cached_limit['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ') - datetime.datetime.utcnow()).total_seconds() < 0: # need update
-        #print (query_limit fresh')
-        cached_limit=which_api.get_limit(instrument_id)
+        # print (query_limit fresh')
+        try:
+            cached_limit = which_api.get_limit(instrument_id)
+        except Exception as ex:
+            logging.info(ex)
     else:
         # print ('query_limit cached', cached_limit)
         pass
@@ -112,8 +115,13 @@ def query_limit(instrument_id):
 #  'low_24h': '4.735',
 #  'timestamp': '2020-02-09T09:38:15.941Z',
 #  'volume_24h': '8156913'}
+
 def query_ticker(instrument_id):
-    ticker=which_api.get_specific_ticker(instrument_id)
+    ticker = dict()
+    try:
+        ticker = which_api.get_specific_ticker(instrument_id)
+    except Exception as ex:
+        logging.info(ex)
     # print (ticker)
     return ticker
 
@@ -207,10 +215,14 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
     return issue_order(inst_id, 3, price, int(amount), match_price='0', order_type=otype)
     #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
 
+
 def cancel_order(symbol, contract, orderid):
-    inst_id=query_instrument_id(symbol, contract)
-    return which_api.revoke_order(inst_id, orderid)
-    #return okcoinFuture.future_cancel(symbol, contract, order_id)
+    try:
+        inst_id = query_instrument_id(symbol, contract)
+        return which_api.revoke_order(inst_id, orderid)
+    except Exception as ex:
+        logging.info(ex)
+    # return okcoinFuture.future_cancel(symbol, contract, order_id)
 
 # In [2]: backend.query_orderinfo('bch_usd', 'thisweek', 4295822327387137)
 # Out[2]: 
@@ -241,9 +253,15 @@ def cancel_order(symbol, contract, orderid):
 # 3：下单中 
 # 4：撤单中
 
+
 def query_orderinfo(symbol, contract, orderid):
-    inst_id=query_instrument_id(symbol, contract)
-    result = which_api.get_order_info(inst_id, orderid)
+    result = dict()
+    try:
+        inst_id = query_instrument_id(symbol, contract)
+        result = which_api.get_order_info(inst_id, orderid)
+    except Exception as ex:
+        logging.info(ex)
+
     # print (result)
     return result
 #    return futureAPI.future_orderinfo(symbol,contract, order_id,'0','1','2')
@@ -263,7 +281,8 @@ def query_orderinfo_wait(symbol, contract, orderid):
             continue;
         return result
     except Exception as ex:
-        print (ex)
+        logging.info(ex)
+        print(ex)
         return ex
 
 # In [7]: backend.query_kline('bch_usd', '300', 'this_week')
@@ -276,14 +295,15 @@ def query_orderinfo_wait(symbol, contract, orderid):
 #   '8727',
 #   '233.17'],
 
+
 def query_kline(symbol, period, contract, ktype=''):
-    global which_api
-    inst_id=query_instrument_id(symbol, contract)
-    kline=which_api.get_kline(inst_id, granularity=period)
-    last=kline[-1]
-    last[0]=str(datetime.datetime.strptime(last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
+    inst_id = query_instrument_id(symbol, contract)
+    kline = which_api.get_kline(inst_id, granularity=period)
+    last = kline[-1]
+    last[0] = str(datetime.datetime.strptime(
+                    last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
     return [last]
-    #return okcoinFuture.future_kline(symbol, period, contract, ktype)
+    # return okcoinFuture.future_kline(symbol, period, contract, ktype)
 
 # In [13]: futureAPI.get_specific_position('BTC-USD-200327')
 # Out[13]: 

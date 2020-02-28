@@ -1246,7 +1246,10 @@ while True:
             pass
         prepare_for_self_trigger(signal_notify, l_signal, l_dir)
 
-    wait_signal_notify(signal_notify, l_signal, shutdown_notify)
+    try:
+        wait_signal_notify(signal_notify, l_signal, shutdown_notify)
+    except Exception as ex:
+        print(ex)
 
     if options.do_self_trigger:
         time.sleep(delta)
