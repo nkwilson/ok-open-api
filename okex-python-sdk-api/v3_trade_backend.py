@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-#import okex.account_api as account
+# import okex.account_api as account
 import okex.futures_api as future
-#import okex.lever_api as lever
-#import okex.spot_api as spot
+# import okex.lever_api as lever
+# import okex.spot_api as spot
 import okex.swap_api as swap
-#import okex.index_api as index
-#import okex.option_api as option
+# import okex.index_api as index
+# import okex.option_api as option
 
 import datetime
 import logging
@@ -63,7 +63,7 @@ futureAPI = future.FutureAPI(api_key, secret_key, passphrase, False)
 
 def query_instrument_id(symbol, contract):
     global expire_day, instrument_id, which_api
-    #print (expire_day)
+    # print (expire_day)
     if which_api == '':
         if contract == 'swap':
             which_api = swapAPI
@@ -73,7 +73,7 @@ def query_instrument_id(symbol, contract):
         return symbol.upper().replace('_', '-') + '-SWAP'
         pass
     if True or expire_day <= datetime.datetime.strftime(datetime.datetime.utcnow(), '%Y-%m-%d'):  # need update
-        #print ('query_instrument_id fresh')
+        # print ('query_instrument_id fresh')
         new_contracts = {'quarter': 'quarter', 'thisweek': 'this_week', 'nextweek': 'next_week'}
         result = which_api.get_products()
         product = list(
@@ -83,7 +83,7 @@ def query_instrument_id(symbol, contract):
         instrument_id = product['instrument_id']
         expire_day = product['delivery']
     else:  # check whether it is valid
-        #print ('query_instrument_id cached', instrument_id)
+        # print ('query_instrument_id cached', instrument_id)
         pass
     # print (instrument_id)
     return instrument_id
@@ -188,9 +188,9 @@ def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
         ticker = query_ticker(inst_id)
         price = float(ticker['best_bid']) * 0.99  # sell with lower price
         otype = '2'  # FOK
-    #print (symbol, contract, amount, price)
+    # print (symbol, contract, amount, price)
     return issue_order(inst_id, 2, price, int(amount), match_price='0', order_type=otype)
-    #return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
+    # return okcoinFuture.future_trade(symbol, contract, '', amount, '2', '1', '10')
 
 
 def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
@@ -200,9 +200,9 @@ def close_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
         ticker = query_ticker(inst_id)
         price = float(ticker['best_ask']) * 1.01  # buy with higher price
         otype = '2'  # FOK
-    #print (symbol, contract, amount, price)
+    # print (symbol, contract, amount, price)
     return issue_order(inst_id, 4, price, int(amount), match_price='0', order_type=otype)
-    #return okcoinFuture.future_trade(symbol, contract, '', amount, '4',                                     '1', '10')
+    # return okcoinFuture.future_trade(symbol, contract, '', amount, '4',                                     '1', '10')
 
 
 def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
@@ -212,9 +212,9 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
         ticker = query_ticker(inst_id)
         price = float(ticker['best_ask']) * 1.01
         otype = '2'  # FOK
-    #print (symbol, contract, amount, price)
+    # print (symbol, contract, amount, price)
     return issue_order(inst_id, 1, price, int(amount), match_price='0', order_type=otype)
-    #return okcoinFuture.future_trade(symbol, contract, '', amount, '1',                                     '1', '10')
+    # return okcoinFuture.future_trade(symbol, contract, '', amount, '1',                                     '1', '10')
 
 
 def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
@@ -224,9 +224,9 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
         ticker = query_ticker(inst_id)
         price = float(ticker['best_bid']) * 0.99
         otype = '2'  # FOK
-    #print (symbol, contract, amount, price)
+    # print (symbol, contract, amount, price)
     return issue_order(inst_id, 3, price, int(amount), match_price='0', order_type=otype)
-    #return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
+    # return okcoinFuture.future_trade(symbol, contract, '', amount, '3',                                     '1', '10')
 
 
 def cancel_order(symbol, contract, orderid):

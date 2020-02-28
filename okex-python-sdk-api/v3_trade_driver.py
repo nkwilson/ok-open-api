@@ -17,6 +17,15 @@ from subprocess import PIPE
 import logging
 
 import locale
+
+# import trade_elite
+import json
+
+from optparse import OptionParser
+
+# backend = __import__('%s_trade_backend' % options.api_version)
+import v3_trade_backend as backend
+
 default_encoding = locale.getpreferredencoding(False)
 
 startup_notify = ''
@@ -33,10 +42,6 @@ limit_price = 0
 limit_symbol = ''
 limit_amount = 0
 
-#import trade_elite
-import json
-
-from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("", "--signal_notify", dest="signal_notify", help="specify signal notifier")
 parser.add_option("", "--startup_notify", dest="startup_notify", help="specify startup notifier")
@@ -98,8 +103,6 @@ parser.add_option('', '--api', dest='api_version', default='v3', help='use speci
 (options, args) = parser.parse_args()
 print(type(options), options, args)
 
-#backend=__import__('%s_trade_backend' % options.api_version)
-import v3_trade_backend as backend
 
 # demo: ok_sub_futureusd_btc_kline_quarter_4hou
 
@@ -164,14 +167,14 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     else:
         result = json.loads(raw_result)
     # print(result)
-    if result['result'] == False or result['result'] == 'false':
+    if not result['result'] or result['result'] == 'false':
         print(result)
         reissuing_order += 1
         if amount < 2:
             return (False, 0, 0)
         return issue_order_now(symbol, contract, direction, amount / 2, action, price)
     order_id = str(result['order_id'])  # no exceptions, means successed
-    #print(order_id)
+    # print(order_id)
     if wait_for_completion > 0:  # only valid if positive
         time.sleep(wait_for_completion)
     if not price:  # if empty, must wait for complete
@@ -285,7 +288,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         orders_holding[direction]['holding'] = [(float(x[0]), float(x[1])) for x in holding]
         holding = orders_holding[direction]['holding']
         holding.sort(reverse=l_reverse)
-    if must_positive == False:
+    if not must_positive:
         if amount == 0:
             holding.clear()
             amount = t_amount
@@ -311,7 +314,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     ret = False
     while len(holding) > 0:
         (price, l_amount) = holding.pop()
-        if globals()['positive_greedy_profit'](price, direction) == True:
+        if globals()['positive_greedy_profit'](price, direction):
             # print('(%s, %s) selected' % (price, l_amount))
             total_amount += l_amount
             if amount > 0 and total_amount > amount:
@@ -321,7 +324,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
         else:  # not positive
             holding.append((price, l_amount))  # put it back
             break
-    if len(holding) == 0 and total_amount == 0:  #just use input amount
+    if len(holding) == 0 and total_amount == 0:  # just use input amount
         total_amount = amount
     if total_amount > 0:  # yes, has positive holdings
         (ret, price, amount) = issue_order_now(symbol, contract, direction, total_amount, action,
@@ -340,7 +343,7 @@ def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_
         return 0
     (ret, price, amount) = issue_order_now_conditional(symbol,
                                                        globals()['contract'], direction, amount, action, must_positive)
-    if ret == True and action == 'open':
+    if ret and action == 'open':
         orders_holding[direction]['holding'].append((price, amount))
     return (ret, price, amount)
 
@@ -372,10 +375,10 @@ def trade_timestamp():
 
 
 def signal_open_order_with_sell(l_index, filename, close, multiple=False):
-    if not options.emulate and os.path.isfile(filename) == True:  # already ordered
+    if not options.emulate and os.path.isfile(filename):  # already ordered
         return
-    mode = 'w' if multiple == False else 'a'
-    append = '' if multiple == False else '\n'
+    mode = 'w' if not multiple else 'a'
+    append = '' if not multiple else '\n'
     line = '%s sell at %0.7f%s' % (l_index, close, append)
     with open(filename, mode) as f:
         f.write(line)
@@ -391,7 +394,7 @@ def signal_open_order_with_sell(l_index, filename, close, multiple=False):
 
 
 def signal_close_order_with_buy(l_index, filename, close):
-    if os.path.isfile(filename) == False:  # no order opened
+    if not os.path.isfile(filename):  # no order opened
         return
     line = ' closed at %s with %0.7f\n' % (l_index, close)
     with open(filename, 'a') as f:
@@ -408,10 +411,10 @@ def signal_close_order_with_buy(l_index, filename, close):
 
 
 def signal_open_order_with_buy(l_index, filename, close, multiple=False):
-    if not options.emulate and os.path.isfile(filename) == True:  # already ordered
+    if not options.emulate and os.path.isfile(filename):  # already ordered
         return
-    mode = 'w' if multiple == False else 'a'
-    append = '' if multiple == False else '\n'
+    mode = 'w' if not multiple else 'a'
+    append = '' if not multiple else '\n'
     line = '%s buy at %0.7f%s' % (l_index, close, append)
     with open(filename, mode) as f:
         f.write(line)
@@ -427,7 +430,7 @@ def signal_open_order_with_buy(l_index, filename, close, multiple=False):
 
 
 def signal_close_order_with_sell(l_index, filename, close):
-    if os.path.isfile(filename) == False:  # no order opened
+    if not os.path.isfile(filename):  # no order opened
         return
     line = ' closed at %s with %0.7f\n' % (l_index, close)
     with open(filename, 'a') as f:
@@ -459,7 +462,7 @@ def read_4prices(filename):
     # drop suffix
     filename = os.path.splitext(filename)[0]
     # print(filename)
-    if os.path.isfile(filename) == False:  # in case not exist
+    if not os.path.isfile(filename):  # in case not exist
         return prices
     try:
         with open(filename, 'r') as f:
@@ -470,6 +473,7 @@ def read_4prices(filename):
             f.close()
             # close = eval(f.readline())[3]
     except Exception as ex:
+        print(ex)
         print('read_4prices: %s' % filename)
     # print(close)
     return prices
@@ -681,16 +685,16 @@ def try_to_trade_tit2tat(subpath):
     globals()['request_price'] = ''  # first clear it
 
     greedy_status = ''
-    #print(subpath)
+    # print(subpath)
     event_path = subpath
     l_index = os.path.basename(event_path)
     # print(l_index, event_path)
     prices = read_4prices(event_path)
     close = prices[ID_CLOSE]
-    if trade_file.endswith('.sell') == True:  # sell order
+    if trade_file.endswith('.sell'):  # sell order
         l_dir = 'sell'
         reverse_follow_dir = 'buy'
-    elif trade_file.endswith('.buy') == True:  # buy order
+    elif trade_file.endswith('.buy'):  # buy order
         l_dir = 'buy'
         reverse_follow_dir = 'sell'
     new_ema_1 = get_ema(ema_1, close, ema_period_1)
@@ -786,7 +790,7 @@ def try_to_trade_tit2tat(subpath):
         new_l_dir = 'buy'
     elif close < previous_close and delta_ema_1 < 0:
         new_l_dir = 'sell'
-    if new_open == False:
+    if not new_open:
         if not forced_close:
             pass
         else:
@@ -796,12 +800,12 @@ def try_to_trade_tit2tat(subpath):
         else:
             issuing_close = False
         # if issuing_close is true, check the new direction first
-        if issuing_close == True and l_dir == new_l_dir:  # the same direction, just treat it as a greedy
+        if issuing_close and l_dir == new_l_dir:  # the same direction, just treat it as a greedy
             issuing_close = False
         greedy_action = ''
         greedy_status = ''
         update_quarter_amount = False
-        if issuing_close == False and (forward_greedy or backward_greedy):
+        if not issuing_close and (forward_greedy or backward_greedy):
             # emit open again signal
             if l_dir == 'buy':
                 if (close - previous_close) > greedy_cost_multiplier * open_cost:
@@ -870,7 +874,7 @@ def try_to_trade_tit2tat(subpath):
                                                                              'open')  # as much as possible
                             thisweek_amount_pending += l_amount
                     else:
-                        #greedy_count = greedy_count + (1 / greedy_count_max)
+                        # greedy_count = greedy_count + (1 / greedy_count_max)
                         greedy_count = min(greedy_count + 1, greedy_count_max)
 
                 if backward_greedy:
@@ -899,7 +903,7 @@ def try_to_trade_tit2tat(subpath):
                         if ret:
                             globals()['request_price'] = price
                 else:
-                    #greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
+                    # greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                     greedy_count -= 1
                     if forward_greedy:  # adjust open sequence according to l_dir
                         if l_dir == 'buy':  # first open sell, then open buy
@@ -927,18 +931,18 @@ def try_to_trade_tit2tat(subpath):
             if greedy_action != 'open':
                 cleanup_holdings_atclose(symbol,
                                          globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
-        if issuing_close == True:
+        if issuing_close:
             globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
             issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)  # use zero to close all
             # and open again, just like new_open == True
             new_open = True
-            if open_greedy == True:
+            if open_greedy:
                 close_greedy = backward_greedy  # only if backward_greedy is true
                 open_greedy = False
                 thisweek_amount_pending = 0
             update_quarter_amount = True
             trade_file = ''  # clear it
-        if update_quarter_amount == True:
+        if update_quarter_amount:
             update_last_bond(symbol, globals()['contract'], l_dir)
 
             old_balance = last_balance
@@ -968,10 +972,10 @@ def try_to_trade_tit2tat(subpath):
                 if greedy_action == 'close':
                     print(', balance=%f=>%f,%f%%' % (old_balance, last_balance, delta_balance), end='')
                 print('')
-    if close_greedy == True:
+    if close_greedy:
         print(
             trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' %
-            (l_dir, previous_close, close, price_delta, 'forced ' if forced_close == True else '', 'closed'))
+            (l_dir, previous_close, close, price_delta, 'forced ' if forced_close else '', 'closed'))
         if forward_greedy:
             if globals()['greedy_same_amount']:
                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
@@ -980,7 +984,7 @@ def try_to_trade_tit2tat(subpath):
             issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
         thisweek_amount_pending = 0
         close_greedy = False
-    if new_open == True:
+    if new_open:
         if new_l_dir == '':
             previous_close = close
             return
@@ -1014,8 +1018,8 @@ def try_to_trade_tit2tat(subpath):
         save_balance_tit2tat(subpath, symbol, close, backend.query_balance(symbol, globals()['contract']))
     return greedy_status
 
-direction = 0
 
+direction = 0
 total_revenue = 0
 previous_close_price = 0
 total_orders = 0
@@ -1034,7 +1038,7 @@ def with_scandir_tit2tat(l_dir):
     files = list()
     with os.scandir(l_dir) as it:
         for entry in it:
-            if entry.name.endswith('.t2t') == True:
+            if entry.name.endswith('.t2t'):
                 files.append(entry.name)
     return files
 
@@ -1064,8 +1068,9 @@ def emul_signal_notify(l_dir, l_signal):
                 f.write('%s\n' % msg)
                 f.close()
                 print(msg)
-        #print(close_mean)
+        # print(close_mean)
     except Exception as ex:
+        print(ex)
         print(traceback.format_exc())
 
 
@@ -1103,7 +1108,7 @@ def wait_signal_notify(notify, signal, shutdown):
             with open(notify, 'r') as f:
                 subpath = f.readline().rstrip('\n')
                 f.close()
-                #print(subpath)
+                # print(subpath)
                 status = globals()['try_to_trade_%s' % signal](subpath)
                 if status != 'no action':
                     globals()['save_status_%s' % signal](subpath)
@@ -1142,6 +1147,7 @@ def read_int_var(filename, var_name):
             except Exception as ex:
                 l_var = globals()['default_%s' % var_name]
                 print('%s reset to default %f' % (var_name, l_var))
+                print(ex)
         f.close()
         globals()[var_name] = l_var
         return True
@@ -1166,7 +1172,7 @@ ratio_file = '%s.%sratio' % (l_dir, l_prefix)
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix)  # file used to notify trade
 logfile = '%s.log' % trade_notify
 logging.basicConfig(filename=logfile, format='%(asctime)s %(message)s', level=logging.DEBUG)
-#logging.info('trade_notify: %s' % trade_notify)
+# logging.info('trade_notify: %s' % trade_notify)
 if not options.nolog:
     saved_stdout = sys.stdout
     sys.stdout = open(logfile, 'a')
@@ -1178,28 +1184,28 @@ status_file = '%s.%strade_status' % (l_dir, l_prefix)  # file used to save statu
 print('status_file: %s' % status_file)
 trade_status = dict()
 
-if options.signal_notify != None:
+if options.signal_notify is not None:
     signal_notify = options.signal_notify
 else:
     signal_notify = '%s.%snotify' % (l_dir, l_prefix)
-#logging.info ('signal_notify: %s' % signal_notify)
+# logging.info ('signal_notify: %s' % signal_notify)
 print('signal_notify: %s' % signal_notify)
 
 pid_file = '%s.%strade_notify.pid' % (l_dir, l_prefix)
 # os.setsid() # privilge
-#print(os.getpgrp(), os.getpgid(os.getpid()))
+# print(os.getpgrp(), os.getpgid(os.getpid()))
 with open(pid_file, 'w') as f:
     f.write('%d' % os.getpid())
     f.close()
 print('sid %d pgrp %d pid %d saved to file %s' % (os.getsid(os.getpid()), os.getpgrp(), os.getpid(), pid_file))
 
-if options.previous_close != None:
+if options.previous_close is not None:
     previous_close = float(options.previous_close)
 
-if options.startup_notify != None:
+if options.startup_notify is not None:
     startup_notify = options.startup_notify
     print('startup_notify: %s' % startup_notify)
-if options.shutdown_notify != None:
+if options.shutdown_notify is not None:
     shutdown_notify = options.shutdown_notify
     print('shutdown_notify: %s' % shutdown_notify)
 
@@ -1254,7 +1260,8 @@ def prepare_for_self_trigger(notify, signal, l_dir):
             # print('save signal to %s' % notify)
         return price_filename
     except Exception as Ex:
-        print(trade_timestamp(), traceback.format_exc())
+        print(trade_timestamp(), Ex)
+        print(traceback.format_exc())
         return None
 
 
@@ -1293,7 +1300,7 @@ while True:
             order_info = eval(line)
             f.close()
             dirs = ['', 'buy', 'sell', '', '']  # 1:buy, 2:sell
-            if order_info['result'] == True:
+            if order_info['result']:
                 limit_direction = dirs[order_info['orders'][0]['type']]
                 limit_price = order_info['orders'][0]['price']
                 limit_symbol = order_info['orders'][0]['symbol']
@@ -1304,7 +1311,7 @@ while True:
     if first_prompt:
         print(trade_timestamp(), 'Waiting for process new coming file\n', flush=True)
         first_prompt = False
-    #issue kickup signal
+    # issue kickup signal
     with open('%s.ok' % trade_notify, 'w') as f:
         f.close()
 
@@ -1312,14 +1319,14 @@ while True:
         (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
 
         if timeout > 0:  # wait for triggering
-            #print(trade_timestamp(),
+            # print(trade_timestamp(),
             #       'wait for next period about %dh:%dm:%ds later' %
             #       (timeout / 60 / 60,
             #        (timeout % 3600) / 60,
             #        timeout - int(timeout / 60) * 60))
             time.sleep(timeout)
         else:
-            #print(trade_timestamp(), 'trigger safely')
+            # print(trade_timestamp(), 'trigger safely')
             pass
         prepare_for_self_trigger(signal_notify, l_signal, l_dir)
 
