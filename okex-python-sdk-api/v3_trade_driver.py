@@ -250,7 +250,8 @@ def cleanup_holdings_atopen(symbol, contract, direction, amount, price):  # only
     adj_price = total_ticks / total_amounts
 
     orders_holding[direction]['holding'].append((adj_price, t_amount))
-    print('    atopen price adjust to %.4f, cleanup %d, left %d' % (adj_price, total_amounts - t_amount, t_amount))
+    print(trade_timestamp(),
+          '    atopen price adjust to %.4f, cleanup %d, left %d' % (adj_price, total_amounts - t_amount, t_amount))
 
 
 def cleanup_holdings_atclose(symbol, contract, direction, amount, price):  # only keep amount around price
@@ -268,7 +269,8 @@ def cleanup_holdings_atclose(symbol, contract, direction, amount, price):  # onl
     globals()['amount_ratio'] = leverage
 
     orders_holding[direction]['holding'][0] = (origin_price, t_amount)
-    print('    atclose price adjust to %.4f, cleanup %d, left %d' % (origin_price, total_amounts - t_amount, t_amount))
+    print(trade_timestamp(),
+          '    atclose price adjust to %.4f, cleanup %d, left %d' % (origin_price, total_amounts - t_amount, t_amount))
 
 
 # for both open and close
@@ -1269,11 +1271,11 @@ def calculate_timeout_for_self_trigger(notify):
     period_s = periods_mapping_s[figure_out_period_info(notify)]
     moduls = int(datetime.datetime.now().strftime('%s')) % period_s
     delta = int(30 * random.random())
-    timeout = (period_s - moduls) - delta - 20  # should in current period, for correct high/low
+    timeout = (period_s - moduls) + delta - 60  # should in current period, for correct high/low
     if timeout > 0:
         return (timeout, delta)
     else:
-        return (20, delta)  # wait at least this long time of seconds
+        return (-1, delta)  # wait at least this long time of seconds
 
 
 contract = figure_out_contract_info(signal_notify)
