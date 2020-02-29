@@ -1269,7 +1269,7 @@ def calculate_timeout_for_self_trigger(notify):
     period_s = periods_mapping_s[figure_out_period_info(notify)]
     moduls = int(datetime.datetime.now().strftime('%s')) % period_s
     delta = int(30 * random.random())
-    timeout = (period_s - moduls) - delta - 20 # should in current period, for correct high/low
+    timeout = (period_s - moduls) - delta - 20  # should in current period, for correct high/low
     if timeout > 0:
         return (timeout, delta)
     else:
