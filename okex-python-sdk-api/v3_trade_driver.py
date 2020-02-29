@@ -888,7 +888,9 @@ def try_to_trade_tit2tat(subpath):
                     reverse_amount = 1
 
                 cleanup_holdings_atopen(symbol,
-                                        globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
+                                        globals()['contract'],
+                                        l_dir,
+                                        quarter_amount + thisweek_amount_pending, close)
 
                 # first take reverse into account and do some makeup
                 (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
