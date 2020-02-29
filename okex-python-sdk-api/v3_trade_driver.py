@@ -894,9 +894,11 @@ def try_to_trade_tit2tat(subpath):
 
                 # first take reverse into account and do some makeup
                 (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
-                assumed_amount = int(reverse_amount) * int(thisweek_amount_pending / quarter_amount)
+
                 # no enough reverse orders
-                do_makeup = t_amount < assumed_amount
+                ratio_1 = int(thisweek_amount_pending / quarter_amount + 0.1)
+                ratio_2 = int(t_amount / reverse_amount + 0.1)
+                do_makeup = (ratio_2 < ratio_1)
 
                 if greedy_count < 1.0 or do_makeup:  # must bigger than 1
                     # open reverse order
