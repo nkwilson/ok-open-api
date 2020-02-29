@@ -102,7 +102,7 @@ def query_limit(instrument_id):
     try:
         cached_limit = which_api.get_limit(instrument_id)
     except Exception as ex:
-        logging.info(ex)
+        logging.info(instrument_id, ex)
     # print (cached_limit)
     return cached_limit
 
@@ -124,6 +124,7 @@ def query_ticker(instrument_id):
     try:
         ticker = which_api.get_specific_ticker(instrument_id)
     except Exception as ex:
+        logging.info(instrument_id, ex)
         logging.info(ex)
     # print (ticker)
     return ticker
@@ -234,7 +235,7 @@ def cancel_order(symbol, contract, orderid):
         inst_id = query_instrument_id(symbol, contract)
         return which_api.revoke_order(inst_id, orderid)
     except Exception as ex:
-        logging.info(ex)
+        logging.info(symbol, contract, ex)
     # return okcoinFuture.future_cancel(symbol, contract, order_id)
 
 
@@ -274,7 +275,7 @@ def query_orderinfo(symbol, contract, orderid):
         inst_id = query_instrument_id(symbol, contract)
         result = which_api.get_order_info(inst_id, orderid)
     except Exception as ex:
-        logging.info(ex)
+        logging.info(symbol, contract, ex)
 
     # print (result)
     return result
@@ -298,7 +299,7 @@ def query_orderinfo_wait(symbol, contract, orderid):
             continue
         return result
     except Exception as ex:
-        logging.info(ex)
+        logging.info(symbol, contract, ex)
         print(ex)
         return ex
 
@@ -411,7 +412,7 @@ def check_holdings_profit(symbol, contract, direction):
             leverage = float(data['%s_leverage' % new_dir])
         return (loss, amount, leverage)
     except Exception as ex:
-        logging.info(ex)
+        logging.info(symbol, contract, ex)
         return (0, 0, 0)
 
 
@@ -442,7 +443,7 @@ def real_open_price_and_cost(symbol, contract, direction):
         real = float(data['%s_pnl_ratio' % l_dir]) / float(data['%s_leverage' % l_dir])
         return (avg, avg * real)
     except Exception as ex:
-        logging.info(ex)
+        logging.info(symbol, contract, ex)
         return (0, 0)
 
 
@@ -466,7 +467,7 @@ def query_bond(symbol, contract, direction):
         data = holding['holding'][0]
         return float(data['%s_margin' % l_dir]) / float(data['%s_qty' % l_dir])
     except Exception as ex:
-        logging.info(ex)
+        logging.info(symbol, contract, ex)
         return 0.0
 
 
