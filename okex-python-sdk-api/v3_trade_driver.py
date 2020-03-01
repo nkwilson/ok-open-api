@@ -552,12 +552,6 @@ def load_status_tit2tat(subpath=''):
     loadsave_status('tit2tat', load=True)
 
 
-def save_balance_tit2tat(subpath, symbol, price, balance):
-    with open('%s.balance' % (subpath), 'w+') as w:
-        w.write('%s\n' % ([datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), symbol, price, balance]))
-        w.close()
-
-
 def get_greedy_tiny_delta(price):
     # print('greedy delta', globals()['previous_close'], price)
     return 10 * (globals()['previous_close'] - price)  # 'previous_close is update to current price'
@@ -715,26 +709,30 @@ def try_to_trade_tit2tat(subpath):
 
     print('')  # add an empty line
     if trade_file == '':
-        print('%9.4f' % close, '-', 'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
-              'ema_%d:%9.4f' % (ema_period_2, new_ema_2))
+        print('%.4f' % close, '-', 'ema_%d:%.4f' % (ema_period_1, new_ema_1),
+              'ema_%d:%.4f' % (ema_period_2, new_ema_2))
     elif l_dir == 'sell':  # sell order
         ema_tendency = new_ema_2 - new_ema_1_lo  # ema_2 should bigger than ema_1_lo
         reverse_follow_dir = 'buy'
         price_delta = (previous_close - close) / previous_close
-        print('%9.4f' % -close, '%9.4f' % previous_close, l_dir, 'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
-              'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_lo), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
-              'greedy: %.2f' % greedy_count,
-              'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
-              'delta: %2.5f' % (prices[ID_OPEN] - prices[ID_CLOSE]))
+        print('%.4f' % -close, '%.4f' % previous_close, l_dir, 'ema_%d:%.4f' % (ema_period_1, new_ema_1),
+              'ema_%d signal/ema_%d: %.4f => %.4f ' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2),
+              'greedy: %.1f ' % greedy_count,
+              'cost: %2.5f/%.02f%% ' % (open_cost, 100 * float(globals()['open_cost_rate'])),
+              'delta: %2.5f ' % (price_delta),
+              'balance: %.2f ' % (globals()['last_balance']),
+              'amount: %d ' % (globals()['quarter_amount'] + globals()['thisweek_amount_pending']))
     elif l_dir == 'buy':  # buy order
         ema_tendency = new_ema_1_up - new_ema_2  # ema_1_up should bigger than ema_2
         reverse_follow_dir = 'sell'
         price_delta = (close - previous_close) / previous_close
-        print('%9.4f' % close, '%9.4f' % -previous_close, l_dir, 'ema_%d:%9.4f' % (ema_period_1, new_ema_1),
-              'ema_%d signal:%9.4f' % (ema_period_1, new_ema_1_up), 'ema_%d:%9.4f' % (ema_period_2, new_ema_2),
-              'greedy: %.2f' % greedy_count,
+        print('%.4f' % close, '%.4f' % -previous_close, l_dir,
+              'ema_%d signal/ema_%d: %.4f <= %.4f ' % (ema_period_1, ema_period_2, new_ema_1_up, new_ema_2),
+              'greedy: %.1f' % greedy_count,
               'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
-              'delta: %2.5f' % (prices[ID_CLOSE] - prices[ID_OPEN]))
+              'delta: %2.5f' % (price_delta),
+              'balance: %.2f' % (globals()['last_balance']),
+              'amount: %d ' % (globals()['quarter_amount'] + globals()['thisweek_amount_pending']))
     ema_1 = new_ema_1  # saved now
     ema_1_up = new_ema_1_up
     ema_1_lo = new_ema_1_lo
@@ -747,9 +745,6 @@ def try_to_trade_tit2tat(subpath):
         previous_close = close
         close_greedy = False
         return
-
-    # save balance when midnight
-    midnight = datetime.datetime.utcnow()
 
     symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
@@ -1021,8 +1016,6 @@ def try_to_trade_tit2tat(subpath):
         update_open_cost(open_price)
 
         previous_close = close
-    if midnight.hour == 23:
-        save_balance_tit2tat(subpath, symbol, close, backend.query_balance(symbol, globals()['contract']))
     return greedy_status
 
 
