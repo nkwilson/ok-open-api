@@ -727,7 +727,7 @@ def try_to_trade_tit2tat(subpath):
               'greedy: %.1f' % greedy_count,
               'cost: %.5f @ %.5f/%.2f%%' % (price_delta, open_cost, 100 * float(globals()['open_cost_rate'])),
               'balance: %.2f' % (globals()['last_balance']),
-              'amount: %d' % (globals()['quarter_amount'] + globals()['thisweek_amount_pending']))
+              'amount: %d/%d' % (globals()['quarter_amount'], globals()['thisweek_amount_pending']))
 
     ema_1 = new_ema_1  # saved now
     ema_1_up = new_ema_1_up
