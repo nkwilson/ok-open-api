@@ -634,10 +634,12 @@ def update_open_cost(price):
 # p <=  (t - 1)/(t + 1)
 # if x = 0.008, p should less than 0.947
 # if x = 0.005, p should less than 0.917
+# if x = 0.0055, p should less than 0.924
+# if x = 0.0048, p should less than 0.914
 request_price = '0'
 last_fee = 0
 open_cost = 0
-open_cost_rate = 0.0055  # percent of previous_close
+open_cost_rate = 0.0048  # percent of previous_close
 reverse_amount_rate = 0.9
 quarter_amount = 1
 thisweek_amount_pending = 0
