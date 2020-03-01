@@ -902,14 +902,14 @@ def try_to_trade_tit2tat(subpath):
                 ratio_2 = int(t_amount / reverse_amount + 0.1)
                 do_makeup = (ratio_2 < ratio_1)
 
-                if greedy_count < 1.0 or do_makeup:  # must bigger than 1
+                if do_makeup:
                     # open reverse order
                     if globals()['greedy_same_amount']:
                         (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                                          'open')
                         if ret:
                             globals()['request_price'] = price
-                else:
+                if greedy_count > 0:  # must bigger than zero
                     # greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                     greedy_count -= 1
                     if forward_greedy:  # adjust open sequence according to l_dir
