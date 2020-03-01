@@ -386,7 +386,7 @@ def get_loss_amount_from_swap(holding, direction):
     try:
         result = list(filter(lambda i: i['side'] == direction, holding))
         data = result[0]
-        loss = float(data['unrealized_pnl']) * 100 / float(data['margin'])
+        loss = (float(data['unrealized_pnl']) + float(data['settled_pnl'])) * 100 / float(data['margin'])
         amount = float(data['avail_position'])
         leverage = float(data['leverage'])
         return (loss, amount, leverage)
