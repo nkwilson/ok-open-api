@@ -689,6 +689,8 @@ def try_to_trade_tit2tat(subpath):
     # print(l_index, event_path)
     prices = read_4prices(event_path)
     close = prices[ID_CLOSE]
+    l_dir = ''
+    reverse_follow_dir = ''
     if trade_file.endswith('.sell'):  # sell order
         l_dir = 'sell'
         reverse_follow_dir = 'buy'
@@ -702,7 +704,6 @@ def try_to_trade_tit2tat(subpath):
     new_ema_2_up = get_ema(ema_2_up, prices[ID_HIGH], ema_period_2)
     new_ema_2_lo = get_ema(ema_2_lo, prices[ID_LOW], ema_period_2)
     delta_ema_1 = new_ema_1 - ema_1
-    reverse_follow_dir = ''
     price_delta = 0
 
     globals()['current_close'] = close  # save early
@@ -713,26 +714,21 @@ def try_to_trade_tit2tat(subpath):
               'ema_%d:%.4f' % (ema_period_2, new_ema_2))
     elif l_dir == 'sell':  # sell order
         ema_tendency = new_ema_2 - new_ema_1_lo  # ema_2 should bigger than ema_1_lo
-        reverse_follow_dir = 'buy'
-        price_delta = (previous_close - close) / previous_close
-        print('%.4f' % -close, '%.4f' % previous_close, l_dir, 'ema_%d:%.4f' % (ema_period_1, new_ema_1),
-              'ema_%d signal/ema_%d: %.4f => %.4f ' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2),
-              'greedy: %.1f ' % greedy_count,
-              'cost: %2.5f/%.02f%% ' % (open_cost, 100 * float(globals()['open_cost_rate'])),
-              'delta: %2.5f ' % (price_delta),
-              'balance: %.2f ' % (globals()['last_balance']),
-              'amount: %d ' % (globals()['quarter_amount'] + globals()['thisweek_amount_pending']))
+        price_delta = (previous_close - close)
+        ema_tuple = 'ema_%d/ema_%d: %.4f => %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
+        print('%.4f' % -close, '%.4f' % previous_close, l_dir, end=' ')
     elif l_dir == 'buy':  # buy order
         ema_tendency = new_ema_1_up - new_ema_2  # ema_1_up should bigger than ema_2
-        reverse_follow_dir = 'sell'
-        price_delta = (close - previous_close) / previous_close
-        print('%.4f' % close, '%.4f' % -previous_close, l_dir,
-              'ema_%d signal/ema_%d: %.4f <= %.4f ' % (ema_period_1, ema_period_2, new_ema_1_up, new_ema_2),
+        price_delta = (close - previous_close)
+        ema_tuple = 'ema_%d/ema_%d: %.4f <= %.4f' % (ema_period_1, ema_period_2, new_ema_1_up, new_ema_2)
+        print('%.4f' % close, '%.4f' % -previous_close, l_dir, end=' ')
+    if len(l_dir):
+        print(ema_tuple,
               'greedy: %.1f' % greedy_count,
-              'cost: %2.5f/%.02f%%' % (open_cost, 100 * float(globals()['open_cost_rate'])),
-              'delta: %2.5f' % (price_delta),
+              'cost: %.5f @ %.5f/%.2f%%' % (price_delta, open_cost, 100 * float(globals()['open_cost_rate'])),
               'balance: %.2f' % (globals()['last_balance']),
-              'amount: %d ' % (globals()['quarter_amount'] + globals()['thisweek_amount_pending']))
+              'amount: %d' % (globals()['quarter_amount'] + globals()['thisweek_amount_pending']))
+
     ema_1 = new_ema_1  # saved now
     ema_1_up = new_ema_1_up
     ema_1_lo = new_ema_1_lo
