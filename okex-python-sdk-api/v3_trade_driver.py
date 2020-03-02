@@ -766,6 +766,8 @@ def try_to_trade_tit2tat(subpath):
             forced_close = True
         else:
             thisweek_amount_pending = math.ceil(t_amount - quarter_amount)
+            if thisweek_amount_pending == 0:  # zero greedy count?
+                greedy_count = greedy_count_max
     if forced_close:
         open_greedy = True
         # suffered forced close
