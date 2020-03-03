@@ -638,7 +638,7 @@ reverse_amount_rate = 0.9
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2  # 2 times is up threshold
-greedy_count_max = 1  # limit this times pending greedy
+greedy_count_max = 12  # limit this times pending greedy
 greedy_count = 0  # current pending greedy
 greedy_whole_balance = False  # greedy will cover whole balance
 greedy_same_amount = False  # greedy use the same as quarter_amount
@@ -647,7 +647,7 @@ open_greedy = False
 amount_ratio_plus = 0.05  # percent of total amount
 profit_cost_multiplier = 0.2  # times of profit with open_cost
 greedy_cost_multiplier = 1  # times of greedy with open_cost
-amount_real = 0  # supercede on amount_ratio, as percent of amount
+amount_real = 0.01  # supercede on amount_ratio, as percent of amount
 ema_period_1 = 2  # signal period
 ema_period_2 = 20  # tendency period
 ema_1 = 0
@@ -887,21 +887,6 @@ def try_to_trade_tit2tat(subpath):
                                         l_dir,
                                         quarter_amount + thisweek_amount_pending, close)
 
-                # first take reverse into account and do some makeup
-                (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
-
-                # no enough reverse orders
-                ratio_1 = int(thisweek_amount_pending / quarter_amount + 0.1)
-                ratio_2 = int(t_amount / reverse_amount + 0.1)
-                do_makeup = (ratio_2 < ratio_1)
-
-                if do_makeup:
-                    # open reverse order
-                    if globals()['greedy_same_amount']:
-                        (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
-                                                                         'open')
-                        if ret:
-                            globals()['request_price'] = price
                 if greedy_count > 0:  # must bigger than zero
                     # greedy_count = greedy_count * (1.0 - 1.0 / greedy_count_max) # decreasing fast
                     greedy_count -= 1
@@ -926,6 +911,20 @@ def try_to_trade_tit2tat(subpath):
                         issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
                         # secondly open new order
                         issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
+                else:  # less than 1
+                    # first take reverse into account and do some makeup
+                    (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
+
+                    # no enough reverse orders
+                    ratio_1 = int(thisweek_amount_pending / quarter_amount + 0.1)
+                    ratio_2 = int(t_amount / reverse_amount + 0.1)
+                    do_makeup = (ratio_2 < ratio_1)
+
+                    if do_makeup:
+                        # open reverse order
+                        if globals()['greedy_same_amount']:
+                            (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
+                                                                             'open')
             if greedy_action == '' or greedy_count >= greedy_count_max:  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open':
