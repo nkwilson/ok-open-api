@@ -57,8 +57,6 @@ passphrase = 'v3api0'
 expire_day = ''
 instrument_id = ''
 which_api = ''
-swapAPI = swap.SwapAPI(api_key, secret_key, passphrase, False)
-futureAPI = future.FutureAPI(api_key, secret_key, passphrase, False)
 
 
 def query_instrument_id(symbol, contract):
@@ -66,9 +64,9 @@ def query_instrument_id(symbol, contract):
     # print (expire_day)
     if which_api == '':
         if contract == 'swap':
-            which_api = swapAPI
+            which_api = swap.SwapAPI(api_key, secret_key, passphrase, False)
         else:
-            which_api = futureAPI
+            which_api = future.FutureAPI(api_key, secret_key, passphrase, False)
     if contract == 'swap':  # specific case
         return symbol.upper().replace('_', '-') + '-SWAP'
         pass
