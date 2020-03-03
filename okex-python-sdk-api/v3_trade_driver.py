@@ -918,7 +918,7 @@ def try_to_trade_tit2tat(subpath):
                     # no enough reverse orders
                     ratio_1 = int(thisweek_amount_pending / quarter_amount + 0.1)
                     ratio_2 = int(t_amount / reverse_amount + 0.1)
-                    do_makeup = (ratio_2 < ratio_1)
+                    do_makeup = (ratio_2 < ratio_1 + 1)
 
                     if do_makeup:
                         # open reverse order
