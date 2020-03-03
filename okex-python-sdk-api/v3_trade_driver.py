@@ -1332,6 +1332,9 @@ while True:
     except Exception as ex:
         print(ex)
 
+    # reset it in case network error
+    backend.which_api = ''
+
     if options.do_self_trigger:
         time.sleep(delta)
 
