@@ -930,6 +930,8 @@ def try_to_trade_tit2tat(subpath):
             if greedy_action != 'open':
                 cleanup_holdings_atclose(symbol,
                                          globals()['contract'], l_dir, quarter_amount + thisweek_amount_pending, close)
+                # update greedy_count according to amount
+                greedy_count = greedy_count_max - (thisweek_amount_pending / quarter_amount)
         if issuing_close:
             globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
             issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)  # use zero to close all
