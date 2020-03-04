@@ -630,15 +630,19 @@ def update_open_cost(price):
 # if x = 0.005, p should less than 0.917
 # if x = 0.0055, p should less than 0.924
 # if x = 0.0048, p should less than 0.914
+# if x = 0.004,  p should less than 0.898
+# [0.0035, 0.884]
+# [0.003,  0.866]
+# [0.002,  0.806]
 request_price = '0'
 last_fee = 0
 open_cost = 0
-open_cost_rate = 0.0048  # percent of previous_close
-reverse_amount_rate = 0.9
+open_cost_rate = 0.005  # percent of previous_close
+reverse_amount_rate = 0.85
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2  # 2 times is up threshold
-greedy_count_max = 6  # limit this times pending greedy
+greedy_count_max = 7  # limit this times pending greedy
 greedy_count = 0  # current pending greedy
 greedy_whole_balance = False  # greedy will cover whole balance
 greedy_same_amount = False  # greedy use the same as quarter_amount
