@@ -535,7 +535,7 @@ names_tit2tat = [
     'update_quarter_amount_backward', 'profit_cost_multiplier', 'greedy_cost_multiplier', 'last_fee', 'amount_ratio',
     'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'open_cost_rate',
-    'request_price', 'wait_for_completion'
+    'request_price', 'wait_for_completion', 'reverse_amount_rate'
 ]
 
 
@@ -857,7 +857,7 @@ def try_to_trade_tit2tat(subpath):
                     if thisweek_amount_pending > 0:
                         (ret, price,
                          l_amount) = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending,
-                                                                         'close')  # as much as possible
+                                                                         'close', False)  # as much as possible
                         if thisweek_amount_pending >= l_amount:  # is ok
                             thisweek_amount_pending -= l_amount
                         else:
@@ -882,7 +882,11 @@ def try_to_trade_tit2tat(subpath):
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
             elif greedy_action == 'open':  # yes, open action pending
                 r_rate = globals()['reverse_amount_rate']
-                reverse_amount = thisweek_amount * r_rate
+                if greedy_count < greedy_count_max:
+                    reverse_amount = thisweek_amount / r_rate
+                else:
+                    reverse_amount = thisweek_amount * r_rate
+
                 if reverse_amount < 1:
                     reverse_amount = 1
 
