@@ -642,7 +642,7 @@ reverse_amount_rate = 0.85
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2  # 2 times is up threshold
-greedy_count_max = 3  # limit this times pending greedy
+greedy_count_max = 1  # limit this times pending greedy
 greedy_count = 0  # current pending greedy
 greedy_whole_balance = False  # greedy will cover whole balance
 greedy_same_amount = False  # greedy use the same as quarter_amount
@@ -933,7 +933,7 @@ def try_to_trade_tit2tat(subpath):
                         if globals()['greedy_same_amount']:
                             (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                                              'open')
-            if greedy_action == '' or greedy_count >= greedy_count_max:  # update balance
+            if greedy_action == 'close':  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open':
                 cleanup_holdings_atclose(symbol,
