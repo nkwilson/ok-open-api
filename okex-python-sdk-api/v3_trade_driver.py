@@ -837,6 +837,7 @@ def try_to_trade_tit2tat(subpath):
                 else:
                     thisweek_amount = math.floor((quarter_amount_multiplier - 1) * quarter_amount / greedy_count_max)
 
+                thisweek_amount = int(thisweek_amount)
 
 #  持续更新 pending
 #  开始状态，直接买入quarter_amount , greedy_count = max, pending = 0
@@ -883,9 +884,13 @@ def try_to_trade_tit2tat(subpath):
             elif greedy_action == 'open':  # yes, open action pending
                 r_rate = globals()['reverse_amount_rate']
                 if greedy_count < greedy_count_max:
-                    reverse_amount = thisweek_amount / r_rate
+                    reverse_amount = int(thisweek_amount / r_rate)
+                    if reverse_amount == thisweek_amount:
+                        reverse_amount += 1
                 else:
-                    reverse_amount = thisweek_amount * r_rate
+                    reverse_amount = int(thisweek_amount * r_rate)
+                    if reverse_amount == thisweek_amount:
+                        thisweek_amount += 1
 
                 if reverse_amount < 1:
                     reverse_amount = 1
