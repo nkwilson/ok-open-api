@@ -634,6 +634,10 @@ def update_open_cost(price):
 # [0.0035, 0.884]
 # [0.003,  0.866]
 # [0.002,  0.806]
+# if leverage is 11
+# [0.005, 0.848]
+# if leverage is 13
+# [0.005, 0.87]
 request_price = '0'
 last_fee = 0
 open_cost = 0
@@ -651,7 +655,7 @@ open_greedy = False
 amount_ratio_plus = 0.05  # percent of total amount
 profit_cost_multiplier = 0.2  # times of profit with open_cost
 greedy_cost_multiplier = 1  # times of greedy with open_cost
-amount_real = 0.02  # supercede on amount_ratio, as percent of amount
+amount_real = 0.05  # supercede on amount_ratio, as percent of amount
 ema_period_1 = 2  # signal period
 ema_period_2 = 20  # tendency period
 ema_1 = 0
