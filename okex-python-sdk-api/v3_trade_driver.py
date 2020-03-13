@@ -402,7 +402,7 @@ def signal_close_order_with_buy(l_index, filename, close):
     with open(filename, 'a') as f:
         f.write(line)
         f.close()
-    print(trade_timestamp(), line.rstrip('\n'), flush9=True)
+    print(trade_timestamp(), line.rstrip('\n'), flush=True)
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.close' % filename)
