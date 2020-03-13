@@ -638,11 +638,13 @@ def update_open_cost(price):
 # [0.005, 0.848]
 # if leverage is 13
 # [0.005, 0.87]
+# if lererage is 10
+# [0.005, 0.834]
 request_price = '0'
 last_fee = 0
 open_cost = 0
 open_cost_rate = 0.005  # percent of previous_close
-reverse_amount_rate = 0.85
+reverse_amount_rate = 0.8
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2  # 2 times is up threshold
