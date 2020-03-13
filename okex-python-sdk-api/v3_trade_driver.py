@@ -402,7 +402,7 @@ def signal_close_order_with_buy(l_index, filename, close):
     with open(filename, 'a') as f:
         f.write(line)
         f.close()
-    print(trade_timestamp(), line.rstrip('\n'), flush=True)
+    print(trade_timestamp(), line.rstrip('\n'), flush9=True)
     global trade_notify
     with open(trade_notify, 'w') as f:
         f.write('%s.close' % filename)
@@ -940,7 +940,7 @@ def try_to_trade_tit2tat(subpath):
                         if globals()['greedy_same_amount']:
                             (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                                              'open')
-            if greedy_action == '' or greedy_count >= greedy_count_max  # update balance
+            if greedy_action == '' or greedy_count >= greedy_count_max:  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open':
                 cleanup_holdings_atclose(symbol,
