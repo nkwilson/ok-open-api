@@ -723,6 +723,7 @@ def try_to_trade_tit2tat(subpath):
     globals()['current_close'] = close  # save early
 
     print('')  # add an empty line
+    balance_tuple = 'balance: %.2f' % (globals()['last_balance'])
     if trade_file == '':
         print('%.4f' % close, '-', end=' ')
         ema_tuple = 'ema_%d/ema_%d: %.4f <=> %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
@@ -731,19 +732,31 @@ def try_to_trade_tit2tat(subpath):
         price_delta = (previous_close - close)
         ema_tuple = 'ema_%d/ema_%d: %.4f => %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
         print('%.4f' % -close, '%.4f' % previous_close, l_dir, end=' ')
+        if abs(price_delta) < open_cost:  # yes, show balance
+            balance_tuple = ''
     elif l_dir == 'buy':  # buy order
         ema_tendency = new_ema_1_up - new_ema_2  # ema_1_up should bigger than ema_2
         price_delta = (close - previous_close)
         ema_tuple = 'ema_%d/ema_%d: %.4f <= %.4f' % (ema_period_1, ema_period_2, new_ema_1_up, new_ema_2)
         print('%.4f' % close, '%.4f' % -previous_close, l_dir, end=' ')
+        if abs(price_delta) < open_cost:  # yes, show balance
+            balance_tuple = ''
+
+    amount_tuple = 'amount: %d/%d' % (globals()['quarter_amount'], globals()['thisweek_amount_pending'])
+
     if globals()['tendency_holdon'] != '':  # yes, tendency fixed
         ema_tuple = 'fixed'
+
     print(ema_tuple, end=' ')
+
     if len(l_dir):
         print('greedy: %.1f' % greedy_count,
-              'cost: %.5f @ %.5f/%.2f%%' % (price_delta, open_cost, 100 * float(globals()['open_cost_rate'])),
-              'balance: %.2f' % (globals()['last_balance']),
-              'amount: %d/%d' % (globals()['quarter_amount'], globals()['thisweek_amount_pending']), end=' ')
+              'cost:%s%.5f @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '-',
+                                             price_delta,
+                                             open_cost, 100 * float(globals()['open_cost_rate'])),
+              amount_tuple,
+              balance_tuple,
+              end=' ')
     print('')
 
     ema_1 = new_ema_1  # saved now
