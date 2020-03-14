@@ -750,7 +750,7 @@ def try_to_trade_tit2tat(subpath):
     print(ema_tuple, end=' ')
 
     if len(l_dir):
-        print('greedy: %.1f' % greedy_count,
+        print('greedy:%s%.1f' % (' ' if greedy_count > 0 else '', greedy_count), 
               'cost:%s%.5f @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '',
                                              price_delta,
                                              open_cost, 100 * float(globals()['open_cost_rate'])),
@@ -1007,6 +1007,8 @@ def try_to_trade_tit2tat(subpath):
                 do_updating = 'do '
                 quarter_amount = new_quarter_amount
             if do_updating != '':
+                if quarter_amount < 2: # must be bigger than 1
+                    quarter_amount = 2
                 print(trade_timestamp(),
                       '%supdate quarter_amount from %s=>%s' % (do_updating, amount, new_quarter_amount),
                       end='')
