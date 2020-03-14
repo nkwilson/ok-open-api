@@ -724,8 +724,8 @@ def try_to_trade_tit2tat(subpath):
 
     print('')  # add an empty line
     if trade_file == '':
-        print('%.4f' % close, '-', 'ema_%d:%.4f' % (ema_period_1, new_ema_1),
-              'ema_%d:%.4f' % (ema_period_2, new_ema_2))
+        print('%.4f' % close, '-', end=' ')
+        ema_tuple = 'ema_%d/ema_%d: %.4f <=> %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
     elif l_dir == 'sell':  # sell order
         ema_tendency = new_ema_2 - new_ema_1_lo  # ema_2 should bigger than ema_1_lo
         price_delta = (previous_close - close)
@@ -736,13 +736,16 @@ def try_to_trade_tit2tat(subpath):
         price_delta = (close - previous_close)
         ema_tuple = 'ema_%d/ema_%d: %.4f <= %.4f' % (ema_period_1, ema_period_2, new_ema_1_up, new_ema_2)
         print('%.4f' % close, '%.4f' % -previous_close, l_dir, end=' ')
+    if globals()['tendency_holdon'] != '':  # yes, tendency fixed
+        ema_tuple = 'fixed'
+    print(ema_tuple, end=' ')
     if len(l_dir):
-        print(ema_tuple,
-              'greedy: %.1f' % greedy_count,
+        print('greedy: %.1f' % greedy_count,
               'cost: %.5f @ %.5f/%.2f%%' % (price_delta, open_cost, 100 * float(globals()['open_cost_rate'])),
               'balance: %.2f' % (globals()['last_balance']),
-              'amount: %d/%d' % (globals()['quarter_amount'], globals()['thisweek_amount_pending']))
-
+              'amount: %d/%d' % (globals()['quarter_amount'], globals()['thisweek_amount_pending']), end=' ')
+    print('')
+    
     ema_1 = new_ema_1  # saved now
     ema_1_up = new_ema_1_up
     ema_1_lo = new_ema_1_lo
@@ -949,7 +952,7 @@ def try_to_trade_tit2tat(subpath):
                         if globals()['greedy_same_amount']:
                             (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                                              'open')
-            if greedy_action == '' or greedy_count >= greedy_count_max:  # update balance
+            if greedy_action == 'close':  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open':
                 cleanup_holdings_atclose(symbol,
