@@ -1055,6 +1055,8 @@ def try_to_trade_tit2tat(subpath):
         update_open_cost(open_price)
 
         previous_close = close
+    if globals()['tendency_holdon'] != '':
+        previous_close = close
     return greedy_status
 
 
