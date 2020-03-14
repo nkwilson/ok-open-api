@@ -751,7 +751,7 @@ def try_to_trade_tit2tat(subpath):
 
     if len(l_dir):
         print('greedy: %.1f' % greedy_count,
-              'cost:%s%.5f @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '-',
+              'cost:%s%.5f @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '',
                                              price_delta,
                                              open_cost, 100 * float(globals()['open_cost_rate'])),
               amount_tuple,
