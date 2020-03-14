@@ -535,7 +535,7 @@ names_tit2tat = [
     'update_quarter_amount_backward', 'profit_cost_multiplier', 'greedy_cost_multiplier', 'last_fee', 'amount_ratio',
     'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'open_cost_rate',
-    'request_price', 'wait_for_completion', 'reverse_amount_rate'
+    'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon'
 ]
 
 
@@ -671,6 +671,8 @@ backward_greedy = False  # following reverse tendency
 update_quarter_amount_forward = True  # update it if balance increase
 update_quarter_amount_backward = False  # update it if balance decrease
 
+tendency_holdon = ''  # if set, hold on the tendency
+
 
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
@@ -707,6 +709,8 @@ def try_to_trade_tit2tat(subpath):
     elif trade_file.endswith('.buy'):  # buy order
         l_dir = 'buy'
         reverse_follow_dir = 'sell'
+    if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
+        trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
     new_ema_1 = get_ema(ema_1, close, ema_period_1)
     new_ema_2 = get_ema(ema_2, close, ema_period_2)
     new_ema_1_up = get_ema(ema_1_up, prices[ID_HIGH], ema_period_1)
@@ -809,6 +813,8 @@ def try_to_trade_tit2tat(subpath):
         # if issuing_close is true, check the new direction first
         if issuing_close and l_dir == new_l_dir:  # the same direction, just treat it as a greedy
             issuing_close = False
+        if globals()['tendency_holdon'] != '':  # yes, hold on it
+            issuing_close = False  # reset
         greedy_action = ''
         greedy_status = ''
         update_quarter_amount = False
