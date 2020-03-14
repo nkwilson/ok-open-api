@@ -745,7 +745,7 @@ def try_to_trade_tit2tat(subpath):
               'balance: %.2f' % (globals()['last_balance']),
               'amount: %d/%d' % (globals()['quarter_amount'], globals()['thisweek_amount_pending']), end=' ')
     print('')
-    
+
     ema_1 = new_ema_1  # saved now
     ema_1_up = new_ema_1_up
     ema_1_lo = new_ema_1_lo
