@@ -785,7 +785,7 @@ def try_to_trade_tit2tat(subpath):
             thisweek_amount_pending = math.ceil(t_amount - quarter_amount)
             if thisweek_amount_pending == 0:  # zero greedy count?
                 greedy_count = greedy_count_max
-    if forced_close:
+    if forced_close and globals()['tendency_holdon'] == '':  # only when tendency holding on
         open_greedy = True
         # suffered forced close
         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
