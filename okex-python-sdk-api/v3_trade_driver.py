@@ -535,7 +535,7 @@ names_tit2tat = [
     'update_quarter_amount_backward', 'profit_cost_multiplier', 'greedy_cost_multiplier', 'last_fee', 'amount_ratio',
     'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'open_cost_rate',
-    'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon'
+    'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced',
 ]
 
 
@@ -672,6 +672,7 @@ update_quarter_amount_forward = True  # update it if balance increase
 update_quarter_amount_backward = False  # update it if balance decrease
 
 tendency_holdon = ''  # if set, hold on the tendency
+check_forced = False  # no check for whether forced close
 
 
 def try_to_trade_tit2tat(subpath):
@@ -750,7 +751,7 @@ def try_to_trade_tit2tat(subpath):
     print(ema_tuple, end=' ')
 
     if len(l_dir):
-        print('greedy:%s%.1f' % (' ' if greedy_count > 0 else '', greedy_count),
+        print('greedy:%s%.1f' % (' ' if greedy_count >= 0 else '', greedy_count),
               'cost:%s%.5f @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '',
                                              price_delta,
                                              open_cost, 100 * float(globals()['open_cost_rate'])),
@@ -798,7 +799,7 @@ def try_to_trade_tit2tat(subpath):
             thisweek_amount_pending = math.ceil(t_amount - quarter_amount)
             if thisweek_amount_pending == 0:  # zero greedy count?
                 greedy_count = greedy_count_max
-    if forced_close and globals()['tendency_holdon'] == '':  # only when tendency holding on
+    if forced_close and globals()['check_forced']:  # only when required
         open_greedy = True
         # suffered forced close
         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
