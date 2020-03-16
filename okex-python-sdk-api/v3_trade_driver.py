@@ -900,7 +900,7 @@ def try_to_trade_tit2tat(subpath):
                         if thisweek_amount_pending == 0:  # fresh go
                             greedy_count = greedy_count_max  # increase it to threshold
                         else:
-                            greedy_count += (l_amount / thisweek_amount)
+                            greedy_count = min(l_amount / thisweek_amount + greedy_count, greedy_count_max)
                     elif thisweek_amount_pending < 0:  # if less holdings, increase it
                         (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
                                                                          'open')  # as much as possible
