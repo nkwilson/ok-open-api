@@ -969,7 +969,7 @@ def try_to_trade_tit2tat(subpath):
                                                                              'open')
                     elif loss > 200 and margin_mode == 'fixed':  # much too profit
                         issue_quarter_order_now(symbol, reverse_follow_dir, t_amount / 2, 'close')
-            if greedy_action == 'close':  # update balance
+            if greedy_action == '':  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open':
                 cleanup_holdings_atclose(symbol,
