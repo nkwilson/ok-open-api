@@ -928,9 +928,6 @@ def try_to_trade_tit2tat(subpath):
                     if reverse_amount == thisweek_amount:
                         thisweek_amount += 1
 
-                if reverse_amount < 1:
-                    reverse_amount = 1
-
                 cleanup_holdings_atopen(symbol,
                                         globals()['contract'],
                                         l_dir,
