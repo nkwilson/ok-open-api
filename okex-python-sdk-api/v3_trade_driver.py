@@ -790,7 +790,7 @@ def try_to_trade_tit2tat(subpath):
         if not options.emulate:  # if emualtion, figure it manually
             (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
             globals()['amount_ratio'] = leverage
-        if t_amount <= 0:
+        if t_amount <= 0 and globals()['check_forced']:
             # open it un-conditionally
             issue_quarter_order_now(symbol, l_dir, 1, 'open')
             # check if should take normal close action
@@ -799,7 +799,7 @@ def try_to_trade_tit2tat(subpath):
             thisweek_amount_pending = math.ceil(t_amount - quarter_amount)
             if thisweek_amount_pending <= 0:  # zero greedy count?
                 greedy_count = greedy_count_max
-    if forced_close and globals()['check_forced']:  # only when required
+    if forced_close:  # only when required
         open_greedy = True
         # suffered forced close
         globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
