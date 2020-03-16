@@ -841,17 +841,17 @@ def try_to_trade_tit2tat(subpath):
         if not issuing_close and (forward_greedy or backward_greedy):
             # emit open again signal
             if l_dir == 'buy':
-                if (close - previous_close) > greedy_cost_multiplier * open_cost:
+                if (close - previous_close) > open_cost:
                     greedy_action = 'close'
                     greedy_status = 'maybe closed'
-                elif (close - previous_close) < -greedy_cost_multiplier * open_cost:
+                elif (close - previous_close) < -open_cost:
                     greedy_action = 'open'
                     greedy_status = 'holding'
             elif l_dir == 'sell':
-                if (close - previous_close) < -greedy_cost_multiplier * open_cost:
+                if (close - previous_close) < -open_cost:
                     greedy_action = 'close'
                     greedy_status = 'maybe closed'
-                elif (close - previous_close) > greedy_cost_multiplier * open_cost:
+                elif (close - previous_close) > open_cost:
                     greedy_action = 'open'
                     greedy_status = 'holding'
             if greedy_status != '':
