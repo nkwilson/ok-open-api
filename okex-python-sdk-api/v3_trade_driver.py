@@ -965,7 +965,6 @@ def try_to_trade_tit2tat(subpath):
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
 
                     # no enough reverse orders
-                    r_rate = globals()['reverse_amount_rate']
                     reverse_amount = int((thisweek_amount_pending + quarter_amount) / float(r_rate) - t_amount)
 
                     if reverse_amount > 0:
