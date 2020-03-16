@@ -884,7 +884,8 @@ def try_to_trade_tit2tat(subpath):
                 if forward_greedy:
                     if globals()['greedy_same_amount']:
                         (ret, price,
-                         l_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+                         l_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0,
+                                                                         'close', False)
                         if ret:
                             globals()['request_price'] = price
                     if thisweek_amount_pending > 0:
@@ -901,12 +902,9 @@ def try_to_trade_tit2tat(subpath):
                         else:
                             greedy_count += (l_amount / thisweek_amount)
                     elif thisweek_amount_pending < 0:  # if less holdings, increase it
-                        if greedy_count < greedy_count_max:
-                            greedy_count = greedy_count_max
-                        else:
-                            (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
-                                                                             'open')  # as much as possible
-                            thisweek_amount_pending += l_amount
+                        (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
+                                                                         'open')  # as much as possible
+                        thisweek_amount_pending += l_amount
                     else:
                         # greedy_count = greedy_count + (1 / greedy_count_max)
                         greedy_count = min(greedy_count + 1, greedy_count_max)
