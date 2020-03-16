@@ -674,6 +674,8 @@ update_quarter_amount_backward = False  # update it if balance decrease
 tendency_holdon = ''  # if set, hold on the tendency
 check_forced = False  # no check for whether forced close
 
+margin_mode = 'fixed'  # default is fixed, others is crossed
+
 
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
@@ -790,6 +792,7 @@ def try_to_trade_tit2tat(subpath):
         if not options.emulate:  # if emualtion, figure it manually
             (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
             globals()['amount_ratio'] = leverage
+            globals()['margin_mode'] = backend.get_margin_mode(symbol, globals()['contract'])
         if t_amount <= 0 and globals()['check_forced']:
             # open it un-conditionally
             issue_quarter_order_now(symbol, l_dir, 1, 'open')
@@ -908,6 +911,10 @@ def try_to_trade_tit2tat(subpath):
                         # greedy_count = greedy_count + (1 / greedy_count_max)
                         greedy_count = min(greedy_count + 1, greedy_count_max)
 
+                        (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+                        if loss > 200 and margin_mode == 'fixed':  # yes, much profit, withdraw
+                            issue_quarter_order_now(symbol, l_dir, t_amount / 2, 'close')
+
                 if backward_greedy:
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
             elif greedy_action == 'open':  # yes, open action pending
@@ -966,6 +973,8 @@ def try_to_trade_tit2tat(subpath):
                         if globals()['greedy_same_amount']:
                             (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                                              'open')
+                    elif loss > 200 and margin_mode == 'fixed':  # much too profit
+                        issue_quarter_order_now(symbol, reverse_follow_dir, t_amount / 2, 'close')
             if greedy_action == 'close':  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open':

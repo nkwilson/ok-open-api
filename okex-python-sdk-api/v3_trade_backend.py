@@ -393,6 +393,16 @@ def get_loss_amount_from_swap(holding, direction):
         return (0, 0, 0)
 
 
+# get it through api get_specific_position
+def get_margin_mode(symbol, contract):
+    try:
+        holding = which_api.get_specific_position(symbol, contract)
+        return holding['margin_mode']
+    except Exception as ex:
+        logging.info(ex)
+        return ''
+
+
 def check_holdings_profit(symbol, contract, direction):
     try:
         inst_id = query_instrument_id(symbol, contract)
