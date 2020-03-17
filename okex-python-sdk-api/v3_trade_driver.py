@@ -888,6 +888,11 @@ def try_to_trade_tit2tat(subpath):
                                                                          'close', False)
                         if ret:
                             globals()['request_price'] = price
+
+                    (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+
+                    profit_rate = (int(quarter_amount) / t_amount) * 200  # if equal quarter_amount, then it is 200%
+                    profit_num = abs(loss) / profit_rate
                     if thisweek_amount_pending > 0:
                         (ret, price,
                          l_amount) = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending,
@@ -901,7 +906,7 @@ def try_to_trade_tit2tat(subpath):
                             greedy_count = greedy_count_max  # increase it to threshold
                         else:
                             greedy_count = min(l_amount / thisweek_amount + greedy_count, greedy_count_max)
-                    elif thisweek_amount_pending < 0:  # if less holdings, increase it
+                    elif thisweek_amount_pending < 0 and profit_num < greedy_count_max:  # if less holdings and loss is small, increase it
                         (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
                                                                          'open')  # as much as possible
                         thisweek_amount_pending += l_amount
@@ -909,8 +914,7 @@ def try_to_trade_tit2tat(subpath):
                         # greedy_count = greedy_count + (1 / greedy_count_max)
                         greedy_count = min(greedy_count + 1, greedy_count_max)
 
-                        (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
-                        if loss > 200 and margin_mode == 'fixed':  # yes, much profit, withdraw
+                        if profit_num >= 1 and margin_mode == 'fixed':  # yes, much profit, withdraw
                             issue_quarter_order_now(symbol, l_dir, t_amount / 2, 'close')
 
                 if backward_greedy:
@@ -968,7 +972,8 @@ def try_to_trade_tit2tat(subpath):
                             (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                                              'open')
                     elif loss > 200 and margin_mode == 'fixed':  # much too profit
-                        issue_quarter_order_now(symbol, reverse_follow_dir, t_amount / 2, 'close')
+                        if t_amount > quarter_amount:  # much holdings
+                            issue_quarter_order_now(symbol, reverse_follow_dir, t_amount / 2, 'close')
             if greedy_action == '':  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open':
