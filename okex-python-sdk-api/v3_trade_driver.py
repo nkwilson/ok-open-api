@@ -894,8 +894,12 @@ def try_to_trade_tit2tat(subpath):
 
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
 
-                    profit_rate = (int(quarter_amount) / t_amount) * globals()['profit_withdraw_rate']  # if equal quarter_amount, then it is 200%
-                    profit_num = abs(loss) / profit_rate
+                    try:
+                        profit_rate = (int(quarter_amount) / t_amount) * globals()['profit_withdraw_rate']  # if equal quarter_amount, then it is 200%
+                        profit_num = abs(loss) / profit_rate
+                    except Exception as ex:
+                        profit_num = 0
+
                     if thisweek_amount_pending > 0:
                         (ret, price,
                          l_amount) = issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending,
