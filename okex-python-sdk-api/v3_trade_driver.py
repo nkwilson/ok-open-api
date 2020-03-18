@@ -677,7 +677,7 @@ check_forced = False  # no check for whether forced close
 
 margin_mode = 'fixed'  # default is fixed, others is crossed
 
-profit_withdraw_rate = 200  # default is doubled
+profit_withdraw_rate = 100  # default is doubled
 
 
 def try_to_trade_tit2tat(subpath):
