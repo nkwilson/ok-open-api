@@ -457,12 +457,12 @@ def real_open_price_and_cost(symbol, contract, direction):
 
 def get_bond_from_swap(holding, direction):
     result = list(filter(lambda i: i['side'] == direction, holding))
-    if len(result) == 0:
-        return 0.0
-    data = result[0]
-    if data['position'] != 0:
+    try:
+        data = result[0]
         return float(data['margin']) / float(data['position'])
-    return 0.0
+    except Exception as ex:
+        logging.info(symbol, contract, ex)
+        return 0.0
 
 
 def query_bond(symbol, contract, direction):
