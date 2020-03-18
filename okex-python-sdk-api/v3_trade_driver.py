@@ -933,6 +933,13 @@ def try_to_trade_tit2tat(subpath):
                     if reverse_amount == thisweek_amount:
                         thisweek_amount += 1
 
+                (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+
+                # less holding, and not because  quarter_amount increased
+                if t_amount > 0 and thisweek_amount_pending < 0:
+                    issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending, 'open')
+                    thisweek_amount_pending = 0
+
                 cleanup_holdings_atopen(symbol,
                                         globals()['contract'],
                                         l_dir,
