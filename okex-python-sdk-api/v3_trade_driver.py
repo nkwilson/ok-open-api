@@ -897,7 +897,7 @@ def try_to_trade_tit2tat(subpath):
                     try:
                         profit_rate = (int(quarter_amount) / t_amount) * globals()['profit_withdraw_rate']  # if equal quarter_amount, then it is 200%
                         profit_num = abs(loss) / profit_rate
-                    except Exception as ex:
+                    except Exception:
                         profit_num = 0
 
                     if thisweek_amount_pending > 0:

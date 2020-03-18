@@ -461,7 +461,7 @@ def get_bond_from_swap(holding, direction):
         data = result[0]
         return float(data['margin']) / float(data['position'])
     except Exception as ex:
-        logging.info(symbol, contract, ex)
+        logging.info(ex)
         return 0.0
 
 
