@@ -731,7 +731,7 @@ def try_to_trade_tit2tat(subpath):
     symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
     print('')  # add an empty line
-    balance_tuple = 'balance: %.2f' % (globals()['last_balance'])
+    balance_tuple = 'balance: %.3f' % (globals()['last_balance'])
     if trade_file == '':
         print('%.4f' % close, '-', end=' ')
         ema_tuple = 'ema_%d/ema_%d: %.4f <=> %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
@@ -898,8 +898,14 @@ def try_to_trade_tit2tat(subpath):
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
 
                     try:
-                        profit_rate = (int(quarter_amount) / t_amount) * globals()['profit_withdraw_rate']  # if equal quarter_amount, then it is 200%
-                        profit_num = abs(loss) / profit_rate
+                        # for examples:
+                        # quarter=16 t_amount=16 makeup=1, if loss>~ withdraw_rate, profit_num ~ 1, withdraw half quarter
+                        # quarter=16 t_amount=8  makeup=2, if loss>~ 2 * withdraw_rate, profit_num ~ 2, withdraw another half quarter
+                        makeup_num = int(quarter_amount / t_amount)
+                        profit_rate = makeup_num * globals()['profit_withdraw_rate']
+                        profit_num = int(loss / profit_rate)
+
+                        makeup_gate = max(1, makeup_num - 1)
                     except Exception:
                         profit_num = 0
 
@@ -916,7 +922,7 @@ def try_to_trade_tit2tat(subpath):
                             greedy_count = greedy_count_max  # increase it to threshold
                         else:
                             greedy_count = min(l_amount / thisweek_amount + greedy_count, greedy_count_max)
-                    elif thisweek_amount_pending < 0 and profit_num < greedy_count_max:  # if less holdings and loss is small, increase it
+                    elif thisweek_amount_pending < 0 and profit_num < makeup_gate:  # if less holdings and loss is small, increase it
                         (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
                                                                          'open')  # as much as possible
                         thisweek_amount_pending += l_amount
@@ -926,7 +932,9 @@ def try_to_trade_tit2tat(subpath):
 
                         t_amount = t_amount / 2
                         min_left = quarter_amount / (greedy_count_max + 1)
-                        if profit_num >= 1 and t_amount >= min_left and margin_mode == 'fixed':  # yes, much profit, withdraw
+                        print ('loss:%.2f profit_num:%.2f makeup_num:%.2f t_amount:%d min_left:%d' %
+                               (loss, profit_num, makeup_num, t_amount, min_left))
+                        if profit_num >= makeup_gate and t_amount >= min_left and margin_mode == 'fixed':  # yes, much profit, withdraw
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
 
                 if backward_greedy:
