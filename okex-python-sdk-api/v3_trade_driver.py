@@ -932,8 +932,8 @@ def try_to_trade_tit2tat(subpath):
 
                         t_amount = t_amount / 2
                         min_left = quarter_amount / (greedy_count_max + 1)
-                        print ('loss:%.2f profit_num:%.2f makeup_num:%.2f t_amount:%d min_left:%d' %
-                               (loss, profit_num, makeup_num, t_amount, min_left))
+                        print('loss:%.2f profit_num:%.2f makeup_num:%.2f t_amount:%d min_left:%d' %
+                              (loss, profit_num, makeup_num, t_amount, min_left))
                         if profit_num >= makeup_gate and t_amount >= min_left and margin_mode == 'fixed':  # yes, much profit, withdraw
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
 
@@ -986,15 +986,22 @@ def try_to_trade_tit2tat(subpath):
                     # no enough reverse orders
                     reverse_amount = int((thisweek_amount_pending + quarter_amount) / float(r_rate) - t_amount)
 
-                    t_amount = t_amount / 2
-                    min_left = quarter_amount / (greedy_count_max + 1)
                     if reverse_amount > 0:
                         # open reverse order
                         if globals()['greedy_same_amount']:
                             (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                                              'open')
-                    elif loss > 200 and t_amount >= min_left and margin_mode == 'fixed':  # much too profit
-                        if t_amount > quarter_amount:  # much holdings
+                    else:
+                        if quarter_amount < t_amount:
+                            makeup_num = t_amount / quarter_amount
+                        else:
+                            makeup_num = quarter_amount / t_amount
+                        profit_rate = makeup_num * 100
+
+                        profit_num = loss / profit_rate
+
+                        t_amount = t_amount / 2
+                        if profit_num > makeup_num and margin_mode == 'fixed':  # much too profit
                             issue_quarter_order_now(symbol, reverse_follow_dir, t_amount, 'close')
             if greedy_action == '':  # update balance
                 update_quarter_amount = True
