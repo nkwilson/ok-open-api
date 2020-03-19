@@ -696,7 +696,7 @@ def try_to_trade_tit2tat(subpath):
     global ema_2, ema_2_up, ema_2_lo
     global forward_greedy, backward_greedy
     global update_quarter_amount_forward, update_quarter_amount_backward
-    global greedy_count, greedy_count_max
+    global greedy_count, greedy_count_max, margin_mode
 
     globals()['request_price'] = ''  # first clear it
 
