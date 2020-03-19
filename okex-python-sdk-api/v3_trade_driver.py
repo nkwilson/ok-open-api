@@ -728,6 +728,8 @@ def try_to_trade_tit2tat(subpath):
 
     globals()['current_close'] = close  # save early
 
+    symbol = symbols_mapping[figure_out_symbol_info(event_path)]
+
     print('')  # add an empty line
     balance_tuple = 'balance: %.2f' % (globals()['last_balance'])
     if trade_file == '':
@@ -756,11 +758,14 @@ def try_to_trade_tit2tat(subpath):
     print(ema_tuple, end=' ')
 
     if len(l_dir):
+        (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+
         print('greedy:%s%.1f' % (' ' if greedy_count >= 0 else '', greedy_count),
               'cost:%s%.5f @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '',
                                              price_delta,
                                              open_cost, 100 * float(globals()['open_cost_rate'])),
               amount_tuple,
+              'loss:%.1f%%' % (loss),
               balance_tuple,
               end=' ')
     print('')
@@ -777,8 +782,6 @@ def try_to_trade_tit2tat(subpath):
         previous_close = close
         close_greedy = False
         return
-
-    symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
     new_open = True
     forced_close = False
