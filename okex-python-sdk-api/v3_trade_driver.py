@@ -934,7 +934,7 @@ def try_to_trade_tit2tat(subpath):
                         min_left = quarter_amount / (greedy_count_max + 1)
                         print('loss:%.2f profit_num:%.2f makeup_num:%.2f t_amount:%d min_left:%d' %
                               (loss, profit_num, makeup_num, t_amount, min_left))
-                        if profit_num >= makeup_gate and t_amount >= min_left and margin_mode == 'fixed':  # yes, much profit, withdraw
+                        if profit_num >= makeup_gate and t_amount >= min_left and globals()['margin_mode'] == 'fixed':  # yes, much profit, withdraw
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
 
                 if backward_greedy:
@@ -1001,7 +1001,7 @@ def try_to_trade_tit2tat(subpath):
                         profit_num = loss / profit_rate
 
                         t_amount = t_amount / 2
-                        if profit_num > makeup_num and margin_mode == 'fixed':  # much too profit
+                        if profit_num > makeup_num and globals()['margin_mode'] == 'fixed':  # much too profit
                             issue_quarter_order_now(symbol, reverse_follow_dir, t_amount, 'close')
             if greedy_action == '':  # update balance
                 update_quarter_amount = True
