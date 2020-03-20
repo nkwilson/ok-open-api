@@ -908,6 +908,7 @@ def try_to_trade_tit2tat(subpath):
                         makeup_gate = max(1, makeup_num - 1)
                     except Exception:
                         profit_num = 0
+                        makeup_gate = 1
 
                     if thisweek_amount_pending > 0:
                         (ret, price,
