@@ -261,12 +261,15 @@ def cleanup_holdings_atclose(symbol, contract, direction, amount, price):  # onl
     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = holding[0][1]
 
-    # get real start price
-    if direction == 'buy':
-        origin_price = price * 100 / (100 + loss / leverage)
-    else:
-        origin_price = price * 100 / (100 - loss / leverage)
-    globals()['amount_ratio'] = leverage
+    try:
+        # get real start price
+        if direction == 'buy':
+            origin_price = price * 100 / (100 + loss / leverage)
+        else:
+            origin_price = price * 100 / (100 - loss / leverage)
+            globals()['amount_ratio'] = leverage
+    except Exception:
+        return
 
     orders_holding[direction]['holding'][0] = (origin_price, t_amount)
     print(trade_timestamp(),
