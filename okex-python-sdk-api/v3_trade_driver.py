@@ -937,6 +937,7 @@ def try_to_trade_tit2tat(subpath):
                               (loss, profit_num, makeup_num, t_amount, min_left))
                         if profit_num >= makeup_gate and t_amount >= min_left and globals()['margin_mode'] == 'fixed':  # yes, much profit, withdraw
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
+                            thisweek_amount_pending -= t_amount
 
                 if backward_greedy:
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
