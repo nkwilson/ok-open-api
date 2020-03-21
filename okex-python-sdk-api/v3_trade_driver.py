@@ -809,7 +809,7 @@ def try_to_trade_tit2tat(subpath):
             forced_close = True
         else:
             thisweek_amount_pending = math.ceil(t_amount - quarter_amount)
-            if thisweek_amount_pending <= 0:  # zero greedy count?
+            if t_amount > 0 and thisweek_amount_pending <= 0:  # zero greedy count? but not forced close
                 greedy_count = greedy_count_max
     if forced_close:  # only when required
         open_greedy = True
@@ -930,7 +930,7 @@ def try_to_trade_tit2tat(subpath):
                         (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
                                                                          'open')  # as much as possible
                         thisweek_amount_pending += l_amount
-                    else:
+                    elif t_amount > 0: # must not be forced close
                         # greedy_count = greedy_count + (1 / greedy_count_max)
                         greedy_count = min(greedy_count + 1, greedy_count_max)
 
