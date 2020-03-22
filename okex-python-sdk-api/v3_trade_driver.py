@@ -767,7 +767,7 @@ def try_to_trade_tit2tat(subpath):
 
         globals()['thisweek_amount_pending'] = t_amount - globals()['quarter_amount']
 
-        (s, t_reverse_amount, l) = backend.check_holdings_profit(symbol, globals()['contract'], reverse_follow_dir)
+        (r_loss, t_reverse_amount, r_leverage) = backend.check_holdings_profit(symbol, globals()['contract'], reverse_follow_dir)
         amount_tuple = 'amount: %d/%d r:%d' % (globals()['quarter_amount'],
                                                globals()['thisweek_amount_pending'],
                                                t_reverse_amount)
@@ -789,7 +789,7 @@ def try_to_trade_tit2tat(subpath):
                                                  open_cost,
                                                  100 * float(globals()['open_cost_rate'])),
               amount_tuple,
-              'loss:%.1f%%' % (loss),
+              'loss:%.1f%% r:%.1f%%' % (loss, r_loss),
               balance_tuple,
               end=' ')
     print('')
