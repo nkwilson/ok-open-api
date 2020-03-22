@@ -814,6 +814,12 @@ def try_to_trade_tit2tat(subpath):
         close_greedy = False
         return
 
+    rate = globals()['profit_withdraw_rate']
+    if rate == '-1':  # means no withdraw
+        withdraw_rate = 1000
+    else:
+        withdraw_rate = rate
+
     new_open = True
     forced_close = False
     if trade_file != '':
@@ -828,6 +834,8 @@ def try_to_trade_tit2tat(subpath):
             t_amount = open_price - delta * amount_ratio  # calcuate by forced close probability
         if not options.emulate:  # if emualtion, figure it manually
             (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+            if withdraw_rate == 0:  # means keep it as leverage
+                withdraw_rate = leverage
             globals()['amount_ratio'] = leverage
             globals()['margin_mode'] = backend.get_margin_mode(symbol, globals()['contract'])
         if t_amount <= 0 and globals()['check_forced']:
@@ -935,7 +943,7 @@ def try_to_trade_tit2tat(subpath):
                         # quarter=16 t_amount=16 makeup=1, if loss>~ withdraw_rate, profit_num ~ 1, withdraw half quarter
                         # quarter=16 t_amount=8  makeup=2, if loss>~ 2 * withdraw_rate, profit_num ~ 2, withdraw another half quarter
                         makeup_num = int(quarter_amount / t_amount)
-                        profit_rate = makeup_num * globals()['profit_withdraw_rate']
+                        profit_rate = makeup_num * withdraw_rate
 
                         profit_num = int(loss / profit_rate)
                         makeup_gate = max(1, makeup_num - 1)
