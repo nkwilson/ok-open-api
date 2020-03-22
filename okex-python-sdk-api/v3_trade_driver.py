@@ -767,7 +767,7 @@ def try_to_trade_tit2tat(subpath):
 
         globals()['thisweek_amount_pending'] = t_amount - globals()['quarter_amount']
 
-        (loss, t_reverse_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], reverse_follow_dir)
+        (s, t_reverse_amount, l) = backend.check_holdings_profit(symbol, globals()['contract'], reverse_follow_dir)
         amount_tuple = 'amount: %d/%d r:%d' % (globals()['quarter_amount'],
                                                globals()['thisweek_amount_pending'],
                                                t_reverse_amount)
@@ -921,18 +921,19 @@ def try_to_trade_tit2tat(subpath):
 
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
 
+                    profit_num = 0
+                    makeup_gate = 1
                     try:
                         # for examples:
                         # quarter=16 t_amount=16 makeup=1, if loss>~ withdraw_rate, profit_num ~ 1, withdraw half quarter
                         # quarter=16 t_amount=8  makeup=2, if loss>~ 2 * withdraw_rate, profit_num ~ 2, withdraw another half quarter
                         makeup_num = int(quarter_amount / t_amount)
                         profit_rate = makeup_num * globals()['profit_withdraw_rate']
-                        profit_num = int(loss / profit_rate)
 
+                        profit_num = int(loss / profit_rate)
                         makeup_gate = max(1, makeup_num - 1)
                     except Exception:
-                        profit_num = 0
-                        makeup_gate = 1
+                        pass
 
                     if thisweek_amount_pending > 0:
                         (ret, price,
