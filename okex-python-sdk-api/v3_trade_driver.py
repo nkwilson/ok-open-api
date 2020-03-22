@@ -996,12 +996,12 @@ def try_to_trade_tit2tat(subpath):
                     # no enough reverse orders
                     reverse_amount = int((thisweek_amount_pending + quarter_amount) / float(r_rate) - t_amount)
 
-                    if reverse_amount > 0:
+                    if reverse_amount > 0 and t_amount < quarter_amount:  # t_amount should not be less than quarter_amount
                         # open reverse order
                         if globals()['greedy_same_amount']:
                             (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                                              'open')
-                    else:
+                    elif t_amount > 0:
                         if quarter_amount < t_amount:
                             makeup_num = t_amount / quarter_amount
                         else:
