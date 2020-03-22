@@ -734,7 +734,12 @@ def try_to_trade_tit2tat(subpath):
     symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
     print('')  # add an empty line
+    
+    t_last_balance = backend.query_balance(symbol, globals()['contract'])
+    if t_last_balance > 0:
+        last_balance = t_last_balance
     balance_tuple = 'balance: %.3f' % (globals()['last_balance'])
+
     if trade_file == '':
         print('%.4f' % close, '-', end=' ')
         ema_tuple = 'ema_%d/ema_%d: %.4f <=> %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
@@ -1057,8 +1062,7 @@ def try_to_trade_tit2tat(subpath):
                 print(trade_timestamp(),
                       '%supdate quarter_amount from %s=>%s' % (do_updating, amount, new_quarter_amount),
                       end='')
-                if greedy_action == 'close':
-                    print(', balance=%f=>%f,%f%%' % (old_balance, last_balance, delta_balance), end='')
+                print(', balance=%f=>%f,%f%%' % (old_balance, last_balance, delta_balance), end='')
                 print('')
     if close_greedy:
         print(
