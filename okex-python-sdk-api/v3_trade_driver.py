@@ -958,11 +958,15 @@ def try_to_trade_tit2tat(subpath):
 
                         t_amount = t_amount / 2
                         min_left = quarter_amount / (greedy_count_max + 1)
-                        print('loss:%.2f profit_num:%.2f makeup_num:%.2f t_amount:%d min_left:%d' %
-                              (loss, profit_num, makeup_num, t_amount, min_left))
+                        print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d min_left:%d' %
+                              (loss, profit_num, makeup_gate, t_amount, min_left),
+                              end='')
+                        flag = ''
                         if profit_num >= makeup_gate and t_amount >= min_left and globals()['margin_mode'] == 'fixed':  # yes, much profit, withdraw
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
                             thisweek_amount_pending -= t_amount
+                            flag = ' +'
+                        print(flag)
 
                 if backward_greedy:
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
