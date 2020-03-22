@@ -771,6 +771,7 @@ def try_to_trade_tit2tat(subpath):
         amount_tuple = 'amount: %d/%d r:%d' % (globals()['quarter_amount'],
                                                globals()['thisweek_amount_pending'],
                                                t_reverse_amount)
+        loss_tuple = 'loss:%.1f%% r:%.1f%%' % (loss, r_loss)
 
         if balance_tuple == '+':
             t_last_balance = backend.query_balance(symbol, globals()['contract'])
@@ -782,16 +783,22 @@ def try_to_trade_tit2tat(subpath):
                                                         ' ' if delta_balance >= 0 else '',
                                                         delta_balance)
 
+        cost_flag = ' '
+        if price_delta > open_cost:
+            cost_flag = '^'
+        elif price_delta < -open_cost:
+            cost_flag = 'v'
         print('greedy:%s%.1f' % (' ' if greedy_count >= 0 else '', greedy_count),
               'cost:%s%.5f(%s) @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '',
                                                  price_delta,
-                                                 '+' if price_delta >= open_cost else '-',
+                                                 cost_flag,
                                                  open_cost,
                                                  100 * float(globals()['open_cost_rate'])),
               amount_tuple,
-              'loss:%.1f%% r:%.1f%%' % (loss, r_loss),
+              loss_tuple,
               balance_tuple,
               end=' ')
+
     print('')
 
     ema_1 = new_ema_1  # saved now
