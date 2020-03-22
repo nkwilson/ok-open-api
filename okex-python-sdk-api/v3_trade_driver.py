@@ -734,7 +734,7 @@ def try_to_trade_tit2tat(subpath):
     symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
     print('')  # add an empty line
-    
+
     t_last_balance = backend.query_balance(symbol, globals()['contract'])
     if t_last_balance > 0:
         last_balance = t_last_balance
@@ -935,7 +935,7 @@ def try_to_trade_tit2tat(subpath):
                         (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
                                                                          'open')  # as much as possible
                         thisweek_amount_pending += l_amount
-                    elif t_amount > 0: # must not be forced close
+                    elif t_amount > 0:  # must not be forced close
                         # greedy_count = greedy_count + (1 / greedy_count_max)
                         greedy_count = min(greedy_count + 1, greedy_count_max)
 
