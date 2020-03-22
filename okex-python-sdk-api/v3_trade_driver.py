@@ -761,6 +761,7 @@ def try_to_trade_tit2tat(subpath):
 
     print(ema_tuple, end=' ')
 
+    delta_balance = 0
     if len(l_dir):
         (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
 
