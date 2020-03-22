@@ -1040,7 +1040,7 @@ def try_to_trade_tit2tat(subpath):
                         t_greedy_max = t_greedy_max + 1
                         if t_greedy_max > t_recorded_greedy_max:
                             t_recorded_greedy_max = t_greedy_max
-                            globals()['recorded_greedy_max'] = t_recorded_greedy_max
+                            recorded_greedy_max = t_recorded_greedy_max
 
                     # first take reverse into account and do some makeup
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
