@@ -766,14 +766,14 @@ def try_to_trade_tit2tat(subpath):
         (loss, t_amount, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
         globals()['thisweek_amount_pending'] = t_amount - globals()['quarter_amount']
         amount_tuple = 'amount: %d/%d @%.1f%%' % (globals()['quarter_amount'],
-                                                 globals()['thisweek_amount_pending'],
-                                                 loss)
+                                                  globals()['thisweek_amount_pending'],
+                                                  loss)
 
         (r_loss, t_reverse_amount, _) = backend.check_holdings_profit(symbol, globals()['contract'], reverse_follow_dir)
         reverse_tuple = ''
         if t_reverse_amount > 0:
             reverse_tuple = 'reverse: %d @%.1f%%' % (t_reverse_amount, r_loss)
-        
+
         if balance_tuple == '+':
             t_last_balance = backend.query_balance(symbol, globals()['contract'])
             if t_last_balance > 0:
