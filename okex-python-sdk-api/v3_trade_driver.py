@@ -784,7 +784,7 @@ def try_to_trade_tit2tat(subpath):
                                                         ' ' if delta_balance >= 0 else '',
                                                         delta_balance)
 
-        cost_flag = ' '
+        cost_flag = '.'
         if price_delta > open_cost:
             cost_flag = '^'
         elif price_delta < -open_cost:
@@ -969,7 +969,7 @@ def try_to_trade_tit2tat(subpath):
                         print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d min_left:%d' %
                               (loss, profit_num, makeup_gate, t_amount, min_left),
                               end='')
-                        flag = ' (-)'
+                        flag = ' (.)'
                         if profit_num >= makeup_gate and t_amount >= min_left and globals()['margin_mode'] == 'fixed':  # yes, much profit, withdraw
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
                             thisweek_amount_pending -= t_amount
