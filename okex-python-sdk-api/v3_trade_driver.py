@@ -238,7 +238,7 @@ def cleanup_holdings_atopen(symbol, contract, direction, amount, price):  # only
     holding = orders_holding[direction]['holding']
     if len(holding) < int(globals()['greedy_count_max']) + 2:  # it's ok to keep some as unbalanced
         return
-    (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
+    _, t_amount, leverage = backend.check_holdings_profit(symbol, contract, direction)
     total_amounts = sum([float(x[1]) for x in holding])
     total_ticks = sum([float(x[1]) * float(x[0]) for x in holding])
 
@@ -283,7 +283,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     if action == 'open':
         return issue_order_now(symbol, contract, direction, amount, action,
                                '' if globals()['fast_issue'] else globals()['request_price'])
-    (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, direction)
+    (loss, t_amount, _) = backend.check_holdings_profit(symbol, contract, direction)
     if t_amount == 0:
         return (False, 0, 0)  # no operation (ret, price, amount)
     holding = orders_holding[direction]['holding']
@@ -763,11 +763,11 @@ def try_to_trade_tit2tat(subpath):
 
     delta_balance = 0
     if len(l_dir):
-        (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+        (loss, t_amount, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
 
         globals()['thisweek_amount_pending'] = t_amount - globals()['quarter_amount']
 
-        (r_loss, t_reverse_amount, r_leverage) = backend.check_holdings_profit(symbol, globals()['contract'], reverse_follow_dir)
+        (r_loss, t_reverse_amount, _) = backend.check_holdings_profit(symbol, globals()['contract'], reverse_follow_dir)
         amount_tuple = 'amount: %d/%d r:%d' % (globals()['quarter_amount'],
                                                globals()['thisweek_amount_pending'],
                                                t_reverse_amount)
@@ -841,10 +841,11 @@ def try_to_trade_tit2tat(subpath):
         issue_quarter_order_now(symbol, l_dir, mini_amount, 'open')
         # clear it
         thisweek_amount_pending = 0
-        (open_price,
-         no_use) = backend.real_open_price_and_cost(symbol,
-                                                    globals()['contract'], l_dir) if not options.emulate else (close,
-                                                                                                               0.001)
+        if options.emulate:
+            open_price = close
+        else:
+            (open_price, _) = backend.real_open_price_and_cost(symbol,
+                                                               globals()['contract'], l_dir)
     new_l_dir = ''
     if close > previous_close and delta_ema_1 > 0:
         new_l_dir = 'buy'
@@ -1112,10 +1113,11 @@ def try_to_trade_tit2tat(subpath):
         globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
         issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
 
-        (open_price,
-         no_use) = backend.real_open_price_and_cost(symbol,
-                                                    globals()['contract'], l_dir) if not options.emulate else (close,
-                                                                                                               0.001)
+        if options.emulate:
+            open_price = close
+        else:
+            (open_price, _) = backend.real_open_price_and_cost(symbol,
+                                                               globals()['contract'], l_dir)
 
         update_open_cost(open_price)
 
