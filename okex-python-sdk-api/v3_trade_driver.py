@@ -771,9 +771,9 @@ def try_to_trade_tit2tat(subpath):
     delta_balance = 0
     if len(l_dir):
         (loss, t_amount, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
-        globals()['thisweek_amount_pending'] = t_amount - globals()['quarter_amount']
-        amount_tuple = 'amount: %d/%d @%.1f%%' % (globals()['quarter_amount'],
-                                                  globals()['thisweek_amount_pending'],
+        thisweek_amount_pending = t_amount - quarter_amount
+        amount_tuple = 'amount: %d/%d @%.1f%%' % (quarter_amount,
+                                                  thisweek_amount_pending,
                                                   loss)
 
         (r_loss, t_reverse_amount, _) = backend.check_holdings_profit(symbol, globals()['contract'], reverse_follow_dir)
@@ -977,6 +977,9 @@ def try_to_trade_tit2tat(subpath):
                         thisweek_amount_pending += l_amount
                     elif t_amount > 0:  # must not be forced close
                         # greedy_count = greedy_count + (1 / greedy_count_max)
+                        if record_greedy_pulse == True and recorded_greedy_max > greedy_count_max:
+                            greedy_count_max = recorded_greedy_max
+                            
                         greedy_count = min(greedy_count + 1, greedy_count_max)
 
                         t_amount = t_amount / 2
