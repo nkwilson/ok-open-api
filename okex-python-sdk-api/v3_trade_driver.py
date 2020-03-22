@@ -539,7 +539,7 @@ names_tit2tat = [
     'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'open_cost_rate',
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
-    'profit_withdraw_rate'
+    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max'
 ]
 
 
@@ -682,6 +682,11 @@ margin_mode = 'fixed'  # default is fixed, others is crossed
 
 profit_withdraw_rate = 100  # default is doubled
 
+record_greedy_pulse = False  # try to save the pulse greedy count for later usage
+recorded_greedy_max = 0  # persistented max
+t_recorded_greedy_max = 0  # max in this running
+t_greedy_max = 0  # max until now, will cleared at close action
+
 
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
@@ -700,6 +705,8 @@ def try_to_trade_tit2tat(subpath):
     global forward_greedy, backward_greedy
     global update_quarter_amount_forward, update_quarter_amount_backward
     global greedy_count, greedy_count_max, margin_mode
+    global record_greedy_pulse, recorded_greedy_max
+    global t_recorded_greedy_max, t_greedy_max
 
     globals()['request_price'] = ''  # first clear it
 
@@ -926,6 +933,7 @@ def try_to_trade_tit2tat(subpath):
 #  同向发展，pending < 0, greedy_count = max
 #  同向发展，pending < 0, greedy_count >= max，则直接增加持仓为 -pending
             if greedy_action == 'close':  # yes, close action pending
+                t_greedy_max = 0
                 if forward_greedy:
                     if globals()['greedy_same_amount']:
                         (ret, price,
@@ -1026,6 +1034,14 @@ def try_to_trade_tit2tat(subpath):
                         # secondly open new order
                         issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
                 else:  # less than 1
+                    if greedy_count == 0:
+                        t_greedy_max = greedy_count_max
+                    elif greedy_count < 0:
+                        t_greedy_max = t_greedy_max + 1
+                        if t_greedy_max > t_recorded_greedy_max:
+                            t_recorded_greedy_max = t_greedy_max
+                            globals()['record_greedy_max'] = t_recorded_greedy_max
+
                     # first take reverse into account and do some makeup
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
 
