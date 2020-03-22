@@ -784,7 +784,7 @@ def try_to_trade_tit2tat(subpath):
         thisweek_amount_pending = t_amount - quarter_amount
         if t_amount > 0 and quarter_amount > 0:  # only on postive situation
             t_greedy_count = greedy_count_max - thisweek_amount_pending / quarter_amount
-            greedy_count = max(t_greedy_count, greedy_count_max)
+            greedy_count = min(t_greedy_count, greedy_count_max)
 
         amount_tuple = 'amount: %d/%d @%.1f%% <=> %.1f%%' % (quarter_amount,
                                                              thisweek_amount_pending,
