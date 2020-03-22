@@ -790,11 +790,10 @@ def try_to_trade_tit2tat(subpath):
         elif price_delta < -open_cost:
             cost_flag = 'v'
         print('greedy:%s%.1f' % (' ' if greedy_count >= 0 else '', greedy_count),
-              'cost:%s%.5f(%s) @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '',
-                                                 price_delta,
-                                                 cost_flag,
-                                                 open_cost,
-                                                 100 * float(globals()['open_cost_rate'])),
+              'cost:%s%0.2f%%(%s) @ %.2f%%' % (' ' if price_delta >= 0 else '',
+                                               price_delta * 100 / previous_close,
+                                               cost_flag,
+                                               100 * float(globals()['open_cost_rate'])),
               amount_tuple,
               reverse_tuple,
               balance_tuple,
