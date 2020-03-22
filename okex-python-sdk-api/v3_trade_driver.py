@@ -731,15 +731,13 @@ def try_to_trade_tit2tat(subpath):
 
     globals()['current_close'] = close  # save early
 
+    old_balance = last_balance
+
     symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
     print('')  # add an empty line
 
-    t_last_balance = backend.query_balance(symbol, globals()['contract'])
-    if t_last_balance > 0:
-        last_balance = t_last_balance
-    balance_tuple = 'balance: %.3f' % (globals()['last_balance'])
-
+    balance_tuple = '+'
     if trade_file == '':
         print('%.4f' % close, '-', end=' ')
         ema_tuple = 'ema_%d/ema_%d: %.4f <=> %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
@@ -758,8 +756,6 @@ def try_to_trade_tit2tat(subpath):
         if abs(price_delta) < open_cost:  # yes, show balance
             balance_tuple = ''
 
-    amount_tuple = 'amount: %d/%d' % (globals()['quarter_amount'], globals()['thisweek_amount_pending'])
-
     if globals()['tendency_holdon'] != '':  # yes, tendency fixed
         ema_tuple = 'fixed'
 
@@ -768,10 +764,29 @@ def try_to_trade_tit2tat(subpath):
     if len(l_dir):
         (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
 
+        globals()['thisweek_amount_pending'] = t_amount - globals()['quarter_amount']
+
+        (loss, t_reverse_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], reverse_follow_dir)
+        amount_tuple = 'amount: %d/%d r:%d' % (globals()['quarter_amount'],
+                                               globals()['thisweek_amount_pending'],
+                                               t_reverse_amount)
+
+        if balance_tuple == '+':
+            t_last_balance = backend.query_balance(symbol, globals()['contract'])
+            if t_last_balance > 0:
+                globals()['last_balance'] = t_last_balance
+            delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
+
+            balance_tuple = 'balance: %.2f %s%.2f%%' % (globals()['last_balance'],
+                                                        ' ' if delta_balance >= 0 else '',
+                                                        delta_balance)
+
         print('greedy:%s%.1f' % (' ' if greedy_count >= 0 else '', greedy_count),
-              'cost:%s%.5f @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '',
-                                             price_delta,
-                                             open_cost, 100 * float(globals()['open_cost_rate'])),
+              'cost:%s%.5f(%s) @ %.5f/%.2f%%' % (' ' if price_delta >= 0 else '',
+                                                 price_delta,
+                                                 '+' if price_delta >= open_cost else '-',
+                                                 open_cost,
+                                                 100 * float(globals()['open_cost_rate'])),
               amount_tuple,
               'loss:%.1f%%' % (loss),
               balance_tuple,
@@ -1036,11 +1051,6 @@ def try_to_trade_tit2tat(subpath):
         if update_quarter_amount:
             update_last_bond(symbol, globals()['contract'], l_dir)
 
-            old_balance = last_balance
-            last_balance = backend.query_balance(symbol, globals()['contract'])
-            if last_balance == 0:
-                last_balance = old_balance  # in case quary failed
-            delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
             amount = quarter_amount
             base_amount = last_balance / last_bond if last_bond > 0 else 1
             if amount_real > 0:  # if set, just use it
@@ -1062,7 +1072,6 @@ def try_to_trade_tit2tat(subpath):
                 print(trade_timestamp(),
                       '%supdate quarter_amount from %s=>%s' % (do_updating, amount, new_quarter_amount),
                       end='')
-                print(', balance=%f=>%f,%f%%' % (old_balance, last_balance, delta_balance), end='')
                 print('')
     if close_greedy:
         print(
