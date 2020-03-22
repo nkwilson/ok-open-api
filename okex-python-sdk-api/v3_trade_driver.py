@@ -776,7 +776,7 @@ def try_to_trade_tit2tat(subpath):
         thisweek_amount_pending = t_amount - quarter_amount
         if t_amount > 0 and quarter_amount > 0:  # only on postive situation
             t_greedy_count = greedy_count_max - thisweek_amount_pending / quarter_amount
-            greedy_count = max(t_greedy_max, greedy_count_max)
+            greedy_count = max(t_greedy_count, greedy_count_max)
 
         amount_tuple = 'amount: %d/%d @%.1f%%' % (quarter_amount,
                                                   thisweek_amount_pending,
@@ -970,11 +970,11 @@ def try_to_trade_tit2tat(subpath):
                         print('greedy close request %d, return %d' % (thisweek_amount_pending, l_amount))
                     elif thisweek_amount_pending < 0 and profit_num < makeup_gate:  # if less holdings and loss is small, increase it
                         issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
-                                                                         'open')  # as much as possible
+                                                'open')  # as much as possible
                     elif t_amount > 0:  # must not be forced close
-                        if record_greedy_pulse == True and recorded_greedy_max > greedy_count_max:
+                        if record_greedy_pulse and recorded_greedy_max > greedy_count_max:
                             greedy_count_max = recorded_greedy_max
-                            
+
                         t_amount = t_amount / 2
                         min_left = quarter_amount / (greedy_count_max + 1)
                         print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d min_left:%d' %
