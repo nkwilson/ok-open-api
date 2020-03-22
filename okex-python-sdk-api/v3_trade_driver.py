@@ -707,6 +707,7 @@ def try_to_trade_tit2tat(subpath):
     global greedy_count, greedy_count_max, margin_mode
     global record_greedy_pulse, recorded_greedy_max
     global t_recorded_greedy_max, t_greedy_max
+    global profit_withdraw_rate, amount_ratio
 
     globals()['request_price'] = ''  # first clear it
 
@@ -744,6 +745,13 @@ def try_to_trade_tit2tat(subpath):
 
     print('')  # add an empty line
 
+    if profit_withdraw_rate == '-1':  # means no withdraw
+        withdraw_rate = 1000
+    elif profit_withdraw_rate > 0:
+        withdraw_rate = profit_withdraw_rate
+    else:
+        withdraw_rate = amount_ratio
+
     balance_tuple = '+'
     if trade_file == '':
         print('%.4f' % close, '-', end=' ')
@@ -778,9 +786,10 @@ def try_to_trade_tit2tat(subpath):
             t_greedy_count = greedy_count_max - thisweek_amount_pending / quarter_amount
             greedy_count = max(t_greedy_count, greedy_count_max)
 
-        amount_tuple = 'amount: %d/%d @%.1f%%' % (quarter_amount,
-                                                  thisweek_amount_pending,
-                                                  loss)
+        amount_tuple = 'amount: %d/%d @%.1f%% <=> %.1f%%' % (quarter_amount,
+                                                             thisweek_amount_pending,
+                                                             loss,
+                                                             withdraw_rate)
 
         (r_loss, t_reverse_amount, _) = backend.check_holdings_profit(symbol,
                                                                       globals()['contract'],
@@ -829,12 +838,6 @@ def try_to_trade_tit2tat(subpath):
         close_greedy = False
         return
 
-    rate = globals()['profit_withdraw_rate']
-    if rate == '-1':  # means no withdraw
-        withdraw_rate = 1000
-    else:
-        withdraw_rate = rate
-
     new_open = True
     forced_close = False
     if trade_file != '':
@@ -849,9 +852,7 @@ def try_to_trade_tit2tat(subpath):
             t_amount = open_price - delta * amount_ratio  # calcuate by forced close probability
         if not options.emulate:  # if emualtion, figure it manually
             (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
-            if withdraw_rate == 0:  # means keep it as leverage
-                withdraw_rate = leverage
-            globals()['amount_ratio'] = leverage
+            amount_ratio = leverage
             globals()['margin_mode'] = backend.get_margin_mode(symbol, globals()['contract'])
         if t_amount <= 0 and globals()['check_forced']:
             # open it un-conditionally
