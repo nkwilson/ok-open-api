@@ -981,7 +981,7 @@ def try_to_trade_tit2tat(subpath):
                               (loss, profit_num, makeup_gate, t_amount, min_left),
                               end='')
                         flag = ' (.)'
-                        if profit_num >= makeup_gate and t_amount >= min_left and globals()['margin_mode'] == 'fixed':  # yes, much profit, withdraw
+                        if profit_num >= makeup_gate and t_amount >= min_left:  # yes, much profit, withdraw
                             flag = ' (+)'
                             print(flag)
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
