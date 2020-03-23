@@ -655,7 +655,7 @@ quarter_amount_multiplier = 2  # 2 times is up threshold
 greedy_count_max = 1  # limit this times pending greedy
 greedy_count = 0  # current pending greedy
 greedy_whole_balance = False  # greedy will cover whole balance
-greedy_same_amount = False  # greedy use the same as quarter_amount
+greedy_same_amount = True  # greedy use the same as quarter_amount
 close_greedy = False
 open_greedy = False
 amount_ratio_plus = 0.05  # percent of total amount
@@ -981,7 +981,7 @@ def try_to_trade_tit2tat(subpath):
                               (loss, profit_num, makeup_gate, t_amount, min_left),
                               end='')
                         flag = ' (.)'
-                        if profit_num >= makeup_gate and t_amount >= min_left:  # yes, much profit, withdraw
+                        if profit_num > makeup_gate and t_amount >= min_left:  # yes, much profit, withdraw
                             flag = ' (+)'
                             print(flag)
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
@@ -1005,6 +1005,27 @@ def try_to_trade_tit2tat(subpath):
                                         globals()['contract'],
                                         l_dir,
                                         quarter_amount + thisweek_amount_pending, close)
+
+                # first take reverse into account and do some makeup
+                (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
+
+                if t_amount > 0:
+                    profit_rate = withdraw_rate / r_rate
+
+                    print('reverse loss:%.2f profit_rate:%.2f' %
+                          (loss, profit_rate),
+                          end='')
+                    if loss > profit_rate:  # much too profit
+                        print(' (+)')
+                        # first close same direction, then reverse direction
+                        issue_quarter_order_now(symbol, l_dir, t_amount * r_rate, 'close')
+                        issue_quarter_order_now(symbol, reverse_follow_dir, t_amount, 'close')
+
+                        t_amount = 0
+                        if greedy_count <= 0:
+                            greedy_count = 1
+                    else:
+                        print(' (.)')
 
                 if greedy_count > 0:  # must bigger than zero
                     if forward_greedy:  # adjust open sequence according to l_dir
@@ -1036,9 +1057,6 @@ def try_to_trade_tit2tat(subpath):
                             t_recorded_greedy_max = t_greedy_max
                             recorded_greedy_max = t_recorded_greedy_max
 
-                    # first take reverse into account and do some makeup
-                    (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
-
                     # no enough reverse orders
                     reverse_amount = int((thisweek_amount_pending + quarter_amount) / float(r_rate) - t_amount)
 
@@ -1049,18 +1067,6 @@ def try_to_trade_tit2tat(subpath):
                         if globals()['greedy_same_amount']:
                             issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                     'open')
-                    elif t_amount > 0:
-                        if quarter_amount < t_amount:
-                            makeup_num = t_amount / quarter_amount
-                        else:
-                            makeup_num = quarter_amount / t_amount
-                        profit_rate = makeup_num * 100
-
-                        profit_num = loss / profit_rate
-
-                        t_amount = t_amount / 2
-                        if profit_num > makeup_num and globals()['margin_mode'] == 'fixed':  # much too profit
-                            issue_quarter_order_now(symbol, reverse_follow_dir, t_amount, 'close')
             if greedy_action == '':  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open':
