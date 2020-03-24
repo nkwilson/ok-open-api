@@ -123,7 +123,6 @@ def query_ticker(instrument_id):
         ticker = which_api.get_specific_ticker(instrument_id)
     except Exception as ex:
         logging.info(instrument_id, ex)
-        logging.info(ex)
     # print (ticker)
     return ticker
 
@@ -389,7 +388,7 @@ def get_loss_amount_from_swap(holding, direction):
         leverage = float(data['leverage'])
         return (loss, amount, leverage)
     except Exception as ex:
-        logging.info(ex)
+        logging.info(ex, holding, direction)
         return (0, 0, 0)
 
 
@@ -400,7 +399,7 @@ def get_margin_mode(symbol, contract):
         holding = which_api.get_specific_position(inst_id)
         return holding['margin_mode']
     except Exception as ex:
-        logging.info(ex)
+        logging.info(ex, symbol, contract)
         return ''
 
 
@@ -433,7 +432,7 @@ def get_real_open_price_and_cost_from_swap(holding, direction):
         real = abs(float(data['realized_pnl'])) / float(data['margin'])
         return (avg, avg * real)
     except Exception as ex:
-        logging.info(ex)
+        logging.info(ex, holding, direction)
         return (0, 0)
 
 
@@ -462,7 +461,7 @@ def get_bond_from_swap(holding, direction):
         data = result[0]
         return float(data['margin']) / float(data['position'])
     except Exception as ex:
-        logging.info(ex)
+        logging.info(ex, holding, direction)
         return 0.0
 
 
