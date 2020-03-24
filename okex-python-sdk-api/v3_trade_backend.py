@@ -163,7 +163,7 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
         # print (result)
     except Exception as ex:
         result = {'error_code': ex.code, 'result': False}
-        print(ex)
+        # print(ex)
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info(ex)
     # API Request Error(code=32014): Positions that you are closing exceeded the total qty of contracts allowed to close
@@ -173,7 +173,7 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
     # API Request Error(code=32015): Risk rate lower than 100% before opening positio
     if not result['result'] or result['error_code'] != '0':  # something is wrong
         if result['error_code'] == '35014':  # try again with zero price
-            print('(code=35014): Order price is not within limit, try again')
+            # print('(code=35014): Order price is not within limit, try again')
             return issue_order(instrument_id, otype, '', size, match_price='1', order_type='0')
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info("result:" + json.dumps(result))
@@ -298,7 +298,7 @@ def query_orderinfo_wait(symbol, contract, orderid):
         return result
     except Exception as ex:
         logging.info(symbol, contract, ex)
-        print(ex)
+        # print(ex)
         return ex
 
 
