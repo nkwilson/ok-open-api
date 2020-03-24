@@ -992,7 +992,7 @@ def try_to_trade_tit2tat(subpath):
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
             elif greedy_action == 'open':  # yes, open action pending
                 r_rate = globals()['reverse_amount_rate']
-                if greedy_count < greedy_count_max:
+                if greedy_count <= 0:
                     reverse_amount = int(thisweek_amount / r_rate)
                     if reverse_amount == thisweek_amount:
                         reverse_amount += 1
