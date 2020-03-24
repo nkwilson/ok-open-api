@@ -798,12 +798,12 @@ def try_to_trade_tit2tat(subpath):
         if t_reverse_amount > 0:
             reverse_tuple = 'reverse: %d @%.1f%%' % (t_reverse_amount, r_loss)
 
-        if balance_tuple == '+':
-            t_last_balance = backend.query_balance(symbol, globals()['contract'])
-            if t_last_balance > 0:
-                globals()['last_balance'] = t_last_balance
-            delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
+        t_last_balance = backend.query_balance(symbol, globals()['contract'])
+        if t_last_balance > 0:
+            globals()['last_balance'] = t_last_balance
+        delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
 
+        if balance_tuple == '+':
             balance_tuple = 'balance: %.2f %s%.2f%%' % (globals()['last_balance'],
                                                         ' ' if delta_balance >= 0 else '',
                                                         delta_balance)
@@ -954,10 +954,10 @@ def try_to_trade_tit2tat(subpath):
                         # for examples:
                         # quarter=16 t_amount=16 makeup=1, if loss>~ withdraw_rate, profit_num ~ 1, withdraw half quarter
                         # quarter=16 t_amount=8  makeup=2, if loss>~ 2 * withdraw_rate, profit_num ~ 2, withdraw another half quarter
-                        makeup_num = int(quarter_amount / t_amount)
+                        makeup_num = quarter_amount / t_amount
                         profit_rate = makeup_num * withdraw_rate
 
-                        profit_num = int(loss / profit_rate)
+                        profit_num = loss / profit_rate
                         makeup_gate = max(1, makeup_num - 1)
                     except Exception:
                         pass
