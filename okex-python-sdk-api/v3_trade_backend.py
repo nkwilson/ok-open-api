@@ -388,7 +388,7 @@ def get_loss_amount_from_swap(holding, direction):
         leverage = float(data['leverage'])
         return (loss, amount, leverage)
     except Exception as ex:
-        logging.info(ex, holding, direction)
+        logging.info(ex)
         return (0, 0, 0)
 
 
@@ -432,7 +432,7 @@ def get_real_open_price_and_cost_from_swap(holding, direction):
         real = abs(float(data['realized_pnl'])) / float(data['margin'])
         return (avg, avg * real)
     except Exception as ex:
-        logging.info(ex, holding, direction)
+        logging.info(ex)
         return (0, 0)
 
 
@@ -461,7 +461,7 @@ def get_bond_from_swap(holding, direction):
         data = result[0]
         return float(data['margin']) / float(data['position'])
     except Exception as ex:
-        logging.info(ex, holding, direction)
+        logging.info(ex)
         return 0.0
 
 
