@@ -992,6 +992,30 @@ def try_to_trade_tit2tat(subpath):
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
             elif greedy_action == 'open':  # yes, open action pending
                 r_rate = globals()['reverse_amount_rate']
+
+                # first take reverse into account and do some makeup
+                (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
+
+                if t_amount > 0:
+                    profit_rate = withdraw_rate * r_rate
+
+                    print('reverse loss:%.2f profit_rate:%.2f' %
+                          (loss, profit_rate),
+                          end='')
+                    if loss > profit_rate:  # much too profit
+                        print(' (+)')
+                        # first close same direction, then reverse direction
+                        issue_quarter_order_now(symbol, l_dir, t_amount * r_rate, 'close')
+                        issue_quarter_order_now(symbol, reverse_follow_dir, t_amount, 'close')
+
+                        thisweek_amount_pending -= t_amount * r_rate
+                        t_amount = 0
+
+                        if greedy_count <= 0:
+                            greedy_count = greedy_count_max
+                    else:
+                        print(' (.)')
+
                 if greedy_count <= 0:
                     reverse_amount = int(thisweek_amount / r_rate)
                     if reverse_amount == thisweek_amount:
@@ -1005,27 +1029,6 @@ def try_to_trade_tit2tat(subpath):
                                         globals()['contract'],
                                         l_dir,
                                         quarter_amount + thisweek_amount_pending, close)
-
-                # first take reverse into account and do some makeup
-                (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
-
-                if t_amount > 0:
-                    profit_rate = withdraw_rate / r_rate
-
-                    print('reverse loss:%.2f profit_rate:%.2f' %
-                          (loss, profit_rate),
-                          end='')
-                    if loss > profit_rate:  # much too profit
-                        print(' (+)')
-                        # first close same direction, then reverse direction
-                        issue_quarter_order_now(symbol, l_dir, t_amount * r_rate, 'close')
-                        issue_quarter_order_now(symbol, reverse_follow_dir, t_amount, 'close')
-
-                        t_amount = 0
-                        if greedy_count <= 0:
-                            greedy_count = 1
-                    else:
-                        print(' (.)')
 
                 if greedy_count > 0:  # must bigger than zero
                     if forward_greedy:  # adjust open sequence according to l_dir
