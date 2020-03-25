@@ -1101,12 +1101,14 @@ def try_to_trade_tit2tat(subpath):
             if new_quarter_amount < 1:
                 new_quarter_amount = quarter_amount  # means no real update
             do_updating = ''
-            if update_quarter_amount_forward and delta_balance > 0 and quarter_amount < new_quarter_amount:  # auto update
-                do_updating = 'do '
-                quarter_amount = new_quarter_amount
-            elif update_quarter_amount_backward and delta_balance < 0 and quarter_amount > new_quarter_amount:  # auto update
-                do_updating = 'do '
-                quarter_amount = new_quarter_amount
+            balance_rate = 100 / withdraw_rate
+            if abs(delta_balance) > balance_rate:
+                if update_quarter_amount_forward and quarter_amount < new_quarter_amount:  # auto update
+                    do_updating = 'do '
+                    quarter_amount = new_quarter_amount
+                elif update_quarter_amount_backward and quarter_amount > new_quarter_amount:  # auto update
+                    do_updating = 'do '
+                    quarter_amount = new_quarter_amount
             if do_updating != '':
                 if quarter_amount < 2:  # must be bigger than 1
                     quarter_amount = 2
