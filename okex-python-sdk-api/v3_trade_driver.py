@@ -776,7 +776,7 @@ def try_to_trade_tit2tat(subpath):
 
     print(ema_tuple, end=' ')
 
-    delta_balance = 0
+    delta_balance_rate = 0
     if len(l_dir):
         (loss, t_amount, _) = backend.check_holdings_profit(symbol,
                                                             globals()['contract'],
@@ -801,12 +801,12 @@ def try_to_trade_tit2tat(subpath):
         t_last_balance = backend.query_balance(symbol, globals()['contract'])
         if t_last_balance > 0:
             globals()['last_balance'] = t_last_balance
-        delta_balance = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
+        delta_balance_rate = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
 
         if balance_tuple == '+':
             balance_tuple = 'balance: %.2f %s%.2f%%' % (globals()['last_balance'],
-                                                        ' ' if delta_balance >= 0 else '',
-                                                        delta_balance)
+                                                        ' ' if delta_balance_rate >= 0 else '',
+                                                        delta_balance_rate)
 
         cost_flag = '.'
         if price_delta > open_cost:
@@ -1102,7 +1102,7 @@ def try_to_trade_tit2tat(subpath):
                 new_quarter_amount = quarter_amount  # means no real update
             do_updating = ''
             balance_rate = 100 / withdraw_rate
-            if abs(delta_balance) > balance_rate:
+            if abs(delta_balance_rate) > balance_rate:
                 if update_quarter_amount_forward and quarter_amount < new_quarter_amount:  # auto update
                     do_updating = 'do '
                     quarter_amount = new_quarter_amount
