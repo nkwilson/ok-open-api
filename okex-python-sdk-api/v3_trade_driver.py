@@ -1019,14 +1019,10 @@ def try_to_trade_tit2tat(subpath):
                     # first close same direction, then reverse direction, unified as one direction
                     if greedy_count > 0:
                         # supporsed to close t_amount * r_rate
-                        delta_thisweek_amount = thisweek_amount - t_amount * r_rate
-                        if delta_thisweek_amount > thisweek_amount / 2:  # not keep too much holdings
-                            issue_quarter_order_now(symbol, l_dir, delta_thisweek_amount, 'open')
-                            thisweek_amount_pending += delta_thisweek_amount
-                        else:
-                            greedy_count = 0
-
-                    if greedy_count <= 0:
+                        delta_thisweek_amount = thisweek_amount - reverse_amount * r_rate
+                        issue_quarter_order_now(symbol, l_dir, delta_thisweek_amount, 'open')
+                        thisweek_amount_pending += delta_thisweek_amount
+                    elif greedy_count <= 0:
                         greedy_count = greedy_count_max - 1
 
                         #  close those overflow reverse_amount
