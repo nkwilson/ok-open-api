@@ -201,6 +201,7 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
             return (True, price, float(order_info['size']))
     except Exception as ex:
         print(ex)
+        print(traceback.format_exc())
         if amount < 2:  # no balance now
             return (False, 0, 0)
         reissuing_order += 1
@@ -215,6 +216,7 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         backend.cancel_order(symbol, contract, order_id)
     except Exception as ex:
         print(ex)
+        print(traceback.format_exc())
         # API Request Error(code=35065): This type of order cannot be canceled
         # API Request Error(code=35014): Order price is not within limit
         return (False, 0, 0)
