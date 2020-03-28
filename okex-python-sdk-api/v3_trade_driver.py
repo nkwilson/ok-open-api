@@ -1028,11 +1028,12 @@ def try_to_trade_tit2tat(subpath):
                         #  close those overflow reverse_amount
                         real_t_amount = t_amount - reverse_amount
 
-                        issue_quarter_order_now(symbol, l_dir, real_t_amount * r_rate, 'close')
-                        issue_quarter_order_now(symbol, reverse_follow_dir, real_t_amount, 'close')
+                        if real_t_amount > 0:
+                            issue_quarter_order_now(symbol, l_dir, real_t_amount * r_rate, 'close')
+                            issue_quarter_order_now(symbol, reverse_follow_dir, real_t_amount, 'close')
 
-                        thisweek_amount_pending -= real_t_amount * r_rate
-                        t_amount = reverse_amount
+                            thisweek_amount_pending -= real_t_amount * r_rate
+                            t_amount = reverse_amount
 
                 if greedy_count <= 0:
                     reverse_amount = int(thisweek_amount / r_rate)
