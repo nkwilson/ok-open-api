@@ -708,6 +708,7 @@ def try_to_trade_tit2tat(subpath):
     global record_greedy_pulse, recorded_greedy_max
     global t_recorded_greedy_max, t_greedy_max
     global profit_withdraw_rate, amount_ratio
+    global amount_real
 
     globals()['request_price'] = ''  # first clear it
 
@@ -996,6 +997,12 @@ def try_to_trade_tit2tat(subpath):
                 # first take reverse into account and do some makeup
                 (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
 
+                # default reverse_amount loigc
+                reverse_amount = int(thisweek_amount * r_rate)
+                if reverse_amount == thisweek_amount:
+                    thisweek_amount += 1
+
+                partly_close = False
                 if t_amount > 0:
                     profit_rate = withdraw_rate * r_rate
 
@@ -1004,33 +1011,46 @@ def try_to_trade_tit2tat(subpath):
                           end='')
                     if loss > profit_rate:  # much too profit
                         print(' (+)')
-                        # first close same direction, then reverse direction
-                        issue_quarter_order_now(symbol, l_dir, t_amount * r_rate, 'close')
-                        issue_quarter_order_now(symbol, reverse_follow_dir, t_amount, 'close')
-
-                        thisweek_amount_pending -= t_amount * r_rate
-                        t_amount = 0
-
-                        if greedy_count <= 0:
-                            greedy_count = greedy_count_max
+                        partly_close = True
                     else:
                         print(' (.)')
+
+                if partly_close:
+                    # first close same direction, then reverse direction, unified as one direction
+                    if greedy_count > 0:
+                        # supporsed to close t_amount * r_rate
+                        delta_thisweek_amount = thisweek_amount - t_amount * r_rate
+                        if delta_thisweek_amount > thisweek_amount / 2:  # not keep too much holdings
+                            issue_quarter_order_now(symbol, l_dir, delta_thisweek_amount, 'open')
+                            thisweek_amount_pending += delta_thisweek_amount
+                        else:
+                            greedy_count = 0
+
+                    if greedy_count <= 0:
+                        greedy_count = greedy_count_max - 1
+
+                        #  close those overflow reverse_amount
+                        real_t_amount = t_amount - reverse_amount
+
+                        issue_quarter_order_now(symbol, l_dir, real_t_amount * r_rate, 'close')
+                        issue_quarter_order_now(symbol, reverse_follow_dir, real_t_amount, 'close')
+
+                        thisweek_amount_pending -= real_t_amount * r_rate
+                        t_amount = reverse_amount
 
                 if greedy_count <= 0:
                     reverse_amount = int(thisweek_amount / r_rate)
                     if reverse_amount == thisweek_amount:
                         reverse_amount += 1
-                else:
-                    reverse_amount = int(thisweek_amount * r_rate)
-                    if reverse_amount == thisweek_amount:
-                        thisweek_amount += 1
 
                 cleanup_holdings_atopen(symbol,
                                         globals()['contract'],
                                         l_dir,
                                         quarter_amount + thisweek_amount_pending, close)
 
-                if greedy_count > 0:  # must bigger than zero
+                if partly_close:  # actions already taken
+                    pass
+                elif greedy_count > 0:  # must bigger than zero
                     if forward_greedy:  # adjust open sequence according to l_dir
                         if l_dir == 'buy':  # first open sell, then open buy
                             if globals()['greedy_same_amount']:
