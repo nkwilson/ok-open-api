@@ -1031,10 +1031,11 @@ def try_to_trade_tit2tat(subpath):
                         real_t_amount = t_amount - reverse_amount
 
                         if real_t_amount > 0:
-                            issue_quarter_order_now(symbol, l_dir, real_t_amount * r_rate, 'close')
+                            max_t_amount = min(thisweek_amount_pending, real_t_amount * r_rate)
+                            issue_quarter_order_now(symbol, l_dir, max_t_amount, 'close')
                             issue_quarter_order_now(symbol, reverse_follow_dir, real_t_amount, 'close')
 
-                            thisweek_amount_pending -= real_t_amount * r_rate
+                            thisweek_amount_pending -= max_t_amount
                             t_amount = reverse_amount
 
                 if greedy_count <= 0:
