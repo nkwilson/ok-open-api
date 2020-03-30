@@ -978,13 +978,12 @@ def try_to_trade_tit2tat(subpath):
                         if record_greedy_pulse and recorded_greedy_max > greedy_count_max:
                             greedy_count_max = recorded_greedy_max
 
-                        t_amount = t_amount / 2
-                        min_left = quarter_amount / (greedy_count_max + 1)
-                        print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d min_left:%d' %
-                              (loss, profit_num, makeup_gate, t_amount, min_left),
+                        t_amount = t_amount / (greedy_count_max + 1)
+                        print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d' %
+                              (loss, profit_num, makeup_gate, t_amount),
                               end='')
                         flag = ' (.)'
-                        if profit_num > makeup_gate and t_amount >= min_left:  # yes, much profit, withdraw
+                        if profit_num > makeup_gate:  # yes, much profit, withdraw
                             flag = ' (+)'
                             print(flag)
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
