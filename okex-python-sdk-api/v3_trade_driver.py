@@ -646,6 +646,10 @@ def update_open_cost(price):
 # [0.005, 0.87]
 # if lererage is 10
 # [0.005, 0.834]
+# if leverage is 25
+# [0.002, 0.834]
+# [0.0025, 0.865]
+# [0.003, 0.886]
 request_price = '0'
 last_fee = 0
 open_cost = 0
@@ -816,7 +820,7 @@ def try_to_trade_tit2tat(subpath):
             cost_flag = '^'
         elif price_delta < -open_cost:
             cost_flag = 'v'
-        print('greedy:%s%.1f' % (' ' if greedy_count >= 0 else '', greedy_count),
+        print('greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count),
               'cost:%s%0.2f%%(%s) @ %.2f%%' % (' ' if price_delta >= 0 else '',
                                                price_delta * 100 / previous_close,
                                                cost_flag,
