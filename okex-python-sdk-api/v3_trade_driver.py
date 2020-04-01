@@ -934,6 +934,7 @@ def try_to_trade_tit2tat(subpath):
 
                 thisweek_amount = int(thisweek_amount)
 
+                r_rate = globals()['reverse_amount_rate']
 #  持续更新 pending
 #  开始状态，直接买入quarter_amount , greedy_count = max, pending = 0
 #  逆向发展，greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
@@ -948,8 +949,8 @@ def try_to_trade_tit2tat(subpath):
                 if forward_greedy:
                     if globals()['greedy_same_amount']:
                         (ret, price,
-                         l_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0,
-                                                                         'close', False)
+                         l_reverse_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0,
+                                                                                 'close', False)
                         if ret:
                             globals()['request_price'] = price
 
@@ -970,9 +971,12 @@ def try_to_trade_tit2tat(subpath):
                         pass
 
                     if thisweek_amount_pending > 0:
+                        l_amount = thisweek_amount_pending
+                        if l_reverse_amount > 0:
+                            l_amount = min(l_reverse_amount / r_rate, thisweek_amount_pending)
                         (_, _, l_amount) = issue_quarter_order_now_conditional(symbol,
                                                                                l_dir,
-                                                                               thisweek_amount_pending,
+                                                                               l_amount,
                                                                                'close',
                                                                                False)  # as much as possible
                     elif thisweek_amount_pending < 0 and profit_num < makeup_gate:  # if less holdings and loss is small, increase it
@@ -982,7 +986,7 @@ def try_to_trade_tit2tat(subpath):
                         if record_greedy_pulse and recorded_greedy_max > greedy_count_max:
                             greedy_count_max = recorded_greedy_max
 
-                        t_amount = t_amount / (greedy_count_max + 1)
+                        t_amount = t_amount / (greedy_count_max + 1) + 0.5
                         print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d' %
                               (loss, profit_num, makeup_gate, t_amount),
                               end='')
@@ -997,7 +1001,6 @@ def try_to_trade_tit2tat(subpath):
                 if backward_greedy:
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
             elif greedy_action == 'open':  # yes, open action pending
-                r_rate = globals()['reverse_amount_rate']
 
                 # first take reverse into account and do some makeup
                 (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
@@ -1336,7 +1339,7 @@ ratio_file = '%s.%sratio' % (l_dir, l_prefix)
 # print('ratio will read from %s if exist, default is %d' % (ratio_file, amount_ratio), flush=True)
 
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix)  # file used to notify trade
-logfile = '%s.log' % trade_notify
+logfile = '%s.log.%s' % (trade_notify, datetime.datetime.now().strftime('%Y-%m-%d'))
 logging.basicConfig(filename=logfile, format='%(asctime)s %(message)s', level=logging.DEBUG)
 # logging.info('trade_notify: %s' % trade_notify)
 if not options.nolog:
@@ -1501,6 +1504,12 @@ while True:
     except Exception as ex:
         print(ex)
 
+    with open('%s.balance' % signal_notify, 'a') as f:
+        f.write('%s %.4f %.4f\n' % (trade_timestamp(),
+                globals()['previous_close'],
+                globals()['last_balance']))
+        f.close()
+
     # reset it in case network error
     backend.which_api = ''
 
@@ -1515,6 +1524,14 @@ while True:
     # flush stdout and stderr
     sys.stdout.flush()
     sys.stderr.flush()
+
+    sys.stdout.close()
+    sys.stderr.close()
+
+    logfile = '%s.log.%s' % (trade_notify, datetime.datetime.now().strftime('%Y-%m-%d'))
+    sys.stdout = open(logfile, 'a')
+    sys.stderr = sys.stdout
+
     if startup_notify == '' and orig_startup_notify != '':
         break
 
