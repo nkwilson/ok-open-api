@@ -626,39 +626,26 @@ def update_open_cost(price):
 
 # when do greedy trade, should choose aproperiate open_cost_rate x and reverse_amount_rate p
 # assume leverage is 21, buy amount is 0.05, total is 21 * 0.05 = 1.05
-# 0.0015 is open fee rate, 0.03 is close fee rate
+# 0.00015 is open fee rate, 0.0003 is close fee rate
 # using this formula:
-# 1.05 * (0.0015 + 0.003) * ( 1 + p) <= 1.05 * ( 1 - p) * x * 21
-# 0.0045 / 21 * (1 + p) / ( 1 - p ) <= x
-# let t = x * 21 / 0.0045
+# 1.05 * (0.00015 + 0.0003) * ( 1 + p) <= 1.05 * ( 1 - p) * x
+# 0.00045 * (1 + p) / ( 1 - p ) <= x
+# let t = x / 0.00045
 # p <=  (t - 1)/(t + 1)
-# if x = 0.008, p should less than 0.947
-# if x = 0.005, p should less than 0.917
-# if x = 0.0055, p should less than 0.924
-# if x = 0.0048, p should less than 0.914
-# if x = 0.004,  p should less than 0.898
-# [0.0035, 0.884]
-# [0.003,  0.866]
-# [0.002,  0.806]
-# if leverage is 11
-# [0.005, 0.848]
-# if leverage is 13
-# [0.005, 0.87]
-# if lererage is 10
-# [0.005, 0.834]
-# if leverage is 25
-# [0.002, 0.834]
-# [0.0025, 0.865]
-# [0.003, 0.886]
+# if x = 0.005, p should less than 0.834
+# [0.004, 0.797]
+# [0.007, 0.879]
+# [0.008, 0.893]
+# [0.009, 0.904]
 request_price = '0'
 last_fee = 0
 open_cost = 0
-open_cost_rate = 0.005  # percent of previous_close
+open_cost_rate = 0.008  # percent of previous_close
 reverse_amount_rate = 0.8
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2  # 2 times is up threshold
-greedy_count_max = 1  # limit this times pending greedy
+greedy_count_max = 2  # limit this times pending greedy
 greedy_count = 0  # current pending greedy
 greedy_whole_balance = False  # greedy will cover whole balance
 greedy_same_amount = True  # greedy use the same as quarter_amount
