@@ -967,7 +967,8 @@ def try_to_trade_tit2tat(subpath):
                                                                                'close',
                                                                                False)  # as much as possible
                     elif thisweek_amount_pending < 0 and profit_num < makeup_gate:  # if less holdings and loss is small, increase it
-                        issue_quarter_order_now(symbol, l_dir, -thisweek_amount_pending,
+                        issue_quarter_order_now(symbol, l_dir,
+                                                -(thisweek_amount_pending / (greedy_count_max + 1)),
                                                 'open')  # as much as possible
                     elif t_amount > 0:  # must not be forced close
                         if record_greedy_pulse and recorded_greedy_max > greedy_count_max:
