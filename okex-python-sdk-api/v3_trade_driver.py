@@ -1499,10 +1499,10 @@ while True:
         print(ex)
 
     with open('%s.balance' % signal_notify, 'a') as f:
-        f.write('%s %.4f %.4f %0.4f\n' % (trade_timestamp(),
-                                          globals()['previous_close'],
-                                          globals()['last_balance'],
-                                          globals()['margin_ratio']))
+        f.write('%s %.4f %.4f @%.2f%%\n' % (trade_timestamp(),
+                                            globals()['previous_close'],
+                                            globals()['last_balance'],
+                                            globals()['margin_ratio'] * 100))
         f.close()
 
     # reset it in case network error
