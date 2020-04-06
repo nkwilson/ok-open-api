@@ -522,6 +522,18 @@ def query_balance(symbol, contract=''):
     return float(result['equity'])
 
 
+def query_margin_ratio(symbol, contract=''):
+    if contract == 'swap':
+        suffix = '-SWAP'
+        result = which_api.get_coin_account(symbol.replace('_', '-').upper() + suffix)['info']
+    else:
+        result = which_api.get_coin_account(symbol.replace('_', '-').upper())
+    if 'margin_ratio' in result.keys():
+        return float(result['margin_ratio'])
+    else:
+        return 0.0
+
+
 if __name__ == '__main__':
     pass
     # api_key = ""
