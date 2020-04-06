@@ -541,7 +541,7 @@ names_tit2tat = [
     'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'open_cost_rate',
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
-    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max'
+    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio'
 ]
 
 
@@ -680,6 +680,8 @@ recorded_greedy_max = 0  # persistented max
 t_recorded_greedy_max = 0  # max in this running
 t_greedy_max = 0  # max until now, will cleared at close action
 
+margin_ratio = 0  # saved margin_ratio
+
 
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
@@ -702,6 +704,7 @@ def try_to_trade_tit2tat(subpath):
     global t_recorded_greedy_max, t_greedy_max
     global profit_withdraw_rate, amount_ratio
     global amount_real
+    global margin_ratio
 
     globals()['request_price'] = ''  # first clear it
 
@@ -797,10 +800,13 @@ def try_to_trade_tit2tat(subpath):
             globals()['last_balance'] = t_last_balance
         delta_balance_rate = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
 
+        margin_ratio = backend.query_margin_ratio(symbol, globals()['contract'])
+
         if balance_tuple == '+':
-            balance_tuple = 'balance: %.2f %s%.2f%%' % (globals()['last_balance'],
-                                                        ' ' if delta_balance_rate >= 0 else '',
-                                                        delta_balance_rate)
+            str_fmt = 'balance: {: .2f} {: .2f}% {: .2f}%'
+            balance_tuple = str_fmt.format(globals()['last_balance'],
+                                           delta_balance_rate,
+                                           margin_ratio)
 
         cost_flag = '.'
         if price_delta > open_cost:
@@ -1493,9 +1499,10 @@ while True:
         print(ex)
 
     with open('%s.balance' % signal_notify, 'a') as f:
-        f.write('%s %.4f %.4f\n' % (trade_timestamp(),
-                globals()['previous_close'],
-                globals()['last_balance']))
+        f.write('%s %.4f %.4f %0.4f\n' % (trade_timestamp(),
+                                          globals()['previous_close'],
+                                          globals()['last_balance'],
+                                          globals()['margin_ratio']))
         f.close()
 
     # reset it in case network error
