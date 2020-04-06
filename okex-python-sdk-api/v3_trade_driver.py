@@ -1335,11 +1335,6 @@ ratio_file = '%s.%sratio' % (l_dir, l_prefix)
 trade_notify = '%s.%strade_notify' % (l_dir, l_prefix)  # file used to notify trade
 logfile = '%s.log.%s' % (trade_notify, datetime.datetime.now().strftime('%Y-%m-%d'))
 logging.basicConfig(filename=logfile, format='%(asctime)s %(message)s', level=logging.DEBUG)
-# logging.info('trade_notify: %s' % trade_notify)
-if not options.nolog:
-    saved_stdout = sys.stdout
-    sys.stdout = open(logfile, 'a')
-    sys.stderr = sys.stdout
 print(dt.now())
 print('trade_notify: %s' % trade_notify)
 
@@ -1440,6 +1435,12 @@ def calculate_timeout_for_self_trigger(notify):
 
 
 contract = figure_out_contract_info(signal_notify)
+
+# logging.info('trade_notify: %s' % trade_notify)
+if not options.nolog:
+    saved_stdout = sys.stdout
+    sys.stdout = open(logfile, 'a')
+    sys.stderr = sys.stdout
 
 first_prompt = True
 while True:
