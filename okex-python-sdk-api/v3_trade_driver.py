@@ -673,7 +673,7 @@ check_forced = False  # no check for whether forced close
 
 margin_mode = 'fixed'  # default is fixed, others is crossed
 
-profit_withdraw_rate = 100  # default is doubled
+profit_withdraw_rate = 100.0  # default is doubled
 
 record_greedy_pulse = False  # try to save the pulse greedy count for later usage
 recorded_greedy_max = 0  # persistented max
@@ -806,7 +806,7 @@ def try_to_trade_tit2tat(subpath):
             str_fmt = 'balance: {: .2f} {: .2f}% {: .2f}%'
             balance_tuple = str_fmt.format(globals()['last_balance'],
                                            delta_balance_rate,
-                                           margin_ratio)
+                                           margin_ratio * 100.0)
 
         cost_flag = '.'
         if price_delta > open_cost:
@@ -967,6 +967,8 @@ def try_to_trade_tit2tat(subpath):
                         l_amount = thisweek_amount_pending
                         if l_reverse_amount > 0:
                             l_amount = min(l_reverse_amount / r_rate, thisweek_amount_pending)
+                        else:
+                            l_amount = min(l_amount, quarter_amount)
                         (_, _, l_amount) = issue_quarter_order_now_conditional(symbol,
                                                                                l_dir,
                                                                                l_amount,
@@ -974,13 +976,13 @@ def try_to_trade_tit2tat(subpath):
                                                                                False)  # as much as possible
                     elif thisweek_amount_pending < 0 and profit_num < makeup_gate:  # if less holdings and loss is small, increase it
                         issue_quarter_order_now(symbol, l_dir,
-                                                -(thisweek_amount_pending / (greedy_count_max + 1)),
+                                                -(thisweek_amount_pending * withdraw_rate / 100.0),
                                                 'open')  # as much as possible
                     elif t_amount > 0:  # must not be forced close
                         if record_greedy_pulse and recorded_greedy_max > greedy_count_max:
                             greedy_count_max = recorded_greedy_max
 
-                        t_amount = t_amount / (greedy_count_max + 1) + 0.5
+                        t_amount = t_amount * withdraw_rate / 100.0 + 0.5
                         print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d' %
                               (loss, profit_num, makeup_gate, t_amount),
                               end='')
@@ -1028,7 +1030,7 @@ def try_to_trade_tit2tat(subpath):
                         greedy_count = greedy_count_max - 1
 
                         #  close those overflow reverse_amount
-                        real_t_amount = t_amount - reverse_amount
+                        real_t_amount = max(t_amount - reverse_amount, reverse_amount * withdraw_rate / 100.0, 1)
 
                         if real_t_amount > 0:
                             max_t_amount = min(thisweek_amount_pending, real_t_amount * r_rate)
@@ -1121,7 +1123,7 @@ def try_to_trade_tit2tat(subpath):
             if new_quarter_amount < 1:
                 new_quarter_amount = quarter_amount  # means no real update
             do_updating = ''
-            balance_rate = 100 / withdraw_rate
+            balance_rate = 100.0 / withdraw_rate
             if abs(delta_balance_rate) > balance_rate:
                 if update_quarter_amount_forward and quarter_amount < new_quarter_amount:  # auto update
                     do_updating = 'do '
