@@ -142,6 +142,9 @@ order_infos = {
     'usd_eos': 'eos_usd',
     'usd_bch': 'bch_usd',
     'usd_xrp': 'xrp_usd',
+    'usd_xtz': 'xtz_usd',
+    'usd_neo': 'neo_usd',
+    'usd_dash': 'dash_usd',    
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -370,6 +373,9 @@ symbols_mapping = {
     'usd_eth': 'eth_usd',
     'usd_eos': 'eos_usd',
     'usd_xrp': 'xrp_usd',
+    'usd_xtz': 'xtz_usd',
+    'usd_neo': 'neo_usd',
+    'usd_dash': 'dash_usd',
     'usd_bch': 'bch_usd'
 }
 
@@ -1023,7 +1029,7 @@ def try_to_trade_tit2tat(subpath):
                     # first close same direction, then reverse direction, unified as one direction
                     if greedy_count > 0:
                         # supporsed to close t_amount * r_rate
-                        delta_thisweek_amount = thisweek_amount - reverse_amount * r_rate
+                        delta_thisweek_amount = thisweek_amount - reverse_amount
                         issue_quarter_order_now(symbol, l_dir, delta_thisweek_amount, 'open')
                         thisweek_amount_pending += delta_thisweek_amount
                     elif greedy_count <= 0:
