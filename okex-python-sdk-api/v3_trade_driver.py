@@ -144,7 +144,7 @@ order_infos = {
     'usd_xrp': 'xrp_usd',
     'usd_xtz': 'xtz_usd',
     'usd_neo': 'neo_usd',
-    'usd_dash': 'dash_usd',    
+    'usd_dash': 'dash_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -185,23 +185,23 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     else:
         order_info = backend.query_orderinfo(symbol, contract, order_id)
     try:  # in case amount too much
-        price = float(order_info['price_avg'])
-        if price == 0 and globals()['fast_issue']:
-            price = float(globals()['request_price'])  # use last saved price in request_price
-        if price == 0:
-            price = float(globals()['current_close'])
+        l_price = float(order_info['price_avg'])
+        if l_price == 0 and globals()['fast_issue']:
+            l_price = float(globals()['request_price'])  # use last saved price in request_price
+        if l_price == 0:
+            l_price = float(globals()['current_close'])
         # print(order_info, 'current_close = %.4f' % (globals()['current_close']))
         # print(order_info)
         if order_info['filled_qty'] != order_info['size']:
             if wait_for_completion == 0:  # it's ok
                 # no update for last_fee
-                return (True, price, float(order_info['size']))
+                return (True, l_price, float(order_info['size']))
             else:  # should wait
                 amount -= int(order_info['filled_qty'])
                 reissuing_order += 1
         else:
             globals()['last_fee'] = abs(float(order_info['fee']))
-            return (True, price, float(order_info['size']))
+            return (True, l_price, float(order_info['size']))
     except Exception as ex:
         print(ex)
         print(traceback.format_exc())
