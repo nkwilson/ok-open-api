@@ -423,10 +423,10 @@ def check_holdings_profit(symbol, contract, direction):
 def get_real_open_price_and_cost_from_swap(holding, direction):
     result = list(filter(lambda i: i['side'] == direction, holding))
     data = result[0]
-    instrument_id = data['instrument_id']
     avg = float(data['avg_cost'])
     real = abs(float(data['realized_pnl'])) / float(data['margin'])
     return (avg, avg * real)
+
 
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, contract, direction):
