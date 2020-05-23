@@ -164,8 +164,8 @@ wait_for_completion = 1  # default is no wait
 
 def issue_order_now(symbol, contract, direction, amount, action, price=''):
     global reissuing_order, wait_for_completion
-    # print(symbol, direction, amount, action)
-    raw_result = order_infos[direction][action](symbol, contract, amount, price)
+    print(symbol, direction, amount, action, price)
+    raw_result = order_infos[direction][action](symbol, contract, math.ceil(amount), price)
     if type(raw_result) == dict:
         result = raw_result
     else:
@@ -862,11 +862,11 @@ def try_to_trade_tit2tat(subpath):
             (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
             amount_ratio = leverage
             globals()['margin_mode'] = backend.get_margin_mode(symbol, globals()['contract'])
-        if t_amount <= 0 and globals()['check_forced']:
+        if t_amount <= 0:
             # open it un-conditionally
             issue_quarter_order_now(symbol, l_dir, 1, 'open')
             # check if should take normal close action
-            forced_close = True
+            forced_close = globals()['check_forced']
     if forced_close:  # only when required
         open_greedy = True
         # suffered forced close
