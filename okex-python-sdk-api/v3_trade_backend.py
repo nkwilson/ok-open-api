@@ -380,12 +380,18 @@ def query_kline(symbol, period, contract, ktype=''):
 #  'margin_mode': 'crossed',
 #  'timestamp': '2020-02-02T08:17:25.532Z'}
 def get_loss_amount_from_swap(holding, direction):
-    result = list(filter(lambda i: i['side'] == direction, holding))
-    data = result[0]
-    loss = (float(data['unrealized_pnl']) + float(data['settled_pnl'])) * 100 / float(data['margin'])
-    amount = float(data['avail_position'])
-    leverage = float(data['leverage'])
-    return (loss, amount, leverage)
+    try:
+        result = list(filter(lambda i: i['side'] == direction, holding))
+        if not len(result):
+            return (0, 0, 0)
+        data = result[0]
+        loss = (float(data['unrealized_pnl']) + float(data['settled_pnl'])) * 100 / float(data['margin'])
+        amount = float(data['avail_position'])
+        leverage = float(data['leverage'])
+        return (loss, amount, leverage)
+    except Exception as ex:
+        logging.info(ex, holding, direction)
+        return (0, 0, 0)
 
 
 # get it through api get_specific_position
@@ -421,11 +427,17 @@ def check_holdings_profit(symbol, contract, direction):
 
 
 def get_real_open_price_and_cost_from_swap(holding, direction):
-    result = list(filter(lambda i: i['side'] == direction, holding))
-    data = result[0]
-    avg = float(data['avg_cost'])
-    real = abs(float(data['realized_pnl'])) / float(data['margin'])
-    return (avg, avg * real)
+    try:
+        result = list(filter(lambda i: i['side'] == direction, holding))
+        if not len(result):
+            return (0, 0)
+        data = result[0]
+        avg = float(data['avg_cost'])
+        real = abs(float(data['realized_pnl'])) / float(data['margin'])
+        return (avg, avg * real)
+    except Exception as ex:
+        logging.info(ex, holding, direction)
+        return (0, 0)
 
 
 # Figure out current holding's open price, zero means no holding
