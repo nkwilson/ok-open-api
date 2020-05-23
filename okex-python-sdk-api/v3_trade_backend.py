@@ -380,16 +380,12 @@ def query_kline(symbol, period, contract, ktype=''):
 #  'margin_mode': 'crossed',
 #  'timestamp': '2020-02-02T08:17:25.532Z'}
 def get_loss_amount_from_swap(holding, direction):
-    try:
-        result = list(filter(lambda i: i['side'] == direction, holding))
-        data = result[0]
-        loss = (float(data['unrealized_pnl']) + float(data['settled_pnl'])) * 100 / float(data['margin'])
-        amount = float(data['avail_position'])
-        leverage = float(data['leverage'])
-        return (loss, amount, leverage)
-    except Exception as ex:
-        logging.info(ex)
-        return (0, 0, 0)
+    result = list(filter(lambda i: i['side'] == direction, holding))
+    data = result[0]
+    loss = (float(data['unrealized_pnl']) + float(data['settled_pnl'])) * 100 / float(data['margin'])
+    amount = float(data['avail_position'])
+    leverage = float(data['leverage'])
+    return (loss, amount, leverage)
 
 
 # get it through api get_specific_position
@@ -425,16 +421,12 @@ def check_holdings_profit(symbol, contract, direction):
 
 
 def get_real_open_price_and_cost_from_swap(holding, direction):
-    try:
-        result = list(filter(lambda i: i['side'] == direction, holding))
-        data = result[0]
-        avg = float(data['avg_cost'])
-        real = abs(float(data['realized_pnl'])) / float(data['margin'])
-        return (avg, avg * real)
-    except Exception as ex:
-        logging.info(ex)
-        return (0, 0)
-
+    result = list(filter(lambda i: i['side'] == direction, holding))
+    data = result[0]
+    instrument_id = data['instrument_id']
+    avg = float(data['avg_cost'])
+    real = abs(float(data['realized_pnl'])) / float(data['margin'])
+    return (avg, avg * real)
 
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, contract, direction):
@@ -442,9 +434,9 @@ def real_open_price_and_cost(symbol, contract, direction):
     holding = which_api.get_specific_position(inst_id)
     # print (holding['holding'])
     l_dir = transform_direction(direction)
-    if contract == 'swap':
-        return get_real_open_price_and_cost_from_swap(holding['holding'], l_dir)
     try:
+        if contract == 'swap':
+            return get_real_open_price_and_cost_from_swap(holding['holding'], l_dir)
         # future orders
         data = holding['holding'][0]
         avg = float(data['%s_avg_cost' % l_dir])
