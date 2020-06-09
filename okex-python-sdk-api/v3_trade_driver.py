@@ -552,7 +552,7 @@ names_tit2tat = [
     'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'open_cost_rate',
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
-    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio'
+    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional'
 ]
 
 
@@ -693,6 +693,8 @@ t_greedy_max = 0  # max until now, will cleared at close action
 
 margin_ratio = 0  # saved margin_ratio
 
+close_conditional = False  # close pending positive only
+
 
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
@@ -825,7 +827,7 @@ def try_to_trade_tit2tat(subpath):
         elif price_delta < -open_cost:
             cost_flag = 'v'
         print('greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count),
-              'cost: %s%0.2f%%(%s) @ %.2f%%' % (' ' if price_delta >= 0 else '',
+              'cost:%s%0.2f%%(%s) @ %.2f%%' % (' ' if price_delta >= 0 else '',
                                                price_delta * 100 / previous_close,
                                                cost_flag,
                                                100 * float(globals()['open_cost_rate'])),
@@ -955,7 +957,7 @@ def try_to_trade_tit2tat(subpath):
                     if globals()['greedy_same_amount']:
                         (ret, price,
                          l_reverse_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0,
-                                                                                 'close', False)
+                                                                                 'close', globals()['close_conditional'])
                         if ret:
                             globals()['request_price'] = price
 
@@ -985,7 +987,7 @@ def try_to_trade_tit2tat(subpath):
                                                                                l_dir,
                                                                                l_amount,
                                                                                'close',
-                                                                               False)  # as much as possible
+                                                                               globals()['close_conditional'])  # as much as possible
                     elif thisweek_amount_pending < 0 and profit_num < makeup_gate:  # if less holdings and loss is small, increase it
                         issue_quarter_order_now(symbol, l_dir,
                                                 -(thisweek_amount_pending * withdraw_rate / 100.0),
@@ -1007,7 +1009,7 @@ def try_to_trade_tit2tat(subpath):
                             print(flag)
 
                 if backward_greedy:
-                    issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+                    issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
             elif greedy_action == 'open':  # yes, open action pending
 
                 # first take reverse into account and do some makeup
@@ -1088,7 +1090,7 @@ def try_to_trade_tit2tat(subpath):
                                 issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
                             pass
                     if backward_greedy:
-                        issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close')
+                        issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
                         # secondly open new order
                         issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
                 else:  # less than 1
@@ -1112,7 +1114,7 @@ def try_to_trade_tit2tat(subpath):
                                                     'open')
             if greedy_action != '':  # update balance
                 update_quarter_amount = True
-            if greedy_action != 'open':
+            if greedy_action != 'open' and globals()['close_conditional']:
                 cleanup_holdings_atclose(symbol,
                                          globals()['contract'],
                                          l_dir,
@@ -1120,7 +1122,7 @@ def try_to_trade_tit2tat(subpath):
                                          close)
         if issuing_close:
             globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-            issue_quarter_order_now_conditional(symbol, l_dir, 0, 'close', False)  # use zero to close all
+            issue_quarter_order_now(symbol, l_dir, 0, 'close')  # use zero to close all
             # and open again, just like new_open == True
             new_open = True
             if open_greedy:
@@ -1162,10 +1164,10 @@ def try_to_trade_tit2tat(subpath):
             (l_dir, previous_close, close, price_delta, 'forced ' if forced_close else '', 'closed'))
         if forward_greedy:
             if globals()['greedy_same_amount']:
-                issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
-            issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', False)
+                issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
+            issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', globals()['close_conditional'])
         if backward_greedy:
-            issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', False)
+            issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
         thisweek_amount_pending = 0
         close_greedy = False
     if new_open:
