@@ -173,7 +173,8 @@ def issue_order(instrument_id, otype, price, size, match_price, order_type):
     if not result['result'] or result['error_code'] != '0':  # something is wrong
         if result['error_code'] == '35014':  # try again with zero price
             # print('(code=35014): Order price is not within limit, try again')
-            return issue_order(instrument_id, otype, '', size, match_price='1', order_type='0')
+            result['result'] = 'again'
+            # return issue_order(instrument_id, otype, '', size, match_price='1', order_type='0')
         logging.info('%s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type))
         logging.info("result:" + json.dumps(result))
     return result

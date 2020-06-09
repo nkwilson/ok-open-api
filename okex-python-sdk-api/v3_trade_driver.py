@@ -164,13 +164,16 @@ wait_for_completion = 1  # default is no wait
 
 def issue_order_now(symbol, contract, direction, amount, action, price=''):
     global reissuing_order, wait_for_completion
-    print(symbol, direction, amount, action, price)
+    # print(symbol, direction, amount, action, price)
     raw_result = order_infos[direction][action](symbol, contract, math.ceil(amount), price)
     if type(raw_result) == dict:
         result = raw_result
     else:
         result = json.loads(raw_result)
     # print(result)
+    if not result['result'] or (result['result'] == 'again' and reissuing_order < 2):
+        reissuing_order += 1
+        return issue_order_now(symbol, contract, direction, amount, action, price)
     if not result['result'] or result['result'] == 'false':
         print(result)
         reissuing_order += 1
@@ -822,7 +825,7 @@ def try_to_trade_tit2tat(subpath):
         elif price_delta < -open_cost:
             cost_flag = 'v'
         print('greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count),
-              'cost:%s%0.2f%%(%s) @ %.2f%%' % (' ' if price_delta >= 0 else '',
+              'cost: %s%0.2f%%(%s) @ %.2f%%' % (' ' if price_delta >= 0 else '',
                                                price_delta * 100 / previous_close,
                                                cost_flag,
                                                100 * float(globals()['open_cost_rate'])),
@@ -1030,6 +1033,11 @@ def try_to_trade_tit2tat(subpath):
                         print(' (.)')
 
                 if partly_close:
+                    # if reach here, t_reverse_amount must positive
+                    if (thisweek_amount_pending - t_reverse_amount) < 0:
+                        profit_close_amount = t_reverse_amount - max(0, thisweek_amount_pending) * r_rate
+                        issue_quarter_order_now(symbol, reverse_follow_dir, profit_close_amount, 'close')
+                        t_reverse_amount -= profit_close_amount
                     # first close same direction, then reverse direction, unified as one direction
                     if greedy_count > 0:
                         # supporsed to close t_amount * r_rate
