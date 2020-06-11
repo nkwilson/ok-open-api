@@ -1437,7 +1437,7 @@ def prepare_for_self_trigger(notify, signal, l_dir):
                 raw_reply = eval('%s' % backend.query_ticker2(symbol, contract))
                 #  use mean of best_ask and best_bid as close price
                 reply[4] = str((float(raw_reply['best_ask']) + float(raw_reply['best_bid'])) / 2)
-                print(raw_reply, reply)
+                # print(raw_reply, reply)
             else:
                 return price_filename
         # print('save price to %s' % price_filename)
