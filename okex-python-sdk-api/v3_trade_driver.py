@@ -100,6 +100,13 @@ parser.add_option('',
                   help='dry run, no real buy/sell action')
 parser.add_option('', '--api', dest='api_version', default='v3', help='use specified api version[v1|v3], default is v3')
 
+parser.add_option('',
+                  '--nohighfreq',
+                  dest='highfreq',
+                  action='store_false',
+                  default=True,
+                  help='trade with high frequency')
+
 (options, args) = parser.parse_args()
 print(type(options), options, args)
 
