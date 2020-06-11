@@ -127,6 +127,10 @@ def query_ticker(instrument_id):
     return ticker
 
 
+def query_ticker2(symbol, contract):
+    return query_ticker(query_instrument_id(symbol, contract))
+
+
 # In [12]: order_datas=[]
 # In [13]: order_datas.append({'order_type':"1",'price':"386",'size':"1",'type':"2",'match_price':"0"})
 # In [14]: order_datas.append({'order_type':"1",'price':"386",'size':"1",'type':"1",'match_price':"0"})

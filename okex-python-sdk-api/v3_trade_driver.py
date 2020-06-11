@@ -1433,7 +1433,13 @@ def prepare_for_self_trigger(notify, signal, l_dir):
         price_filename = os.path.join(l_dir, '%s.%s' % (reply[0], signal))
         if os.path.isfile(price_filename) and os.path.getsize(price_filename) > 0:
             # print(trade_timestamp(), '%s is already exist' % (price_filename))
-            return price_filename
+            if options.highfreq:
+                raw_reply = eval('%s' % backend.query_ticker2(symbol, contract))
+                #  use mean of best_ask and best_bid as close price
+                reply[4] = str((float(raw_reply['best_ask']) + float(raw_reply['best_bid'])) / 2)
+                print(raw_reply, reply)
+            else:
+                return price_filename
         # print('save price to %s' % price_filename)
         with open(price_filename0, 'w') as f:
             f.write('%s, %s, %s, %s, %s, %s' % (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
@@ -1509,7 +1515,11 @@ while True:
         f.close()
 
     if options.do_self_trigger:
-        (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
+        if options.highfreq:
+            timeout = 1
+            delta = 1
+        else:
+            (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
 
         if timeout > 0:  # wait for triggering
             # print(trade_timestamp(),
