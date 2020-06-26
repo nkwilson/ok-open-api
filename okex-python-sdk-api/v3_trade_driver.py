@@ -178,7 +178,7 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
     else:
         result = json.loads(raw_result)
     # print(result)
-    if not result['result']:
+    if 'order_id' not in result.keys():  # in case name not exist
         if result['result'] == 'again':
             if reissuing_order < 5:
                 reissuing_order += 1
@@ -718,6 +718,7 @@ margin_ratio = 0  # saved margin_ratio
 close_conditional = False  # close pending positive only
 pre_close = 0  # save for more efficent
 
+
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -755,18 +756,22 @@ def try_to_trade_tit2tat(subpath):
     if close == 0:  # in case read failed
         return
 
-    if close == pre_close:  #  same price ?
+    if close == pre_close:  # same price ?
         return
     pre_close = close
 
+    price_delta = 0
     l_dir = ''
     reverse_follow_dir = ''
     if trade_file.endswith('.sell'):  # sell order
         l_dir = 'sell'
         reverse_follow_dir = 'buy'
+        price_delta = (previous_close - close)
     elif trade_file.endswith('.buy'):  # buy order
         l_dir = 'buy'
         reverse_follow_dir = 'sell'
+        price_delta = (close - previous_close)
+
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
     new_ema_1 = get_ema(ema_1, close, ema_period_1)
@@ -776,7 +781,6 @@ def try_to_trade_tit2tat(subpath):
     new_ema_2_up = get_ema(ema_2_up, prices[ID_HIGH], ema_period_2)
     new_ema_2_lo = get_ema(ema_2_lo, prices[ID_LOW], ema_period_2)
     delta_ema_1 = new_ema_1 - ema_1
-    price_delta = 0
 
     globals()['current_close'] = close  # save early
 
@@ -799,14 +803,12 @@ def try_to_trade_tit2tat(subpath):
         ema_tuple = 'ema_%d/ema_%d: %.4f <=> %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
     elif l_dir == 'sell':  # sell order
         ema_tendency = new_ema_2 - new_ema_1_lo  # ema_2 should bigger than ema_1_lo
-        price_delta = (previous_close - close)
         ema_tuple = 'ema_%d/ema_%d: %.4f => %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
         print('%.4f' % -close, '%.4f' % previous_close, l_dir, end=' ')
         if abs(price_delta) < open_cost:  # yes, show balance
             balance_tuple = ''
     elif l_dir == 'buy':  # buy order
         ema_tendency = new_ema_1_up - new_ema_2  # ema_1_up should bigger than ema_2
-        price_delta = (close - previous_close)
         ema_tuple = 'ema_%d/ema_%d: %.4f <= %.4f' % (ema_period_1, ema_period_2, new_ema_1_up, new_ema_2)
         print('%.4f' % close, '%.4f' % -previous_close, l_dir, end=' ')
         if abs(price_delta) < open_cost:  # yes, show balance
@@ -819,6 +821,8 @@ def try_to_trade_tit2tat(subpath):
 
     delta_balance_rate = 0
     if len(l_dir):
+        update_open_cost(previous_close)
+
         (loss, t_amount, _) = backend.check_holdings_profit(symbol,
                                                             globals()['contract'],
                                                             l_dir)
@@ -858,10 +862,11 @@ def try_to_trade_tit2tat(subpath):
         elif price_delta < -open_cost:
             cost_flag = 'v'
         print('greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count),
-              'cost:%s%0.2f%%(%s) @ %.2f%%' % (' ' if price_delta >= 0 else '',
-                                               price_delta * 100 / previous_close,
-                                               cost_flag,
-                                               100 * float(globals()['open_cost_rate'])),
+              'cost:%s%0.4f(%s) @ %.4f(%.3f%%)' % (' ' if price_delta >= 0 else '',
+                                                   price_delta,
+                                                   cost_flag,
+                                                   open_cost,
+                                                   globals()['open_cost_rate']),
               amount_tuple,
               reverse_tuple,
               balance_tuple,
@@ -945,17 +950,17 @@ def try_to_trade_tit2tat(subpath):
         if not issuing_close and (forward_greedy or backward_greedy):
             # emit open again signal
             if l_dir == 'buy':
-                if (close - previous_close) > open_cost:
+                if price_delta > open_cost:
                     greedy_action = 'close'
                     greedy_status = 'maybe closed'
-                elif (close - previous_close) < -open_cost:
+                elif price_delta < -open_cost:
                     greedy_action = 'open'
                     greedy_status = 'holding'
             elif l_dir == 'sell':
-                if (close - previous_close) < -open_cost:
+                if price_delta < -open_cost:
                     greedy_action = 'close'
                     greedy_status = 'maybe closed'
-                elif (close - previous_close) > open_cost:
+                elif price_delta > open_cost:
                     greedy_action = 'open'
                     greedy_status = 'holding'
             if greedy_status != '':
