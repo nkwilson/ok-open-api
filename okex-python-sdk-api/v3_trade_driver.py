@@ -716,7 +716,7 @@ t_greedy_max = 0  # max until now, will cleared at close action
 margin_ratio = 0  # saved margin_ratio
 
 close_conditional = False  # close pending positive only
-
+pre_close = 0  # save for more efficent
 
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
@@ -740,6 +740,7 @@ def try_to_trade_tit2tat(subpath):
     global profit_withdraw_rate, amount_ratio
     global amount_real
     global margin_ratio
+    global pre_close
 
     globals()['request_price'] = ''  # first clear it
 
@@ -753,6 +754,10 @@ def try_to_trade_tit2tat(subpath):
 
     if close == 0:  # in case read failed
         return
+
+    if close == pre_close:  #  same price ?
+        return
+    pre_close = close
 
     l_dir = ''
     reverse_follow_dir = ''
@@ -1466,9 +1471,9 @@ def prepare_for_self_trigger(notify, signal, l_dir):
         with open(price_filename0, 'w') as f:
             f.write('%s, %s, %s, %s, %s, %s' % (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
             f.close()
-        with open(price_filename, 'w') as f:
-            f.write('%s, %s, %s, %s, %s, %s' % (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
-            f.close()
+        # with open(price_filename, 'w') as f:
+            # f.write('%s, %s, %s, %s, %s, %s' % (reply[1], reply[2], reply[3], reply[4], reply[5], reply[6]))
+            # f.close()
         with open(notify, 'w') as f:
             f.write(price_filename)
             f.close()
@@ -1555,17 +1560,19 @@ while True:
             pass
         prepare_for_self_trigger(signal_notify, l_signal, l_dir)
 
+    t_pre_close = pre_close
     try:
         wait_signal_notify(signal_notify, l_signal, shutdown_notify)
     except Exception as ex:
         print(ex)
 
-    with open('%s.balance' % signal_notify, 'a') as f:
-        f.write('%s %.4f %.4f @%.2f%%\n' % (trade_timestamp(),
-                                            globals()['previous_close'],
-                                            globals()['last_balance'],
-                                            globals()['margin_ratio'] * 100))
-        f.close()
+    if t_pre_close != pre_close:
+        with open('%s.balance' % signal_notify, 'a') as f:
+            f.write('%s %.4f %.4f @%.2f%%\n' % (trade_timestamp(),
+                                                globals()['previous_close'],
+                                                globals()['last_balance'],
+                                                globals()['margin_ratio'] * 100))
+            f.close()
 
     # reset it in case network error
     backend.which_api = ''
