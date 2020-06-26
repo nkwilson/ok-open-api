@@ -169,7 +169,7 @@ reissuing_order = 0
 wait_for_completion = 1  # default is no wait
 
 
-def issue_order_now(symbol, contract, direction, amount, action, price=''):
+def issue_order_now__(symbol, contract, direction, amount, action, price=''):
     global reissuing_order, wait_for_completion
     # print(symbol, direction, amount, action, price)
     raw_result = order_infos[direction][action](symbol, contract, math.ceil(amount), price)
@@ -178,24 +178,29 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
     else:
         result = json.loads(raw_result)
     # print(result)
-    if not result['result'] or (result['result'] == 'again' and reissuing_order < 2):
-        reissuing_order += 1
-        return issue_order_now(symbol, contract, direction, amount, action, price)
-    if not result['result'] or result['result'] == 'false':
-        print(result)
-        reissuing_order += 1
-        if amount < 2:
-            return (False, 0, 0)
-        return issue_order_now(symbol, contract, direction, amount / 2, action, price)
-    order_id = str(result['order_id'])  # no exceptions, means successed
-    # print(order_id)
-    if wait_for_completion > 0:  # only valid if positive
-        time.sleep(wait_for_completion)
-    if not price:  # if empty, must wait for complete
-        order_info = backend.query_orderinfo_wait(symbol, contract, order_id)
-    else:
-        order_info = backend.query_orderinfo(symbol, contract, order_id)
-    try:  # in case amount too much
+    if not result['result']:
+        if result['result'] == 'again':
+            if reissuing_order < 5:
+                reissuing_order += 1
+                return issue_order_now__(symbol, contract, direction, amount, action, price)
+            result['result'] = 'false'
+        if result['result'] == 'false':
+            print(result)
+            reissuing_order += 1
+            if amount < 2:
+                reissuing_order = 0
+                return (False, 0, 0)
+            return issue_order_now__(symbol, contract, direction, amount / 2, action, price)
+    try:
+        order_id = str(result['order_id'])  # no exceptions, means successed
+        # print(order_id)
+        if wait_for_completion > 0:  # only valid if positive
+            time.sleep(wait_for_completion)
+        if not price:  # if empty, must wait for complete
+            order_info = backend.query_orderinfo_wait(symbol, contract, order_id)
+        else:
+            order_info = backend.query_orderinfo(symbol, contract, order_id)
+
         l_price = float(order_info['price_avg'])
         if l_price == 0 and globals()['fast_issue'] and globals()['request_price']:
             l_price = float(globals()['request_price'])  # use last saved price in request_price
@@ -234,7 +239,17 @@ def issue_order_now(symbol, contract, direction, amount, action, price=''):
         # API Request Error(code=35065): This type of order cannot be canceled
         # API Request Error(code=35014): Order price is not within limit
         return (False, 0, 0)
-    return issue_order_now(symbol, contract, direction, amount, action, price)
+    return issue_order_now__(symbol, contract, direction, amount, action, price)
+
+
+def issue_order_now(symbol, contract, direction, amount, action, price=''):
+    try:
+        result = issue_order_now__(symbol, contract, direction, amount, action, price)
+    except Exception as ex:
+        result = (False, 0, 0)
+        print(ex)
+        print(traceback.format_exc())
+    return result
 
 
 def adjust_with_delta(old_price, delta_price, direction):
@@ -735,6 +750,10 @@ def try_to_trade_tit2tat(subpath):
     # print(l_index, event_path)
     prices = read_4prices(event_path)
     close = prices[ID_CLOSE]
+
+    if close == 0:  # in case read failed
+        return
+
     l_dir = ''
     reverse_follow_dir = ''
     if trade_file.endswith('.sell'):  # sell order
@@ -876,6 +895,7 @@ def try_to_trade_tit2tat(subpath):
             globals()['margin_mode'] = backend.get_margin_mode(symbol, globals()['contract'])
         if t_amount <= 0:
             # open it un-conditionally
+            print('abnormal, amount is zero, maybe forced closed, currrent price:', close)
             issue_quarter_order_now(symbol, l_dir, 1, 'open')
             # check if should take normal close action
             forced_close = globals()['check_forced']
@@ -893,10 +913,13 @@ def try_to_trade_tit2tat(subpath):
             (open_price, _) = backend.real_open_price_and_cost(symbol,
                                                                globals()['contract'], l_dir)
     new_l_dir = ''
-    if close > previous_close and delta_ema_1 > 0:
+    if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
+        new_l_dir = globals()['tendency_holdon']
+    elif close > previous_close and delta_ema_1 > 0:
         new_l_dir = 'buy'
     elif close < previous_close and delta_ema_1 < 0:
         new_l_dir = 'sell'
+
     if not new_open:
         if not forced_close:
             pass
@@ -985,11 +1008,10 @@ def try_to_trade_tit2tat(subpath):
                         pass
 
                     if thisweek_amount_pending > 0:
-                        l_amount = thisweek_amount_pending
                         if l_reverse_amount > 0:
                             l_amount = min(l_reverse_amount / r_rate, thisweek_amount_pending)
                         else:
-                            l_amount = min(l_amount, quarter_amount)
+                            l_amount = min(thisweek_amount, thisweek_amount_pending)
                         (_, _, l_amount) = issue_quarter_order_now_conditional(symbol,
                                                                                l_dir,
                                                                                l_amount,
@@ -1437,7 +1459,7 @@ def prepare_for_self_trigger(notify, signal, l_dir):
                 raw_reply = eval('%s' % backend.query_ticker2(symbol, contract))
                 #  use mean of best_ask and best_bid as close price
                 reply[4] = str((float(raw_reply['best_ask']) + float(raw_reply['best_bid'])) / 2)
-                print(raw_reply, reply)
+                # print(raw_reply, reply)
             else:
                 return price_filename
         # print('save price to %s' % price_filename)
