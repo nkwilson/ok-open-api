@@ -947,6 +947,7 @@ def try_to_trade_tit2tat(subpath):
         greedy_action = ''
         greedy_status = ''
         update_quarter_amount = False
+        old_previous_close = previous_close
         if not issuing_close and (forward_greedy or backward_greedy):
             # emit open again signal
             if l_dir == 'buy':
@@ -1151,6 +1152,9 @@ def try_to_trade_tit2tat(subpath):
                         if globals()['greedy_same_amount']:
                             issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
                                                     'open')
+                        else:  # reset previous_close updating
+                            previous_close = old_previous_close
+                            update_open_cost(previous_close)
             if greedy_action != '':  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open' and globals()['close_conditional']:
