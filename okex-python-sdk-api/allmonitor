@@ -1,0 +1,13 @@
+set -e
+
+coins=${1:-'btc ltc eth bch xrp eos xtz neo dash etc'}
+
+while true; do 
+for c in ${coins}; do
+	if inotifywait -e close -t 120 *${c}*balance ; then
+		continue
+	fi
+	echo $(date) ${c} restarted >> restarted.log
+	bash restartall ${c}
+done
+done
