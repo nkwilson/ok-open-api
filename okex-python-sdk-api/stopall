@@ -1,0 +1,19 @@
+set -e
+
+coins=${1:-'btc ltc eth bch xrp eos xtz neo dash etc'}
+periods=${2:-'1min 3min 5min 15min 30min 1hour 4hour 2hour 1day'}
+contracts=${3:-'quarter thisweek nextweek swap'}
+
+TPL0="ok_sub_futureusd_\${c}_kline_\${t}_\${p}"
+for t in ${contracts}; do
+for c in ${coins}; do
+	for p in ${periods}; do
+		TPL=$(eval echo ${TPL0})
+		test -f ${TPL}.tit2tat_trade_notify.pid || continue
+	       	PID=$(cat ${TPL}.tit2tat_trade_notify.pid)
+		#echo "ps -p ${PID} > /dev/null && ( kill ${PID} || true )"
+		ps -p ${PID} > /dev/null && ( kill ${PID} || true )
+	done
+done
+done
+
