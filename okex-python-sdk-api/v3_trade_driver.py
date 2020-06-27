@@ -180,7 +180,7 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
     # print(result)
     if 'order_id' not in result.keys():  # in case name not exist
         if result['result'] == 'again':
-            if reissuing_order < 5:
+            if reissuing_order < 10:
                 reissuing_order += 1
                 return issue_order_now__(symbol, contract, direction, amount, action, price)
             result['result'] = 'false'
@@ -674,7 +674,7 @@ request_price = '0'
 last_fee = 0
 open_cost = 0
 open_cost_rate = 0.008  # percent of previous_close
-reverse_amount_rate = 0.8
+reverse_amount_rate = 0
 quarter_amount = 1
 thisweek_amount_pending = 0
 quarter_amount_multiplier = 2  # 2 times is up threshold
@@ -771,6 +771,8 @@ def try_to_trade_tit2tat(subpath):
         l_dir = 'buy'
         reverse_follow_dir = 'sell'
         price_delta = (close - previous_close)
+    if abs(price_delta) < (open_cost / 2):
+        return
 
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
@@ -866,7 +868,7 @@ def try_to_trade_tit2tat(subpath):
                                                    price_delta,
                                                    cost_flag,
                                                    open_cost,
-                                                   globals()['open_cost_rate']),
+                                                   100 * globals()['open_cost_rate']),
               amount_tuple,
               reverse_tuple,
               balance_tuple,
@@ -971,8 +973,10 @@ def try_to_trade_tit2tat(subpath):
                 open_greedy = True
                 previous_close = close
                 update_open_cost(close)
-                if globals()['amount_real'] > 0 or globals()['greedy_same_amount']:
+                if globals()['amount_real'] > 0:
                     thisweek_amount = quarter_amount
+                    if globals()['greedy_same_amount']:
+                        thisweek_amount = thisweek_amount / 3
                 elif globals()['greedy_whole_balance']:
                     thisweek_amount = math.ceil(
                         (quarter_amount / (1 / amount_ratio + amount_ratio_plus) - quarter_amount) / greedy_count_max)
@@ -981,7 +985,10 @@ def try_to_trade_tit2tat(subpath):
 
                 thisweek_amount = int(thisweek_amount)
 
-                r_rate = globals()['reverse_amount_rate']
+                if globals()['reverse_amount_rate'] > 0:
+                    r_rate = globals()['reverse_amount_rate']
+                else:
+                    r_rate = 1.0 - amount_ratio / 100
 #  持续更新 pending
 #  开始状态，直接买入quarter_amount , greedy_count = max, pending = 0
 #  逆向发展，greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
@@ -1001,6 +1008,9 @@ def try_to_trade_tit2tat(subpath):
                                                                                  'close', globals()['close_conditional'])
                         if ret:
                             globals()['request_price'] = price
+                        delta_thisweek_amount = thisweek_amount
+                    else:
+                        delta_thisweek_amount = thisweek_amount * (1 - r_rate)
 
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
 
@@ -1022,7 +1032,7 @@ def try_to_trade_tit2tat(subpath):
                         if l_reverse_amount > 0:
                             l_amount = min(l_reverse_amount / r_rate, thisweek_amount_pending)
                         else:
-                            l_amount = min(thisweek_amount, thisweek_amount_pending)
+                            l_amount = min(delta_thisweek_amount, thisweek_amount_pending)
                         (_, _, l_amount) = issue_quarter_order_now_conditional(symbol,
                                                                                l_dir,
                                                                                l_amount,
