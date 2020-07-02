@@ -1,6 +1,6 @@
 set -e
 
-coins=${1:-'btc ltc eth bch xrp eos xtz neo dash etc'}
+coins=${1:-'btc ltc eth bch xrp eos xtz dash '}
 
 while true; do 
 for c in ${coins}; do
@@ -8,6 +8,6 @@ for c in ${coins}; do
 		continue
 	fi
 	echo $(date) ${c} restarted >> restarted.log
-	bash restartall ${c}
+	bash allrestart ${c}
 done
 done
