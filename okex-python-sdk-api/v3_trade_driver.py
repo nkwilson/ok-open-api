@@ -180,10 +180,10 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
     # print(result)
     if 'order_id' not in result.keys():  # in case name not exist
         if result['result'] == 'again':
-            if reissuing_order < 10:
+            if reissuing_order < 20:
                 reissuing_order += 1
                 return issue_order_now__(symbol, contract, direction, amount, action, price)
-            result['result'] = 'false'
+            return (False, 0, 0)
         if result['result'] == 'false':
             print(result)
             reissuing_order += 1
@@ -1500,7 +1500,6 @@ def prepare_for_self_trigger(notify, signal, l_dir):
         return price_filename
     except Exception as Ex:
         print(trade_timestamp(), Ex)
-        print(traceback.format_exc())
         return None
 
 
