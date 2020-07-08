@@ -718,6 +718,8 @@ margin_ratio = 0  # saved margin_ratio
 close_conditional = False  # close pending positive only
 pre_close = 0  # save for more efficent
 
+prev_price_delta = 0
+
 
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
@@ -741,7 +743,7 @@ def try_to_trade_tit2tat(subpath):
     global profit_withdraw_rate, amount_ratio
     global amount_real
     global margin_ratio
-    global pre_close
+    global pre_close, prev_price_delta
 
     globals()['request_price'] = ''  # first clear it
 
@@ -771,8 +773,15 @@ def try_to_trade_tit2tat(subpath):
         l_dir = 'buy'
         reverse_follow_dir = 'sell'
         price_delta = (close - previous_close)
-    if abs(price_delta) < (open_cost / 2):
+    if abs(price_delta) < (open_cost / 10):
+        prev_price_delta = 0
         return
+    if abs(price_delta) > open_cost:  # reset it now
+        prev_price_delta = 0
+    elif abs(price_delta) < ((open_cost + abs(prev_price_delta)) / 2):
+        return
+    else:
+        prev_price_delta = price_delta
 
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
@@ -1254,6 +1263,11 @@ def try_to_trade_tit2tat(subpath):
         update_open_cost(open_price)
 
         previous_close = close
+
+    (loss, t_amount, _) = backend.check_holdings_profit(symbol,
+                                                        globals()['contract'],
+                                                        l_dir)
+    thisweek_amount_pending = t_amount - quarter_amount
     return greedy_status
 
 
@@ -1578,11 +1592,18 @@ while True:
             pass
         prepare_for_self_trigger(signal_notify, l_signal, l_dir)
 
+    t_thisweek_amount_pending = globals()['thisweek_amount_pending']
+    t_previous_close = globals()['previous_close']
     t_pre_close = pre_close
+
     try:
         wait_signal_notify(signal_notify, l_signal, shutdown_notify)
     except Exception as ex:
         print(ex)
+
+    # temp fix for not touch deep logic
+    if t_thisweek_amount_pending == globals()['thisweek_amount_pending']:
+        globals()['previous_close'] = t_previous_close
 
     if t_pre_close != pre_close:
         with open('%s.balance' % signal_notify, 'a') as f:
