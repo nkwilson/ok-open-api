@@ -184,7 +184,7 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
                 reissuing_order += 1
                 return issue_order_now__(symbol, contract, direction, amount, action, price)
             return (False, 0, 0)
-        if result['result'] == 'false':
+        elif result['result'] == 'false':
             print(result)
             reissuing_order += 1
             if amount < 2:
@@ -219,7 +219,7 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
             globals()['last_fee'] = abs(float(order_info['fee']))
             return (True, l_price, float(order_info['size']))
     except Exception as ex:
-        print(ex)
+        print(result)
         print(traceback.format_exc())
         if amount < 2:  # no balance now
             return (False, 0, 0)
