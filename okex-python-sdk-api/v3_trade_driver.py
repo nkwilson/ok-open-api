@@ -1362,8 +1362,9 @@ def wait_signal_notify(notify, signal, shutdown):
                 # print(subpath)
                 status = globals()['try_to_trade_%s' % signal](subpath)
                 if status != 'no action':
-                    globals()['save_status_%s' % signal](subpath)
+                    # globals()['save_status_%s' % signal](subpath)
                     # print(globals()['trade_status'])
+                    pass
             fence_count = 0
             if shutdown_on_close and trade_file == '':
                 print(trade_timestamp(), 'shutdown now')
