@@ -10,4 +10,10 @@ for c in ${coins}; do
 	echo $(date) ${c} restarted >> restarted.log
 	bash allrestart ${c}
 done
+
+INODE_FREE=$(stat -f . | grep 'Inodes:' | awk '{print $5}')
+if [ $INODE_FREE -lt 100000 ]; then
+	bash allbackup
+fi
+
 done
