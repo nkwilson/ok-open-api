@@ -217,7 +217,7 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
         else:
             globals()['last_fee'] = abs(float(order_info['fee']))
             return (True, l_price, float(order_info['size']))
-    except Exception as ex:
+    except Exception:
         print(result)
         print(traceback.format_exc())
         if amount < 2:  # no balance now
@@ -1069,7 +1069,6 @@ def try_to_trade_tit2tat(subpath):
                 if backward_greedy:
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
             elif greedy_action == 'open':  # yes, open action pending
-
                 # first take reverse into account and do some makeup
                 (reverse_loss, t_reverse_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
 
@@ -1077,7 +1076,12 @@ def try_to_trade_tit2tat(subpath):
                 reverse_amount = int(thisweek_amount * r_rate)
                 if reverse_amount == thisweek_amount:
                     thisweek_amount += 1
-                delta_thisweek_amount = thisweek_amount - reverse_amount
+
+                orate = math.floor(abs(price_delta / open_cost))
+                delta_thisweek_amount = (thisweek_amount - reverse_amount) * max(orate, 1)
+
+                while (delta_thisweek_amount + thisweek_amount_pending) > quarter_amount:
+                    delta_thisweek_amount /= 2
 
                 partly_close = False
                 if t_reverse_amount > 0:
