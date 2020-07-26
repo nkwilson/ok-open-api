@@ -579,11 +579,11 @@ names_tit2tat = [
 
 def save_status_tit2tat(subpath=''):
     loadsave_status('tit2tat', load=False)
-    with open(globals()['status_file'], 'r') as r:
-        with open('%s.trade_status' % (subpath), 'w') as w:
-            w.write(r.read())  # read whole file and write all
-            w.close()
-        r.close()
+    # with open(globals()['status_file'], 'r') as r:
+    #    with open('%s.trade_status' % (subpath), 'w') as w:
+    #        w.write(r.read())  # read whole file and write all
+    #        w.close()
+    #    r.close()
 
 
 def load_status_tit2tat(subpath=''):
@@ -1164,19 +1164,17 @@ def try_to_trade_tit2tat(subpath):
                             t_recorded_greedy_max = t_greedy_max
                             recorded_greedy_max = t_recorded_greedy_max
 
-                    # no enough reverse orders
-                    reverse_amount = int((thisweek_amount_pending + quarter_amount) / float(r_rate) - t_amount)
-
-                    if thisweek_amount_pending < 0:  # must be positive now
-                        pass
-                    elif reverse_amount > 0:
-                        # open reverse order
-                        if globals()['greedy_same_amount']:
-                            issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount,
-                                                    'open')
-                        else:  # reset previous_close updating
-                            previous_close = old_previous_close
-                            update_open_cost(previous_close)
+                    if thisweek_amount_pending > 0:  # must be positive now
+                        # no enough reverse orders
+                        pending_amount = int((thisweek_amount_pending + quarter_amount) / float(r_rate) - t_amount)
+                        if pending_amount > 0:
+                            # open reverse order
+                            if globals()['greedy_same_amount']:
+                                issue_quarter_order_now(symbol, reverse_follow_dir, pending_amount,
+                                                        'open')
+                            else:  # reset previous_close updating
+                                previous_close = old_previous_close
+                                update_open_cost(previous_close)
             if greedy_action != '':  # update balance
                 update_quarter_amount = True
             if greedy_action != 'open' and globals()['close_conditional']:
@@ -1366,7 +1364,7 @@ def wait_signal_notify(notify, signal, shutdown):
                 # print(subpath)
                 status = globals()['try_to_trade_%s' % signal](subpath)
                 if status != 'no action':
-                    # globals()['save_status_%s' % signal](subpath)
+                    globals()['save_status_%s' % signal](subpath)
                     # print(globals()['trade_status'])
                     pass
             fence_count = 0
