@@ -1,6 +1,6 @@
 set -e
 
-coins=${1:-'btc ltc eth bch eos xtz dash xrp neo etc'}
+coins=${1:-'btc ltc eth bch eos xrp etc'}
 
 while true; do 
 for c in ${coins}; do
