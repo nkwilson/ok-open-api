@@ -1609,10 +1609,11 @@ while True:
 
     if t_pre_close != pre_close:
         with open('%s.balance' % signal_notify, 'a') as f:
-            f.write('%s %.4f %.4f @%.2f%%\n' % (trade_timestamp(),
-                                                globals()['previous_close'],
-                                                globals()['last_balance'],
-                                                globals()['margin_ratio'] * 100))
+            f.write('%s %.4f %.4f %.4f @%.2f%%\n' % (trade_timestamp(),
+                                                     pre_close,
+                                                     globals()['previous_close'],
+                                                     globals()['last_balance'],
+                                                     globals()['margin_ratio'] * 100))
             f.close()
 
     # reset it in case network error
