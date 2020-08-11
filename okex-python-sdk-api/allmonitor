@@ -1,5 +1,8 @@
 set -e
 
+EXE=$(readlink -f $0)
+MY_INODE=$(stat -c '%i' $EXE)
+
 coins=${1:-'btc ltc eth bch eos xrp etc dash xtz'}
 
 while true; do 
@@ -11,7 +14,7 @@ for c in ${coins}; do
 	bash allrestart ${c}
 done
 
-INODE_FREE=$(stat -f . | grep 'Inodes:' | awk '{print $5}')
+INODE_FREE=$(stat -f . -c '%d')
 if [ $INODE_FREE -lt 100000 ]; then
 	bash allbackup
 fi
