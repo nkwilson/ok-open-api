@@ -1016,9 +1016,8 @@ def try_to_trade_tit2tat(subpath):
                                                                                  'close', globals()['close_conditional'])
                         if ret:
                             globals()['request_price'] = price
-
-                    delta_thisweek_amount = thisweek_amount
-                    if globals()['tendency_holdon'] == '':
+                        delta_thisweek_amount = thisweek_amount
+                    else:
                         delta_thisweek_amount = thisweek_amount * (1 - r_rate)
 
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
