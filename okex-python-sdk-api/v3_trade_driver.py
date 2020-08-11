@@ -1016,8 +1016,9 @@ def try_to_trade_tit2tat(subpath):
                                                                                  'close', globals()['close_conditional'])
                         if ret:
                             globals()['request_price'] = price
-                        delta_thisweek_amount = thisweek_amount
-                    else:
+
+                    delta_thisweek_amount = thisweek_amount
+                    if globals()['tendency_holdon'] == '':
                         delta_thisweek_amount = thisweek_amount * (1 - r_rate)
 
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
@@ -1041,8 +1042,6 @@ def try_to_trade_tit2tat(subpath):
                             l_amount = min(l_reverse_amount / r_rate, thisweek_amount_pending)
                         else:
                             l_amount = min(delta_thisweek_amount, thisweek_amount_pending)
-                        if l_amount > 1:  # bigger than 1
-                            l_amount = math.floor(l_amount)
                         (_, _, l_amount) = issue_quarter_order_now_conditional(symbol,
                                                                                l_dir,
                                                                                l_amount,
