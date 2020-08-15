@@ -913,7 +913,8 @@ def try_to_trade_tit2tat(subpath):
             t_amount = open_price - delta * amount_ratio  # calcuate by forced close probability
         if not options.emulate:  # if emualtion, figure it manually
             (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
-            amount_ratio = leverage
+            if leverage > 0:  # in case something wrong, use old value here
+                amount_ratio = leverage
             globals()['margin_mode'] = backend.get_margin_mode(symbol, globals()['contract'])
         if t_amount <= 0:
             # open it un-conditionally
