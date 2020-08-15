@@ -152,6 +152,7 @@ order_infos = {
     'usd_neo': 'neo_usd',
     'usd_dash': 'dash_usd',
     'usd_etc': 'etc_usd',
+    'usd_link': 'link_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -402,7 +403,8 @@ symbols_mapping = {
     'usd_neo': 'neo_usd',
     'usd_dash': 'dash_usd',
     'usd_etc': 'etc_usd',
-    'usd_bch': 'bch_usd'
+    'usd_bch': 'bch_usd',
+    'usd_link': 'link_usd'
 }
 
 
