@@ -2,11 +2,11 @@ set -e
 
 EXE=$(readlink -f $0)
 MY_INODE=$(stat -c '%i' $EXE)
-
-coins=${1:-'btc ltc eth bch eos xrp etc dash xtz'}
+echo ${EXE}
 
 while true; do 
-for c in ${coins}; do
+for f in *.balance; do
+	c=$(echo $f | awk -F'_' '{print $4}')
 	if inotifywait -e close -t 120 *${c}*balance ; then
 		continue
 	fi
@@ -17,6 +17,13 @@ done
 INODE_FREE=$(stat -f . -c '%d')
 if [ $INODE_FREE -lt 100000 ]; then
 	bash allbackup
+fi
+
+NEW_INODE=$(stat -c '%i' $EXE)
+
+if [ ${MY_INODE} -ne  ${NEW_INODE} ]; then
+	# exec $EXE
+	echo
 fi
 
 done
