@@ -2,7 +2,7 @@
 
 # import okex.account_api as account
 import okex.futures_api as future
-# import okex.lever_api as lever
+import okex.lever_api as lever
 # import okex.spot_api as spot
 import okex.swap_api as swap
 # import okex.index_api as index
@@ -65,10 +65,12 @@ def query_instrument_id(symbol, contract):
     if which_api == '':
         if contract == 'swap':
             which_api = swap.SwapAPI(api_key, secret_key, passphrase, False)
+        elif contract == 'level':
+            which_api = lever.LeverAPI(api_key, secret_key, passphrase, False)
         else:
             which_api = future.FutureAPI(api_key, secret_key, passphrase, False)
-    if contract == 'swap':  # specific case
-        return symbol.upper().replace('_', '-') + '-SWAP'
+    if contract in ['swap', 'level']:  # specific case
+        return symbol.upper().replace('_', '-') + '-' + contract.upper()
         pass
     if True or expire_day <= datetime.datetime.strftime(datetime.datetime.utcnow(), '%Y-%m-%d'):  # need update
         # print ('query_instrument_id fresh')
