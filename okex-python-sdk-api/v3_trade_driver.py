@@ -1044,6 +1044,8 @@ def try_to_trade_tit2tat(subpath):
                             l_amount = min(l_reverse_amount / r_rate, thisweek_amount_pending)
                         else:
                             l_amount = min(delta_thisweek_amount, thisweek_amount_pending)
+                        if l_amount > 1:
+                            l_amount = math.floor(l_amount)
                         (_, _, l_amount) = issue_quarter_order_now_conditional(symbol,
                                                                                l_dir,
                                                                                l_amount,
@@ -1613,11 +1615,11 @@ while True:
     if t_pre_close != pre_close:
         with open('%s.balance' % signal_notify, 'a') as f:
             f.write('%s %.4f %.4f %.4f %05.4f @%.2f%%\n' % (trade_timestamp(),
-                                                          pre_close,
-                                                          globals()['previous_close'],
-                                                          globals()['last_balance'],
-                                                          pre_close * globals()['last_balance'],
-                                                          globals()['margin_ratio'] * 100))
+                                                            pre_close,
+                                                            globals()['previous_close'],
+                                                            globals()['last_balance'],
+                                                            pre_close * globals()['last_balance'],
+                                                            globals()['margin_ratio'] * 100))
             f.close()
 
     # reset it in case network error
