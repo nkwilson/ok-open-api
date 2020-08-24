@@ -137,10 +137,10 @@ def query_ticker2(symbol, contract):
 
 def issue_order(instrument_id, otype, price, size, match_price, order_type, margin_trading=2):
     try:
+        logging.info('%s %s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type, margin_trading))
         if side not in ['buy', 'sell'] or match_price not in ['limit', 'market']:
-            logging.info('%s %s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type, margin_trading))
             return {'result': False}
-        
+
         if match_price == 'market':
             if side == 'buy':
                 notional = size * price
