@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # import okex.account_api as account
-import okex.futures_api as future
+# import okex.futures_api as future
 import okex.lever_api as lever
 import okex.spot_api as spot
-import okex.swap_api as swap
+# import okex.swap_api as swap
 # import okex.index_api as index
 # import okex.option_api as option
 
@@ -59,6 +59,7 @@ instrument_id = ''
 which_api = ''
 which_api_2 = ''
 
+
 def query_instrument_id(symbol, contract):
     global expire_day, instrument_id, which_api, which_api_2
     # print (expire_day)
@@ -92,6 +93,24 @@ def query_limit(instrument_id):
 #  'low_24h': '4.735',
 #  'timestamp': '2020-02-09T09:38:15.941Z',
 #  'volume_24h': '8156913'}
+# In [4]: level.query_ticker('btc_usdt')
+# Out[4]:
+# {'ask': '11619.7',
+# 'base_volume_24h': '27647.36214308',
+# 'best_ask': '11619.7',
+# 'best_ask_size': '3.00210505',
+# 'best_bid': '11619.6',
+# 'best_bid_size': '2.618',
+# 'bid': '11619.6',
+# 'high_24h': '11712.7',
+# 'instrument_id': 'BTC-USDT',
+# 'last': '11619.6',
+# 'last_qty': '0.51',
+# 'low_24h': '11515.8',
+# 'open_24h': '11642.8',
+# 'product_id': 'BTC-USDT',
+# 'quote_volume_24h': '321133368.7',
+# 'timestamp': '2020-08-24T00:32:14.271Z'}
 
 
 def query_ticker(instrument_id):
@@ -138,24 +157,19 @@ def query_ticker2(symbol, contract):
 def issue_order(instrument_id, otype, price, size, match_price, order_type, margin_trading=2):
     try:
         logging.info('%s %s %s %s %s %s %s' % (instrument_id, otype, price, size, match_price, order_type, margin_trading))
-        if side not in ['buy', 'sell'] or match_price not in ['limit', 'market']:
+        if otype not in ['buy', 'sell'] or match_price not in ['limit', 'market']:
             return {'result': False}
 
-        if match_price == 'market':
-            if side == 'buy':
-                notional = size * price
-            pass
-        else:  # everything is ok
-            pass
+        notional = size * price
 
-        result = which_api_2.take_order(instrument_id=instrument_id,
-                                        side=otype,
-                                        price=price,
-                                        size=size,
-                                        type=match_price,
-                                        order_type=order_type,
-                                        margin_trading=margin_trading,
-                                        notional=notional)
+        result = which_api.take_order(instrument_id=instrument_id,
+                                      side=otype,
+                                      price=price,
+                                      size=size,
+                                      type=match_price,
+                                      order_type=order_type,
+                                      margin_trading=margin_trading,
+                                      notional=notional)
         # print (instrument_id, otype, price, size, match_price, order_type)
         # print (result)
     except Exception as ex:
@@ -182,7 +196,7 @@ def open_order_sell_rate(symbol, contract, amount, price='', lever_rate='10'):
     inst_id = query_instrument_id(symbol, contract)
     side = 'sell'
     otype = '0'  # not 2 FOK
-    match_price = 'market' # only valid for otype 0
+    match_price = 'market'  # only valid for otype 0
     if (price == '' or price == 0):  # use optimized price
         ticker = query_ticker(inst_id)
         price = float(ticker['best_bid']) * 0.99  # sell with lower price
@@ -217,7 +231,7 @@ def open_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
         otype = '2'  # FOK
         match_price = 'limit'
     # print (symbol, contract, amount, price)
-    return issue_order(inst_id, side, price, int(amount), match_price, order_type=otype)
+    return issue_order(inst_id, side, price, amount, match_price, order_type=otype)
 
 
 def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
@@ -231,7 +245,7 @@ def close_order_buy_rate(symbol, contract, amount, price='', lever_rate='10'):
         otype = '2'  # FOK
         match_price = 'limit'
     # print (symbol, contract, amount, price)
-    return issue_order(inst_id, side, price, int(amount), match_price, order_type=otype)
+    return issue_order(inst_id, side, price, amount, match_price, order_type=otype)
 
 
 def cancel_order(symbol, contract, orderid):
@@ -317,11 +331,13 @@ def query_orderinfo_wait(symbol, contract, orderid):
 #   '371.52',
 #   '8727',
 #   '233.17'],
+# In [3]: level.query_kline('btc_usdt', 60, 'level')
+# Out[3]: [['1598254200.0', '11622.3', '11622.3', '11622.2', '11622.3', '0.35579994']]
 
 
 def query_kline(symbol, period, contract, ktype=''):
     inst_id = query_instrument_id(symbol, contract)
-    kline = which_api.get_kline(inst_id, granularity=period)
+    kline = which_api_2.get_kline(inst_id, granularity=period)
     last = kline[-1]
     last[0] = str(datetime.datetime.strptime(last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
     return [last]
@@ -394,12 +410,13 @@ def get_margin_mode(symbol, contract):
 
 
 def check_holdings_profit(symbol, contract, direction):
-    return (loss=0, amount=0, leverage=0)
+    # return (loss=0, amount=0, leverage=0)
+    return (0, 0, 0)
 
 
 # Figure out current holding's open price, zero means no holding
 def real_open_price_and_cost(symbol, contract, direction):
-    return (percent=0, real=0)
+    return (0, 0)
 
 
 def query_bond(symbol, contract, direction):
@@ -439,17 +456,41 @@ def query_bond(symbol, contract, direction):
 #   'total_avail_balance': '7.0000',
 #   'unrealized_pnl': '0.0426'}}
 
+# In [4]: level.which_api.get_specific_account('btc_usdt')
+# Out[4]:
+# {'currency:BTC': {'available': '17.12643081',
+#  'balance': '17.22643081',
+#  'borrowed': '0',
+#  'can_withdraw': '0',
+#  'frozen': '0.1',
+#  'hold': '0.1',
+#  'holds': '0.1',
+#  'lending_fee': '0'},
+# 'currency:USDT': {'available': '822.09607009',
+#  'balance': '822.09607009',
+#  'borrowed': '163999.99990678',
+#  'can_withdraw': '0',
+#  'frozen': '0',
+#  'hold': '0',
+#  'holds': '0',
+#  'lending_fee': '413.7577688'},
+# 'liquidation_price': '9782.1',
+# 'maint_margin_ratio': '0.03',
+# 'margin_ratio': '0.2235',
+# 'risk_rate': '1.2235',
+# 'tiers': '1'}
 
-def query_balance(symbol, contract=''):
-    result = which_api.get_specific_account(symbol.replace('_', '-').upper())['info']
-    if 'equity' in result.keys():
-        return float(result['equity'])
-    else:
+def query_balance(symbol, contract='', currency='btc'):
+    try:
+        result = which_api.get_specific_account(symbol.replace('_', '-').upper())
+        return result['currency:' + currency.upper()]['balance']
+    except Exception as ex:
+        logging.info('%s %s %s %s' % (symbol, contract, currency, ex))
         return 0.0
 
 
 def query_margin_ratio(symbol, contract=''):
-    result = which_api.get_specific_account(symbol.replace('_', '-').upper())['info']
+    result = which_api.get_specific_account(symbol.replace('_', '-').upper())
     if 'margin_ratio' in result.keys():
         return float(result['margin_ratio'])
     else:
