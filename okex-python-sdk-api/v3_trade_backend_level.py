@@ -409,9 +409,32 @@ def get_margin_mode(symbol, contract):
     return ''
 
 
-def check_holdings_profit(symbol, contract, direction):
-    # return (loss=0, amount=0, leverage=0)
-    return (0, 0, 0)
+# In [5]: level.which_api.get_specific_config_info('btc-usdt')
+# Out[5]:
+# [{'currency:BTC': {'available': '0.00000000',
+#   'leverage': '10',
+#   'leverage_ratio': '10',
+#   'rate': '0.00015994'},
+#  'currency:USDT': {'available': '0.00000000',
+#   'leverage': '10',
+#   'leverage_ratio': '10',
+#   'rate': '0.00078394'},
+#  'instrument_id': 'BTC-USDT',
+#  'product_id': 'BTC-USDT'}]
+
+
+def check_holdings_profit(symbol, contract, direction, currency='btc'):
+    loss = 0
+    amount = 0
+    leverage = 0
+    try:
+        inst_id = query_instrument_id(symbol, contract)
+        result = which_api.get_specific_config_info(inst_id)
+        leverage = result[0]['currency:' + currency.upper()]['leverage']
+        amount = query_balance(inst_id)
+    except Exception as ex:
+        logging.info('%s %s %s %s' % (symbol, contract, currency, ex))
+    return (loss, amount, leverage)
 
 
 # Figure out current holding's open price, zero means no holding
