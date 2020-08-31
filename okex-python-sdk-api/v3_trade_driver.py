@@ -71,6 +71,7 @@ parser.add_option('', '--latest', dest='latest_to_read', default='1000', help='o
 parser.add_option('', '--dir', dest='dirs', default=[], action='append', help='target dir should processing')
 parser.add_option('', '--bins', dest='bins', default=0, help='wait how many reverse, 0=once, 1=twice')
 parser.add_option('', '--nolog', dest='nolog', action='store_true', default=False, help='Do not log to file')
+parser.add_option('', '--nocompact', dest='nocompact', action='store_true', default=False, help='Do not show less price chaning')
 parser.add_option('', '--ratio', dest='amount_ratio', default=9, help='default trade ratio of total amount')
 parser.add_option('', '--previous_close', dest='previous_close', help='init previous_close')
 parser.add_option('',
@@ -152,6 +153,8 @@ order_infos = {
     'usd_neo': 'neo_usd',
     'usd_dash': 'dash_usd',
     'usd_etc': 'etc_usd',
+    'usd_knc': 'knc_usd',
+    'usd_trx': 'trx_usd',
     'usd_link': 'link_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
@@ -404,6 +407,8 @@ symbols_mapping = {
     'usd_dash': 'dash_usd',
     'usd_etc': 'etc_usd',
     'usd_bch': 'bch_usd',
+    'usd_trx': 'trx_usd',
+    'usd_knc': 'knc_usd',
     'usd_link': 'link_usd'
 }
 
@@ -776,11 +781,14 @@ def try_to_trade_tit2tat(subpath):
         price_delta = (close - previous_close)
     if abs(price_delta) < (open_cost / 10):
         prev_price_delta = 0
-        return
+        if not options.nocompact:
+            return
     if abs(price_delta) > open_cost:  # reset it now
         prev_price_delta = 0
     elif abs(price_delta) < ((open_cost + abs(prev_price_delta)) / 2):
-        return
+        if not options.nocompact:
+            return
+        pass
     else:
         prev_price_delta = price_delta
 
