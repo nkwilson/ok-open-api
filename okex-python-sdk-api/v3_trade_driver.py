@@ -1093,8 +1093,11 @@ def try_to_trade_tit2tat(subpath):
                 orate = math.floor(abs(price_delta / open_cost))
                 delta_thisweek_amount = (thisweek_amount - reverse_amount) * max(orate, 1)
 
-                while (delta_thisweek_amount + thisweek_amount_pending) > quarter_amount:
+                while (delta_thisweek_amount + thisweek_amount_pending) > (quarter_amount * greedy_count_max):
                     delta_thisweek_amount /= 2
+                    if delta_thisweek_amount < 1:  # in case thisweek_amount_pending bigger than quarter_amount
+                        delta_thisweek_amount = 1
+                        break
 
                 partly_close = False
                 if t_reverse_amount > 0:
