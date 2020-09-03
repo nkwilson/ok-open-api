@@ -1222,7 +1222,10 @@ def try_to_trade_tit2tat(subpath):
             if new_quarter_amount < 1:
                 new_quarter_amount = quarter_amount  # means no real update
             do_updating = ''
-            balance_rate = 100.0 / withdraw_rate
+            if options.highfreq:
+                balance_rate = 0
+            else:
+                balance_rate = 102.0 / withdraw_rate
             if abs(delta_balance_rate) > balance_rate:
                 if update_quarter_amount_forward and quarter_amount < new_quarter_amount:  # auto update
                     do_updating = 'do '
