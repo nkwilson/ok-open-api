@@ -1,0 +1,10 @@
+ok_sub_futureusd_*_kline_swap_1min
+*.tit2tat_trade_notify*
+*.tit2tat_notify*
+*.tit2tat_trade_status
+ok_sub_future*_usdt_kline_level_1min
+ok_sub_futureusd_*_kline_swap_1min-*.tar.bz2
+#*#
+*~
+__pycache__
+backup
