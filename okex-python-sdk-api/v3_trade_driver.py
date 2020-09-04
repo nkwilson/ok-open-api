@@ -1594,6 +1594,9 @@ while True:
     with open('%s.ok' % trade_notify, 'w') as f:
         f.close()
 
+    if globals()['last_balance'] < 1:
+        break
+
     if options.do_self_trigger:
         if options.highfreq:
             timeout = 1
