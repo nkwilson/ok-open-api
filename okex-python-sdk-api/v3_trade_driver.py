@@ -727,6 +727,14 @@ pre_close = 0  # save for more efficent
 prev_price_delta = 0
 
 
+def get_r_rate():  # figure out the active reverse_amount_rate
+    if globals()['reverse_amount_rate'] > 0:
+        r_rate = globals()['reverse_amount_rate']
+    else:
+        r_rate = 1.0 - globals()['amount_ratio'] / 100
+    return r_rate
+
+
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
@@ -1004,10 +1012,6 @@ def try_to_trade_tit2tat(subpath):
 
                 thisweek_amount = int(thisweek_amount)
 
-                if globals()['reverse_amount_rate'] > 0:
-                    r_rate = globals()['reverse_amount_rate']
-                else:
-                    r_rate = 1.0 - globals()['amount_ratio'] / 100
 #  持续更新 pending
 #  开始状态，直接买入quarter_amount , greedy_count = max, pending = 0
 #  逆向发展，greedy_count >= 1, 增加持仓，greedy_count = greedy_count * (1- 1/max), pending += thisweek_amount ;  == 重复该过程
@@ -1023,7 +1027,7 @@ def try_to_trade_tit2tat(subpath):
                     l_reverse_amount = 0
                     if not globals()['greedy_same_amount']:
                         # default reverse_amount loigc
-                        reverse_amount = int(thisweek_amount * r_rate)
+                        reverse_amount = int(thisweek_amount * get_r_rate())
                         if reverse_amount == thisweek_amount:
                             thisweek_amount += 1
 
@@ -1055,7 +1059,7 @@ def try_to_trade_tit2tat(subpath):
 
                     if thisweek_amount_pending > 0:
                         if l_reverse_amount > 0:
-                            l_amount = min(l_reverse_amount / r_rate, thisweek_amount_pending)
+                            l_amount = min(l_reverse_amount / get_r_rate(), thisweek_amount_pending)
                         else:
                             l_amount = min(delta_thisweek_amount, thisweek_amount_pending)
                         if l_amount > 1:
@@ -1092,7 +1096,7 @@ def try_to_trade_tit2tat(subpath):
                 (reverse_loss, t_reverse_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
 
                 # default reverse_amount loigc
-                reverse_amount = int(thisweek_amount * r_rate)
+                reverse_amount = int(thisweek_amount * get_r_rate())
                 if reverse_amount == thisweek_amount:
                     thisweek_amount += 1
 
@@ -1107,7 +1111,7 @@ def try_to_trade_tit2tat(subpath):
 
                 partly_close = False
                 if t_reverse_amount > 0:
-                    profit_rate = withdraw_rate * r_rate
+                    profit_rate = withdraw_rate * get_r_rate()
 
                     print('reverse loss:%.2f profit_rate:%.2f' %
                           (reverse_loss, profit_rate),
@@ -1121,7 +1125,7 @@ def try_to_trade_tit2tat(subpath):
                 if partly_close:
                     # if reach here, t_reverse_amount must positive
                     if (thisweek_amount_pending - t_reverse_amount) < 0:
-                        profit_close_amount = t_reverse_amount - max(0, thisweek_amount_pending) * r_rate
+                        profit_close_amount = t_reverse_amount - max(0, thisweek_amount_pending) * get_r_rate()
                         issue_quarter_order_now(symbol, reverse_follow_dir, profit_close_amount, 'close')
                         t_reverse_amount -= profit_close_amount
                     # first close same direction, then reverse direction, unified as one direction
@@ -1133,7 +1137,7 @@ def try_to_trade_tit2tat(subpath):
                         greedy_count = greedy_count_max - 1
 
                         if t_reverse_amount > 0:
-                            max_t_amount = min(thisweek_amount_pending, t_reverse_amount * r_rate)
+                            max_t_amount = min(thisweek_amount_pending, t_reverse_amount * get_r_rate())
                             issue_quarter_order_now(symbol, l_dir, max_t_amount * withdraw_rate / 100.0, 'close')
                             issue_quarter_order_now(symbol, reverse_follow_dir, max_t_amount, 'close')
 
@@ -1141,7 +1145,7 @@ def try_to_trade_tit2tat(subpath):
                             t_amount = reverse_amount
 
                 if greedy_count <= 0:
-                    reverse_amount = int(thisweek_amount / r_rate)
+                    reverse_amount = int(thisweek_amount / get_r_rate())
                     if reverse_amount == thisweek_amount:
                         reverse_amount += 1
 
@@ -1188,7 +1192,7 @@ def try_to_trade_tit2tat(subpath):
 
                     if thisweek_amount_pending > 0:  # must be positive now
                         # no enough reverse orders
-                        pending_amount = int((thisweek_amount_pending + quarter_amount) / float(r_rate) - t_amount)
+                        pending_amount = int((thisweek_amount_pending + quarter_amount) / get_r_rate() - t_amount)
                         if pending_amount > 0:
                             # open reverse order
                             if globals()['greedy_same_amount']:
