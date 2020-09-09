@@ -1021,15 +1021,21 @@ def try_to_trade_tit2tat(subpath):
                 t_greedy_max = 0
                 if forward_greedy:
                     l_reverse_amount = 0
-                    if globals()['greedy_same_amount']:
+                    if not globals()['greedy_same_amount']:
+                        # default reverse_amount loigc
+                        reverse_amount = int(thisweek_amount * r_rate)
+                        if reverse_amount == thisweek_amount:
+                            thisweek_amount += 1
+
+                        orate = math.floor(abs(price_delta / open_cost))
+                        delta_thisweek_amount = (thisweek_amount - reverse_amount) * max(orate, 1)
+                    else:
                         (ret, price,
                          l_reverse_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0,
                                                                                  'close', globals()['close_conditional'])
                         if ret:
                             globals()['request_price'] = price
                         delta_thisweek_amount = thisweek_amount
-                    else:
-                        delta_thisweek_amount = thisweek_amount * (1 - r_rate)
 
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
 
