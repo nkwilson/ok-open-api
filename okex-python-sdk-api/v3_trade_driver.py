@@ -660,7 +660,7 @@ def update_last_bond(symbol, contract, direction):
 
 def update_open_cost(price):
     if float(globals()['open_cost_rate']) > 0:
-        globals()['open_cost'] = previous_close * float(globals()['open_cost_rate'])
+        globals()['open_cost'] = price * float(globals()['open_cost_rate'])
 
 
 # when do greedy trade, should choose aproperiate open_cost_rate x and reverse_amount_rate p
