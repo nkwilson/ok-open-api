@@ -1666,12 +1666,13 @@ while True:
     sys.stdout.flush()
     sys.stderr.flush()
 
-    sys.stdout.close()
-    sys.stderr.close()
+    if not options.nolog:
+        sys.stdout.close()
+        sys.stderr.close()
 
-    logfile = '%s.log.%s' % (trade_notify, datetime.datetime.now().strftime('%Y-%m-%d'))
-    sys.stdout = open(logfile, 'a')
-    sys.stderr = sys.stdout
+        logfile = '%s.log.%s' % (trade_notify, datetime.datetime.now().strftime('%Y-%m-%d'))
+        sys.stdout = open(logfile, 'a')
+        sys.stderr = sys.stdout
 
     if startup_notify == '' and orig_startup_notify != '':
         break
