@@ -319,14 +319,19 @@ def query_orderinfo_wait(symbol, contract, orderid):
 #   '233.17'],
 
 
-def query_kline(symbol, period, contract, ktype=''):
+def query_kline_pos(symbol, period, contract, ktype, pos):
     inst_id = query_instrument_id(symbol, contract)
     kline = which_api.get_kline(inst_id, granularity=period)
-    last = kline[-1]
+    if abs(pos) >= len(kline):
+        pos = -1  # default is last one
+    last = kline[pos]
     last[0] = str(datetime.datetime.strptime(last[0], '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
     return [last]
-    # return okcoinFuture.future_kline(symbol, period, contract, ktype)
+# return okcoinFuture.future_kline(symbol, period, contract, ktype
 
+
+def query_kline(symbol, period, contract, ktype=''):
+    return query_kline_pos(symbol, period, contract, ktype, -1)
 
 # In [13]: futureAPI.get_specific_position('BTC-USD-200327')
 # Out[13]:
