@@ -745,6 +745,11 @@ def effective_deleta_thisweek_amount(thisweek_amount, price_delta):  # figure ou
     return delta_thisweek_amount, reverse_amount
 
 
+def dynamic_open_cost(symbol, contract, period=900):  # using last 15mins's high/low delta as open_cost, 
+    reply = eval('%s' % backend.query_kline_pos(symbol, period, contract, '1', -2))[0]
+    return reply[2] - reply[3]
+
+
 def try_to_trade_tit2tat(subpath):
     global trade_file, old_close_mean
     global old_open_price
