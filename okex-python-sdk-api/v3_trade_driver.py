@@ -578,7 +578,7 @@ names_tit2tat = [
     'greedy_same_amount', 'last_balance', 'last_bond', 'update_quarter_amount_forward',
     'update_quarter_amount_backward', 'profit_cost_multiplier', 'greedy_cost_multiplier', 'last_fee', 'amount_ratio',
     'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
-    'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'open_cost_rate',
+    'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'use_dynamic_open_cost',
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
     'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional'
 ]
@@ -726,6 +726,9 @@ pre_close = 0  # save for more efficent
 
 prev_price_delta = 0
 
+use_dynamic_open_cost = True  # yes, open_cost is dynamic
+dynamic_open_cost = 0
+
 
 def get_r_rate():  # figure out the active reverse_amount_rate
     if globals()['reverse_amount_rate'] > 0:
@@ -735,19 +738,22 @@ def get_r_rate():  # figure out the active reverse_amount_rate
     return r_rate
 
 
+def get_dynamic_open_cost(symbol, contract, period=900):  # using last 15mins's high/low delta as open_cost,
+    reply = eval('%s' % backend.query_kline_pos(symbol, period, contract, '1', -2))[0]
+    return float(reply[2]) - float(reply[3])
+
+
 def effective_deleta_thisweek_amount(thisweek_amount, price_delta):  # figure out the effective delta_thisweek_amount
     # default reverse_amount loigc
     reverse_amount = int(thisweek_amount * get_r_rate())
 
-    orate = math.floor(abs(price_delta / globals()['open_cost']))
-    delta_thisweek_amount = (thisweek_amount - reverse_amount) * max(orate, 1)
+    orate = max(math.floor(abs(price_delta / globals()['open_cost'])), 1)
+    if orate <= 1 and globals()['use_dynamic_open_cost'] and globals()['dynamic_open_cost'] > 0:  # only valid for little price_delta
+        orate = min(globals()['dynamic_open_cost'] / globals()['open_cost'], 1)
+
+    delta_thisweek_amount = max((thisweek_amount - reverse_amount) * orate, 1)
 
     return delta_thisweek_amount, reverse_amount
-
-
-def dynamic_open_cost(symbol, contract, period=900):  # using last 15mins's high/low delta as open_cost,
-    reply = eval('%s' % backend.query_kline_pos(symbol, period, contract, '1', -2))[0]
-    return reply[2] - reply[3]
 
 
 def try_to_trade_tit2tat(subpath):
@@ -865,6 +871,8 @@ def try_to_trade_tit2tat(subpath):
     delta_balance_rate = 0
     if len(l_dir):
         update_open_cost(previous_close)
+        globals()['dynamic_open_cost'] = get_dynamic_open_cost(symbol,
+                                                               globals()['contract'])
 
         (loss, t_amount, _) = backend.check_holdings_profit(symbol,
                                                             globals()['contract'],
