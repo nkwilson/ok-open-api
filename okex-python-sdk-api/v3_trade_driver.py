@@ -726,7 +726,7 @@ pre_close = 0  # save for more efficent
 
 prev_price_delta = 0
 
-use_dynamic_open_cost = True  # yes, open_cost is dynamic
+use_dynamic_open_cost = False  # yes, open_cost is dynamic
 dynamic_open_cost = 0
 
 
