@@ -846,6 +846,8 @@ def try_to_trade_tit2tat(subpath):
     else:
         withdraw_rate = globals()['amount_ratio']
 
+    if options.nocompact:
+        print(trade_timestamp())
     balance_tuple = '+'
     if trade_file == '':
         print('%.4f' % close, '-', end=' ')
