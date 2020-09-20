@@ -836,11 +836,11 @@ def try_to_trade_tit2tat(subpath):
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
 
     #  use 1min kline as ema signals
-    period_s = periods_mapping_s[figure_out_period_info(event_path)]
+    period_s = periods_mapping_s[figure_out_period_info(os.path.dirname(event_path))]
     ema_prices = backend.query_kline_pos(symbol, period_s,
                                          globals()['contract'],
                                          ktype='', pos=-2)
-    if globals()['ema_price_cursor'] < ema_prices[0][0]:  # updated
+    if str(globals()['ema_price_cursor']) < ema_prices[0][0]:  # updated
         globals()['ema_price_cursor'] = ema_prices[0][0]
         ema_prices = [float(x) for x in ema_prices[0][1:]]
         new_ema_1 = get_ema(ema_1, ema_prices[ID_CLOSE], ema_period_1)
