@@ -1625,9 +1625,11 @@ while True:
         break
 
     if options.do_self_trigger:
+        timeout = 1
+        delta = 1
         if options.highfreq:
-            timeout = 1
-            delta = 1
+            timeout = 0
+            delta = 0
         else:
             (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
 
@@ -1669,7 +1671,7 @@ while True:
     # reset it in case network error
     backend.which_api = ''
 
-    if options.do_self_trigger:
+    if options.do_self_trigger and delta > 0:
         time.sleep(delta)
 
     if options.one_shot:
