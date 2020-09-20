@@ -1037,10 +1037,10 @@ def try_to_trade_tit2tat(subpath):
                     greedy_action = 'open'
                     greedy_status = 'holding'
             elif l_dir == 'sell':
-                if price_delta < -open_cost:
+                if price_delta > open_cost:
                     greedy_action = 'close'
                     greedy_status = 'maybe closed'
-                elif price_delta > open_cost:
+                elif price_delta < -open_cost:
                     greedy_action = 'open'
                     greedy_status = 'holding'
             if greedy_status != '':
