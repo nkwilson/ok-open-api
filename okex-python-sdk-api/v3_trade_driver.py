@@ -1629,7 +1629,6 @@ while True:
         delta = 1
         if options.highfreq:
             timeout = 0
-            delta = 0
         else:
             (timeout, delta) = calculate_timeout_for_self_trigger(signal_notify)
 
