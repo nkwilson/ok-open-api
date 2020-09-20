@@ -166,10 +166,10 @@ order_infos = {
     }
 }
 
-fast_issue = 1  # use optimized price to finish order as fast as possible
+fast_issue = True  # use optimized price to finish order as fast as possible
 
 reissuing_order = 0
-wait_for_completion = 1  # default is no wait
+wait_for_completion = False  # default is no wait
 
 
 def issue_order_now__(symbol, contract, direction, amount, action, price=''):
@@ -679,49 +679,56 @@ def update_open_cost(price):
 request_price = '0'
 last_fee = 0
 open_cost = 0
-open_cost_rate = 0.008  # percent of previous_close
+
+open_cost_rate = 0.01  # percent of previous_close
+open_greedy = True
+quarter_amount_multiplier = 100  # 2 times is up threshold
+greedy_count_max = 10  # limit this times pending greedy
+greedy_whole_balance = False  # greedy will cover whole balance
+greedy_same_amount = False  # greedy use the same as quarter_amount
+update_quarter_amount_forward = True  # update it if balance increase
+update_quarter_amount_backward = True  # update it if balance decrease
+profit_cost_multiplier = 1  # times of profit with open_cost
+greedy_cost_multiplier = 1  # times of greedy with open_cost
+amount_ratio_plus = 0.1  # percent of total amount
+amount_real = 0.09  # supercede on amount_ratio, as percent of amount
+ema_period_1 = 30  # signal period
+ema_period_2 = 3000  # tendency period
+forward_greedy = True  # following tendency
+backward_greedy = False  # following reverse tendency
 reverse_amount_rate = 0
+tendency_holdon = 'buy'  # if set, hold on the tendency
+check_forced = False  # no check for whether forced close
+margin_mode = 'fixed'  # default is fixed, others is crossed
+profit_withdraw_rate = 0  # default is doubled
+record_greedy_pulse = False  # try to save the pulse greedy count for later usag
+recorded_greedy_max = 0  # persistented max
+margin_ratio = 0  # saved margin_ratio
+close_conditional = False  # close pending positive only
+
+
 quarter_amount = 1
 thisweek_amount_pending = 0
-quarter_amount_multiplier = 2  # 2 times is up threshold
-greedy_count_max = 2  # limit this times pending greedy
+
+
 greedy_count = 0  # current pending greedy
-greedy_whole_balance = False  # greedy will cover whole balance
-greedy_same_amount = True  # greedy use the same as quarter_amount
+
+
 close_greedy = False
-open_greedy = False
-amount_ratio_plus = 0.05  # percent of total amount
-profit_cost_multiplier = 0.2  # times of profit with open_cost
-greedy_cost_multiplier = 1  # times of greedy with open_cost
-amount_real = 0.05  # supercede on amount_ratio, as percent of amount
-ema_period_1 = 2  # signal period
-ema_period_2 = 20  # tendency period
+
+
 ema_1 = 0
 ema_2 = 0
 ema_1_up = 0  # up means high price
 ema_1_lo = 0  # lo means low price
 ema_2_up = 0
 ema_2_lo = 0
-forward_greedy = True  # following tendency
-backward_greedy = False  # following reverse tendency
-update_quarter_amount_forward = True  # update it if balance increase
-update_quarter_amount_backward = False  # update it if balance decrease
 
-tendency_holdon = ''  # if set, hold on the tendency
-check_forced = False  # no check for whether forced close
 
-margin_mode = 'fixed'  # default is fixed, others is crossed
-
-profit_withdraw_rate = 100.0  # default is doubled
-
-record_greedy_pulse = False  # try to save the pulse greedy count for later usage
-recorded_greedy_max = 0  # persistented max
 t_recorded_greedy_max = 0  # max in this running
 t_greedy_max = 0  # max until now, will cleared at close action
 
-margin_ratio = 0  # saved margin_ratio
 
-close_conditional = False  # close pending positive only
 pre_close = 0  # save for more efficent
 
 prev_price_delta = 0
