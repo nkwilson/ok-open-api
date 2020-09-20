@@ -830,21 +830,26 @@ def try_to_trade_tit2tat(subpath):
     else:
         prev_price_delta = price_delta
 
+    symbol = symbols_mapping[figure_out_symbol_info(event_path)]
+
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
-    new_ema_1 = get_ema(ema_1, close, ema_period_1)
-    new_ema_2 = get_ema(ema_2, close, ema_period_2)
-    new_ema_1_up = get_ema(ema_1_up, prices[ID_HIGH], ema_period_1)
-    new_ema_1_lo = get_ema(ema_1_lo, prices[ID_LOW], ema_period_1)
-    new_ema_2_up = get_ema(ema_2_up, prices[ID_HIGH], ema_period_2)
-    new_ema_2_lo = get_ema(ema_2_lo, prices[ID_LOW], ema_period_2)
+
+    #  use 15min kline as ema signals
+    ema_prices = backend.query_kline_pos(symbol, 900,
+                                         globals()['contract'],
+                                         ktype='',pos=-2)
+    new_ema_1 = get_ema(ema_1, ema_prices[0][ID_CLOSE+1], ema_period_1)
+    new_ema_2 = get_ema(ema_2, ema_prices[0][ID_CLOSE+1], ema_period_2)
+    new_ema_1_up = get_ema(ema_1_up, ema_prices[ID_HIGH+1], ema_period_1)
+    new_ema_1_lo = get_ema(ema_1_lo, ema_prices[ID_LOW+1], ema_period_1)
+    new_ema_2_up = get_ema(ema_2_up, ema_prices[ID_HIGH+1], ema_period_2)
+    new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW+1], ema_period_2)
     delta_ema_1 = new_ema_1 - ema_1
 
     globals()['current_close'] = close  # save early
 
     old_balance = last_balance
-
-    symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
     print('')  # add an empty line
 
