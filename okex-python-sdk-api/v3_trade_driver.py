@@ -1620,7 +1620,8 @@ while True:
     with open('%s.ok' % trade_notify, 'w') as f:
         f.close()
 
-    if globals()['last_balance'] < 1:
+    if globals()['quarter_amount'] - globals()['thisweek_amount_pending'] < 1:
+        print('No enough balance?')
         break
 
     if options.do_self_trigger:
