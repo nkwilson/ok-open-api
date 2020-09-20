@@ -729,6 +729,8 @@ prev_price_delta = 0
 use_dynamic_open_cost = False  # yes, open_cost is dynamic
 dynamic_open_cost = 0
 
+do_makeup = False  # if pending is negative, open more order until positive
+
 
 def get_r_rate():  # figure out the active reverse_amount_rate
     if globals()['reverse_amount_rate'] > 0:
@@ -1088,7 +1090,7 @@ def try_to_trade_tit2tat(subpath):
                                                                                l_amount,
                                                                                'close',
                                                                                globals()['close_conditional'])  # as much as possible
-                    elif thisweek_amount_pending < 0 and profit_num < makeup_gate:  # if less holdings and loss is small, increase it
+                    elif thisweek_amount_pending < 0 and profit_num < makeup_gate and globals()['do_makeup']:  # if less holdings and loss is small, increase it
                         issue_quarter_order_now(symbol, l_dir,
                                                 -(thisweek_amount_pending * withdraw_rate / 100.0),
                                                 'open')  # as much as possible
