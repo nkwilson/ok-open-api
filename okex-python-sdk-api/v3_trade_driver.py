@@ -692,8 +692,8 @@ profit_cost_multiplier = 1  # times of profit with open_cost
 greedy_cost_multiplier = 1  # times of greedy with open_cost
 amount_ratio_plus = 0.1  # percent of total amount
 amount_real = 0.09  # supercede on amount_ratio, as percent of amount
-ema_period_1 = 300  # signal period, 300s
-ema_period_2 = 60000  # tendency period, 300s * 200
+ema_period_1 = 2  # signal period, 300s
+ema_period_2 = 200  # tendency period, 300s * 200
 forward_greedy = True  # following tendency
 backward_greedy = False  # following reverse tendency
 reverse_amount_rate = 0
@@ -723,7 +723,7 @@ ema_1_up = 0  # up means high price
 ema_1_lo = 0  # lo means low price
 ema_2_up = 0
 ema_2_lo = 0
-
+ema_price_cursor = 0  # record last cursor from kline
 
 t_recorded_greedy_max = 0  # max in this running
 t_greedy_max = 0  # max until now, will cleared at close action
@@ -835,17 +835,27 @@ def try_to_trade_tit2tat(subpath):
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
 
-    #  use 15min kline as ema signals
-    ema_prices = backend.query_kline_pos(symbol, 900,
+    #  use 1min kline as ema signals
+    period_s = periods_mapping_s[figure_out_period_info(event_path)]
+    ema_prices = backend.query_kline_pos(symbol, period_s,
                                          globals()['contract'],
                                          ktype='', pos=-2)
-    ema_prices = [float(x) for x in ema_prices[0][1:]]
-    new_ema_1 = get_ema(ema_1, ema_prices[ID_CLOSE], ema_period_1)
-    new_ema_2 = get_ema(ema_2, ema_prices[ID_CLOSE], ema_period_2)
-    new_ema_1_up = get_ema(ema_1_up, ema_prices[ID_HIGH], ema_period_1)
-    new_ema_1_lo = get_ema(ema_1_lo, ema_prices[ID_LOW], ema_period_1)
-    new_ema_2_up = get_ema(ema_2_up, ema_prices[ID_HIGH], ema_period_2)
-    new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW], ema_period_2)
+    if globals()['ema_price_cursor'] < ema_prices[0][0]:  # updated
+        globals()['ema_price_cursor'] = ema_prices[0][0]
+        ema_prices = [float(x) for x in ema_prices[0][1:]]
+        new_ema_1 = get_ema(ema_1, ema_prices[ID_CLOSE], ema_period_1)
+        new_ema_2 = get_ema(ema_2, ema_prices[ID_CLOSE], ema_period_2)
+        new_ema_1_up = get_ema(ema_1_up, ema_prices[ID_HIGH], ema_period_1)
+        new_ema_1_lo = get_ema(ema_1_lo, ema_prices[ID_LOW], ema_period_1)
+        new_ema_2_up = get_ema(ema_2_up, ema_prices[ID_HIGH], ema_period_2)
+        new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW], ema_period_2)
+    else:
+        new_ema_1 = ema_1
+        new_ema_2 = ema_2
+        new_ema_1_lo = ema_1_lo
+        new_ema_1_up = ema_1_up
+        new_ema_2_lo = ema_2_lo
+        new_ema_2_up = ema_2_up
     delta_ema_1 = new_ema_1 - ema_1
 
     globals()['current_close'] = close  # save early
