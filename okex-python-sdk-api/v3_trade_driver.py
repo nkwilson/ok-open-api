@@ -839,12 +839,13 @@ def try_to_trade_tit2tat(subpath):
     ema_prices = backend.query_kline_pos(symbol, 900,
                                          globals()['contract'],
                                          ktype='', pos=-2)
-    new_ema_1 = get_ema(ema_1, ema_prices[0][ID_CLOSE + 1], ema_period_1)
-    new_ema_2 = get_ema(ema_2, ema_prices[0][ID_CLOSE + 1], ema_period_2)
-    new_ema_1_up = get_ema(ema_1_up, ema_prices[ID_HIGH + 1], ema_period_1)
-    new_ema_1_lo = get_ema(ema_1_lo, ema_prices[ID_LOW + 1], ema_period_1)
-    new_ema_2_up = get_ema(ema_2_up, ema_prices[ID_HIGH + 1], ema_period_2)
-    new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW + 1], ema_period_2)
+    ema_prices = [float(x) for x in ema_prices[0][1:]]
+    new_ema_1 = get_ema(ema_1, ema_prices[ID_CLOSE], ema_period_1)
+    new_ema_2 = get_ema(ema_2, ema_prices[ID_CLOSE], ema_period_2)
+    new_ema_1_up = get_ema(ema_1_up, ema_prices[ID_HIGH], ema_period_1)
+    new_ema_1_lo = get_ema(ema_1_lo, ema_prices[ID_LOW], ema_period_1)
+    new_ema_2_up = get_ema(ema_2_up, ema_prices[ID_HIGH], ema_period_2)
+    new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW], ema_period_2)
     delta_ema_1 = new_ema_1 - ema_1
 
     globals()['current_close'] = close  # save early
