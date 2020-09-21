@@ -1679,7 +1679,7 @@ while True:
                                                             globals()['margin_ratio'] * 100))
             f.close()
 
-    if globals()['quarter_amount'] + globals()['thisweek_amount_pending'] < 1:
+    if float(globals()['last_balance']) / float(globals()['last_bond']) < 1:
         break
 
     # reset it in case network error
