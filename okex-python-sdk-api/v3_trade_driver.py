@@ -819,8 +819,8 @@ def try_to_trade_tit2tat(subpath):
         price_delta = (close - previous_close)
     if abs(price_delta) < (open_cost / 10):
         prev_price_delta = 0
-        if not options.nocompact:
-            return
+        # if not options.nocompact:
+        #    return
 
     symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
