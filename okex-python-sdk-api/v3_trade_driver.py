@@ -821,16 +821,21 @@ def try_to_trade_tit2tat(subpath):
         prev_price_delta = 0
         if not options.nocompact:
             return
+
+    symbol = symbols_mapping[figure_out_symbol_info(event_path)]
+
+    (loss, t_amount, _) = backend.check_holdings_profit(symbol,
+                                                        globals()['contract'],
+                                                        l_dir)
+
     if abs(price_delta) > open_cost:  # reset it now
         prev_price_delta = 0
     elif abs(price_delta) < ((open_cost + abs(prev_price_delta)) / 2):
-        if not options.nocompact:
+        if not options.nocompact and t_amount > 0:
             return
         pass
     else:
         prev_price_delta = price_delta
-
-    symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
@@ -901,9 +906,6 @@ def try_to_trade_tit2tat(subpath):
         globals()['dynamic_open_cost'] = get_dynamic_open_cost(symbol,
                                                                globals()['contract'])
 
-        (loss, t_amount, _) = backend.check_holdings_profit(symbol,
-                                                            globals()['contract'],
-                                                            l_dir)
         thisweek_amount_pending = t_amount - quarter_amount
         if t_amount > 0 and quarter_amount > 0:  # only on postive situation
             t_greedy_count = greedy_count_max - thisweek_amount_pending / quarter_amount
