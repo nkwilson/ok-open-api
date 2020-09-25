@@ -830,7 +830,7 @@ def try_to_trade_tit2tat(subpath):
 
     if abs(price_delta) > open_cost:  # reset it now
         prev_price_delta = 0
-    elif abs(price_delta) < ((open_cost + abs(prev_price_delta)) / 2):
+    elif False and abs(price_delta) < ((open_cost + abs(prev_price_delta)) / 2):
         if not options.nocompact and t_amount > 0 and globals()['tendency_holdon'] != '':
             return
         pass
