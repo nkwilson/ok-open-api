@@ -580,7 +580,7 @@ names_tit2tat = [
     'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'use_dynamic_open_cost',
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
-    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional'
+    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional', 'ema_signal_period'
 ]
 
 
@@ -694,6 +694,7 @@ amount_ratio_plus = 0.1  # percent of total amount
 amount_real = 0.09  # supercede on amount_ratio, as percent of amount
 ema_period_1 = 2  # signal period, 300s
 ema_period_2 = 200  # tendency period, 300s * 200
+ema_signal_period = 900  # 15min signal
 forward_greedy = True  # following tendency
 backward_greedy = False  # following reverse tendency
 reverse_amount_rate = 0
@@ -824,14 +825,10 @@ def try_to_trade_tit2tat(subpath):
 
     symbol = symbols_mapping[figure_out_symbol_info(event_path)]
 
-    (loss, t_amount, _) = backend.check_holdings_profit(symbol,
-                                                        globals()['contract'],
-                                                        l_dir)
-
     if abs(price_delta) > open_cost:  # reset it now
         prev_price_delta = 0
     elif False and abs(price_delta) < ((open_cost + abs(prev_price_delta)) / 2):
-        if not options.nocompact and t_amount > 0 and globals()['tendency_holdon'] != '':
+        if not options.nocompact and globals()['tendency_holdon'] != '':
             return
         pass
     else:
@@ -840,9 +837,7 @@ def try_to_trade_tit2tat(subpath):
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
 
-    #  use 1min kline as ema signals
-    period_s = periods_mapping_s[figure_out_period_info(os.path.dirname(event_path))]
-    ema_prices = backend.query_kline_pos(symbol, period_s,
+    ema_prices = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
                                          globals()['contract'],
                                          ktype='', pos=-2)
     if str(globals()['ema_price_cursor']) < ema_prices[0][0]:  # updated
@@ -905,6 +900,10 @@ def try_to_trade_tit2tat(subpath):
         update_open_cost(previous_close)
         globals()['dynamic_open_cost'] = get_dynamic_open_cost(symbol,
                                                                globals()['contract'])
+
+        (loss, t_amount, _) = backend.check_holdings_profit(symbol,
+                                                            globals()['contract'],
+                                                            l_dir)
 
         thisweek_amount_pending = t_amount - quarter_amount
         if t_amount > 0 and quarter_amount > 0:  # only on postive situation
