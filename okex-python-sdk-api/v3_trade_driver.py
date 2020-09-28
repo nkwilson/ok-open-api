@@ -229,6 +229,7 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
         reissuing_order += 1
         amount = amount / 2
     if contract == 'swap':  # temp logic
+        reissuing_order = 0
         return (False, 0, 0)
     if reissuing_order > 60:  # more than 60 , quit
         reissuing_order = 0
