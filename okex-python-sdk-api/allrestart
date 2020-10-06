@@ -1,6 +1,6 @@
 set -e
 
-coins=${1:-'btc ltc eth bch xrp eos etc'}
+coins=${1:-'btc ltc eth bch xrp eos etc neo trx link knc dash xtz'}
 periods=${2:-'1min 3min 5min 15min 30min 1hour 4hour 2hour 1day'}
 contracts=${3:-'quarter thisweek nextweek swap'}
 
