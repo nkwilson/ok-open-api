@@ -583,7 +583,8 @@ names_tit2tat = [
     'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'use_dynamic_open_cost',
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
-    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional', 'ema_signal_period'
+    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional', 'ema_signal_period',
+    'negative_feedback', 'new_amount_real',
 ]
 
 
@@ -709,7 +710,8 @@ record_greedy_pulse = False  # try to save the pulse greedy count for later usag
 recorded_greedy_max = 0  # persistented max
 margin_ratio = 0  # saved margin_ratio
 close_conditional = False  # close pending positive only
-
+negative_feedback = False  # using negative feedback policy to control amount real
+new_amount_real = 0  # for inspecting
 
 quarter_amount = 1
 thisweek_amount_pending = 0
@@ -843,6 +845,7 @@ def try_to_trade_tit2tat(subpath):
     ema_prices = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
                                          globals()['contract'],
                                          ktype='', pos=-2)
+    do_negative_feedback = False
     if str(globals()['ema_price_cursor']) < ema_prices[0][0]:  # updated
         globals()['ema_price_cursor'] = ema_prices[0][0]
         ema_prices = [float(x) for x in ema_prices[0][1:]]
@@ -852,6 +855,15 @@ def try_to_trade_tit2tat(subpath):
         new_ema_1_lo = get_ema(ema_1_lo, ema_prices[ID_LOW], ema_period_1)
         new_ema_2_up = get_ema(ema_2_up, ema_prices[ID_HIGH], ema_period_2)
         new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW], ema_period_2)
+        if globals()['negative_feedback']:  # use negative feedback to adjust amount_real
+            delta = (new_ema_1_lo - new_ema_2) / (new_ema_2 + 0.00001)
+            adjust = amount_real - delta
+            if adjust > 0:
+                new_amount_real = amount_real * (1 - adjust)
+            else:
+                new_amount_real = amount_real - adjust
+            if new_amount_real > 0 and new_amount_real < 0.5:  # valid
+                do_negative_feedback = True
     else:
         new_ema_1 = ema_1
         new_ema_2 = ema_2
@@ -860,6 +872,8 @@ def try_to_trade_tit2tat(subpath):
         new_ema_2_lo = ema_2_lo
         new_ema_2_up = ema_2_up
     delta_ema_1 = new_ema_1 - ema_1
+    if not do_negative_feedback:
+        new_amount_real = amount_real
 
     globals()['current_close'] = close  # save early
 
@@ -1029,7 +1043,7 @@ def try_to_trade_tit2tat(subpath):
             issuing_close = False  # reset
         greedy_action = ''
         greedy_status = ''
-        update_quarter_amount = False
+        update_quarter_amount = do_negative_feedback  # copy from it
         old_previous_close = previous_close
         if not issuing_close and (forward_greedy or backward_greedy):
             # emit open again signal
@@ -1054,7 +1068,7 @@ def try_to_trade_tit2tat(subpath):
                 open_greedy = True
                 previous_close = close
                 update_open_cost(close)
-                if globals()['amount_real'] > 0:
+                if new_amount_real > 0:
                     thisweek_amount = quarter_amount
                     if globals()['greedy_same_amount']:
                         thisweek_amount = thisweek_amount / 3
@@ -1261,8 +1275,8 @@ def try_to_trade_tit2tat(subpath):
 
             amount = quarter_amount
             base_amount = last_balance / last_bond if last_bond > 0 else 1
-            if amount_real > 0:  # if set, just use it
-                new_quarter_amount = math.ceil(base_amount * amount_real)
+            if new_amount_real > 0:  # if set, just use it
+                new_quarter_amount = math.ceil(base_amount * new_amount_real)
             else:
                 new_quarter_amount = math.ceil(base_amount / globals()['amount_ratio'] + base_amount * amount_ratio_plus)
             if new_quarter_amount < 1:
@@ -1272,18 +1286,26 @@ def try_to_trade_tit2tat(subpath):
                 balance_rate = 0
             else:
                 balance_rate = 102.0 / withdraw_rate
-            if abs(delta_balance_rate) > balance_rate:
+            if do_negative_feedback or (abs(delta_balance_rate) > balance_rate and not globals()['negative_feedback']):
                 if update_quarter_amount_forward and quarter_amount < new_quarter_amount:  # auto update
-                    do_updating = 'do '
+                    do_updating = 'do ' if not do_negative_feedback else 'feedback '
                     quarter_amount = new_quarter_amount
                 elif update_quarter_amount_backward and quarter_amount > new_quarter_amount:  # auto update
-                    do_updating = 'do '
+                    do_updating = 'do ' if not do_negative_feedback else 'feedback '
                     quarter_amount = new_quarter_amount
             if do_updating != '':
                 if quarter_amount < 2:  # must be bigger than 1
                     quarter_amount = 2
+                delta = (thisweek_amount_pending + amount) - new_quarter_amount
+                adjust = ''
+                if do_negative_feedback and delta != 0:  # if less, open more
+                    adjust = ' adjusted'
+                    if delta < 0:
+                        issue_quarter_order_now(symbol, l_dir, -delta, 'open')
+                    else:
+                        issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
                 print(trade_timestamp(),
-                      '%supdate quarter_amount from %s=>%s' % (do_updating, amount, new_quarter_amount),
+                      '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
                       end='')
                 print('')
     if close_greedy:
