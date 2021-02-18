@@ -882,8 +882,6 @@ def try_to_trade_tit2tat(subpath):
 
     old_balance = last_balance
 
-    print('')  # add an empty line
-
     if profit_withdraw_rate == '-1':  # means no withdraw
         withdraw_rate = 1000
     elif profit_withdraw_rate > 0:
@@ -959,14 +957,16 @@ def try_to_trade_tit2tat(subpath):
         elif price_delta < -open_cost:
             cost_flag = 'v'
 
-        print(part1,
-              ema_tuple,
-              'greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count),
-              'cost:%s%0.4f(%s) @ %.4f(%.3f%%)' % (' ' if price_delta >= 0 else '',
+        greedy_tuple = 'greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count)
+        cost_tuple = 'cost:%s%0.4f(%s) @ %.4f(%.3f%%)' % (' ' if price_delta >= 0 else '',
                                                    price_delta,
                                                    cost_flag,
                                                    open_cost,
-                                                   100 * globals()['open_cost_rate']),
+                                                   100 * globals()['open_cost_rate'])
+        print(part1,
+              ema_tuple,
+              greedy_tuple,
+              cost_tuple,
               amount_tuple,
               reverse_tuple,
               balance_tuple,
