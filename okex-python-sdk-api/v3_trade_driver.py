@@ -584,6 +584,7 @@ names_tit2tat = [
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'use_dynamic_open_cost',
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
     'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional', 'ema_signal_period',
+    'ema_price_cursor',
     'negative_feedback', 'new_amount_real',
 ]
 
@@ -794,6 +795,7 @@ def try_to_trade_tit2tat(subpath):
     global amount_real
     global margin_ratio
     global pre_close, prev_price_delta
+    global new_amount_real
 
     globals()['request_price'] = ''  # first clear it
 
@@ -846,6 +848,7 @@ def try_to_trade_tit2tat(subpath):
                                          globals()['contract'],
                                          ktype='', pos=-2)
     do_negative_feedback = False
+    # print (ema_prices, globals()['ema_price_cursor'])
     if str(globals()['ema_price_cursor']) < ema_prices[0][0]:  # updated
         globals()['ema_price_cursor'] = ema_prices[0][0]
         ema_prices = [float(x) for x in ema_prices[0][1:]]
@@ -857,11 +860,11 @@ def try_to_trade_tit2tat(subpath):
         new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW], ema_period_2)
         if globals()['negative_feedback']:  # use negative feedback to adjust amount_real
             delta = (new_ema_1_lo - new_ema_2) / (new_ema_2 + 0.00001)
-            adjust = amount_real - delta
-            if adjust > 0:
-                new_amount_real = amount_real * (1 - adjust)
+            if delta > 0:
+                new_amount_real = amount_real * (1 - delta)
             else:
-                new_amount_real = amount_real - adjust
+                new_amount_real = amount_real - delta
+            # print (delta, new_amount_real)
             if new_amount_real > 0 and new_amount_real < 0.5:  # valid
                 do_negative_feedback = True
     else:
@@ -892,25 +895,23 @@ def try_to_trade_tit2tat(subpath):
         print(trade_timestamp())
     balance_tuple = '+'
     if trade_file == '':
-        print('%.4f' % close, '-', end=' ')
+        part1= '%.4f -' % close
         ema_tuple = 'ema_%d/ema_%d: %.4f <=> %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
     elif l_dir == 'sell':  # sell order
         ema_tendency = new_ema_2 - new_ema_1_lo  # ema_2 should bigger than ema_1_lo
         ema_tuple = 'ema_%d/ema_%d: %.4f => %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
-        print('%.4f' % -close, '%.4f' % previous_close, l_dir, end=' ')
+        part1 = '%.4f %.4f %s' % (-close, previous_close, l_dir)
         if abs(price_delta) < open_cost:  # yes, show balance
             balance_tuple = ''
     elif l_dir == 'buy':  # buy order
         ema_tendency = new_ema_1_up - new_ema_2  # ema_1_up should bigger than ema_2
         ema_tuple = 'ema_%d/ema_%d: %.4f <= %.4f' % (ema_period_1, ema_period_2, new_ema_1_up, new_ema_2)
-        print('%.4f' % close, '%.4f' % -previous_close, l_dir, end=' ')
+        part1 = '%.4f %.4f %s' % (close, -previous_close, l_dir)
         if abs(price_delta) < open_cost:  # yes, show balance
             balance_tuple = ''
 
     if globals()['tendency_holdon'] != '':  # yes, tendency fixed
         ema_tuple = 'fixed'
-
-    print(ema_tuple, end=' ')
 
     delta_balance_rate = 0
     if len(l_dir):
@@ -957,7 +958,10 @@ def try_to_trade_tit2tat(subpath):
             cost_flag = '^'
         elif price_delta < -open_cost:
             cost_flag = 'v'
-        print('greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count),
+
+        print(part1,
+              ema_tuple,
+              'greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count),
               'cost:%s%0.4f(%s) @ %.4f(%.3f%%)' % (' ' if price_delta >= 0 else '',
                                                    price_delta,
                                                    cost_flag,
@@ -1685,6 +1689,7 @@ while True:
     t_thisweek_amount_pending = globals()['thisweek_amount_pending']
     t_previous_close = globals()['previous_close']
     t_pre_close = pre_close
+    t_new_amount_real = new_amount_real
 
     try:
         wait_signal_notify(signal_notify, l_signal, shutdown_notify)
@@ -1695,7 +1700,7 @@ while True:
     if t_thisweek_amount_pending == globals()['thisweek_amount_pending']:
         globals()['previous_close'] = t_previous_close
 
-    if t_pre_close != pre_close:
+    if (globals()['negative_feedback'] and t_new_amount_real != new_amount_real) or (not globals()['negative_feedback'] and t_pre_close != pre_close):
         with open('%s.balance' % signal_notify, 'a') as f:
             f.write('%s %.4f %.4f %.4f %05.4f @%.2f%%\n' % (trade_timestamp(),
                                                             pre_close,
