@@ -586,6 +586,7 @@ names_tit2tat = [
     'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional', 'ema_signal_period',
     'ema_price_cursor',
     'negative_feedback', 'new_amount_real',
+    'show_orders',
 ]
 
 
@@ -713,6 +714,8 @@ margin_ratio = 0  # saved margin_ratio
 close_conditional = False  # close pending positive only
 negative_feedback = False  # using negative feedback policy to control amount real
 new_amount_real = 0  # for inspecting
+show_orders = True  # global control
+do_show_order = False  # ervery run control
 
 quarter_amount = 1
 thisweek_amount_pending = 0
@@ -796,6 +799,7 @@ def try_to_trade_tit2tat(subpath):
     global margin_ratio
     global pre_close, prev_price_delta
     global new_amount_real
+    global show_orders, do_show_order
 
     globals()['request_price'] = ''  # first clear it
 
@@ -889,8 +893,8 @@ def try_to_trade_tit2tat(subpath):
     else:
         withdraw_rate = globals()['amount_ratio']
 
-    if options.nocompact:
-        print(trade_timestamp())
+    if options.nocompact or do_show_order:
+        print(trade_timestamp(), end=' ')
     balance_tuple = '+'
     if trade_file == '':
         part1= '%.4f -' % close
@@ -963,16 +967,20 @@ def try_to_trade_tit2tat(subpath):
                                                    cost_flag,
                                                    open_cost,
                                                    100 * globals()['open_cost_rate'])
-        print(part1,
-              ema_tuple,
-              greedy_tuple,
-              cost_tuple,
-              amount_tuple,
-              reverse_tuple,
-              balance_tuple,
-              end=' ')
+        if not globals()['show_orders'] or do_show_order:
+            print(part1,
+                  ema_tuple,
+                  greedy_tuple,
+                  cost_tuple,
+                  amount_tuple,
+                  reverse_tuple,
+                  balance_tuple,
+                  end=' ')
 
-    print('')
+    if not globals()['show_orders'] or do_show_order:
+        print('')
+
+    do_show_order = False
 
     ema_1 = new_ema_1  # saved now
     ema_1_up = new_ema_1_up
@@ -1069,6 +1077,7 @@ def try_to_trade_tit2tat(subpath):
                 print(trade_timestamp(),
                       'greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
             if greedy_action != '':  # update amount
+                do_show_order = globals()['show_orders']
                 open_greedy = True
                 previous_close = close
                 update_open_cost(close)
@@ -1708,6 +1717,9 @@ while True:
                                                             globals()['last_balance'],
                                                             pre_close * globals()['last_balance'],
                                                             globals()['margin_ratio'] * 100))
+            f.close()
+    else:  # touch it for breathe
+        with open('%s.balance' % signal_notify, 'a') as f:
             f.close()
 
     if float(globals()['last_balance']) / float(globals()['last_bond']) < 1:
