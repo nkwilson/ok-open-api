@@ -587,6 +587,7 @@ names_tit2tat = [
     'ema_price_cursor',
     'negative_feedback', 'new_amount_real',
     'show_orders',
+    'bond_value',
 ]
 
 
@@ -656,13 +657,6 @@ def positive_greedy_tiny_profit(price, direction):
 
 def positive_normal_profit(price, direction):
     return positive_profit_with(price, direction, 'normal')
-
-
-def update_last_bond(symbol, contract, direction):
-    t_bond = backend.query_bond(symbol, contract, direction)
-    if t_bond > 0:
-        globals()['last_bond'] = t_bond
-
 
 def update_open_cost(price):
     if float(globals()['open_cost_rate']) > 0:
@@ -868,8 +862,8 @@ def try_to_trade_tit2tat(subpath):
                 new_amount_real = amount_real * (1 - delta)
             else:
                 new_amount_real = amount_real - delta
-            # print (delta, new_amount_real)
-            if new_amount_real > 0 and new_amount_real < 0.5:  # valid
+            print (delta, new_amount_real)
+            if new_amount_real > 0 and new_amount_real < 0.8:  # valid
                 do_negative_feedback = True
     else:
         new_ema_1 = ema_1
@@ -1284,7 +1278,7 @@ def try_to_trade_tit2tat(subpath):
             update_quarter_amount = True
             trade_file = ''  # clear it
         if update_quarter_amount:
-            update_last_bond(symbol, globals()['contract'], l_dir)
+            last_bond = globals()['bond_value'] / close / globals()['amount_ratio']
 
             amount = quarter_amount
             base_amount = last_balance / last_bond if last_bond > 0 else 1
