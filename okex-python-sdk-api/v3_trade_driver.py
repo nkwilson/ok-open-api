@@ -857,12 +857,12 @@ def try_to_trade_tit2tat(subpath):
         new_ema_2_up = get_ema(ema_2_up, ema_prices[ID_HIGH], ema_period_2)
         new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW], ema_period_2)
         if globals()['negative_feedback']:  # use negative feedback to adjust amount_real
-            delta = (new_ema_1_lo - new_ema_2) / (new_ema_2 + 0.00001)
+            delta = (ema_prices[ID_LOW] - new_ema_2) / (new_ema_2 + 0.00001)
             if delta > 0:
                 new_amount_real = amount_real * (1 - delta)
             else:
                 new_amount_real = amount_real - delta
-            print (delta, new_amount_real)
+            # print (delta, new_amount_real)
             if new_amount_real > 0 and new_amount_real < 0.8:  # valid
                 do_negative_feedback = True
     else:
@@ -877,6 +877,7 @@ def try_to_trade_tit2tat(subpath):
         new_amount_real = amount_real
 
     globals()['current_close'] = close  # save early
+    globals()['new_amount_real'] = new_amount_real
 
     old_balance = last_balance
 
