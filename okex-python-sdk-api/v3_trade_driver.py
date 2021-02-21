@@ -580,12 +580,12 @@ names_tit2tat = [
     'thisweek_amount_pending', 'quarter_amount_multiplier', 'greedy_count', 'greedy_count_max', 'greedy_whole_balance',
     'greedy_same_amount', 'last_balance', 'last_bond', 'update_quarter_amount_forward',
     'update_quarter_amount_backward', 'profit_cost_multiplier', 'greedy_cost_multiplier', 'last_fee', 'amount_ratio',
-    'amount_ratio_plus', 'amount_real', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
+    'amount_ratio_plus', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'use_dynamic_open_cost',
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
     'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional', 'ema_signal_period',
     'ema_price_cursor',
-    'negative_feedback', 'new_amount_real',
+    'negative_feedback', 'new_amount_real', 'amount_real',
     'show_orders',
     'bond_value',
 ]
@@ -846,6 +846,8 @@ def try_to_trade_tit2tat(subpath):
                                          globals()['contract'],
                                          ktype='', pos=-2)
     do_negative_feedback = False
+    if not globals()['negative_feedback']:
+        new_amount_real = amount_real
     # print (ema_prices, globals()['ema_price_cursor'])
     if str(globals()['ema_price_cursor']) < ema_prices[0][0]:  # updated
         globals()['ema_price_cursor'] = ema_prices[0][0]
@@ -873,8 +875,6 @@ def try_to_trade_tit2tat(subpath):
         new_ema_2_lo = ema_2_lo
         new_ema_2_up = ema_2_up
     delta_ema_1 = new_ema_1 - ema_1
-    if not do_negative_feedback:
-        new_amount_real = amount_real
 
     globals()['current_close'] = close  # save early
     globals()['new_amount_real'] = new_amount_real
