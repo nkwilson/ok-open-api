@@ -22,8 +22,9 @@ fi
 NEW_INODE=$(stat -c '%i' $EXE)
 
 if [ ${MY_INODE} -ne  ${NEW_INODE} ]; then
-	# exec $EXE
-	echo
+	wall $(date)
+	nohup bash $EXE &
+	exit
 fi
 
 done
