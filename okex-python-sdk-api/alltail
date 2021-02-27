@@ -1,0 +1,8 @@
+set -e
+
+coins=${1:-'btc ltc eth bch eos xtz dash xrp neo etc'}
+
+for c in ${coins}; do
+	tail -n 20 *${c}*$(date +'%m-%d') $2 $3 $4
+done
+
