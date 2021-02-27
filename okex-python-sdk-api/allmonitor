@@ -4,15 +4,22 @@ EXE=$(readlink -f $0)
 MY_INODE=$(stat -c '%i' $EXE)
 echo ${EXE}
 
+wait_restart( ) 
+{
+	c=$1
+	if ! inotifywait -e close -t 120 *${c}*balance ; then
+		echo $(date) ${c} restarted >> restarted.log
+		bash allrestart ${c}
+	fi
+}
+
 while true; do 
 for f in *.balance; do
 	c=$(echo $f | awk -F'_' '{print $4}')
-	if inotifywait -e close -t 120 *${c}*balance ; then
-		continue
-	fi
-	echo $(date) ${c} restarted >> restarted.log
-	bash allrestart ${c}
+	wait_restart $c &
 done
+
+wait
 
 INODE_FREE=$(stat -f . -c '%d')
 if [ $INODE_FREE -lt 100000 ]; then
