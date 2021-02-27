@@ -802,7 +802,7 @@ def try_to_trade_tit2tat(subpath):
     global new_amount_real
     global show_orders, do_show_order
     global volume_positive_feedback, being_volume_positive_feedback
-    
+
     globals()['request_price'] = ''  # first clear it
 
     greedy_status = ''
@@ -1078,13 +1078,13 @@ def try_to_trade_tit2tat(subpath):
                     do_negative_feedback = False
                     do_forward_greedy = False
                     if not being_volume_positive_feedback:
-                        print('switch ON  volume positive feedback ', current_volume, current_signal, previous_volume, previous_signal)
+                        print(trade_timestamp(), 'switch ON  volume positive feedback ', current_volume, current_signal, previous_volume, previous_signal)
                     being_volume_positive_feedback = True
                 else:
                     if being_volume_positive_feedback:
-                        print('switch OFF volume positive feedback ', current_volume, current_signal, previous_volume, previous_signal)
+                        print(trade_timestamp(), 'switch OFF volume positive feedback ', current_volume, current_signal, previous_volume, previous_signal)
                     else:
-                        print('noop', current_volume, current_signal, previous_volume, previous_signal)
+                        print(trade_timestamp(), 'noop', current_volume, current_signal, previous_volume, previous_signal)
                     do_negative_feedback = being_volume_positive_feedback
                     do_forward_greedy = forward_greedy
                     being_volume_positive_feedback = False
