@@ -546,6 +546,7 @@ ID_OPEN = 0
 ID_HIGH = 1
 ID_LOW = 2
 ID_CLOSE = 3
+ID_VOLUME = 4
 
 
 def try_loadsave_with_names(status, names, load):
@@ -586,8 +587,10 @@ names_tit2tat = [
     'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional', 'ema_signal_period',
     'ema_price_cursor',
     'negative_feedback', 'new_amount_real', 'amount_real',
+    'volume_positive_feedback', 'being_volume_positive_feedback',
     'show_orders',
     'bond_value',
+    'do_forward_greedy', 'do_backward_greedy',
 ]
 
 
@@ -658,6 +661,7 @@ def positive_greedy_tiny_profit(price, direction):
 def positive_normal_profit(price, direction):
     return positive_profit_with(price, direction, 'normal')
 
+
 def update_open_cost(price):
     if float(globals()['open_cost_rate']) > 0:
         globals()['open_cost'] = price * float(globals()['open_cost_rate'])
@@ -710,10 +714,12 @@ negative_feedback = False  # using negative feedback policy to control amount re
 new_amount_real = 0  # for inspecting
 show_orders = True  # global control
 do_show_order = False  # ervery run control
-
+volume_positive_feedback = False  # use volume information when do positive feedback
+being_volume_positive_feedback = False  # be doing volume positive feedback
 quarter_amount = 1
 thisweek_amount_pending = 0
-
+do_forward_greedy = False  # current status, maybe different with forward_greedy control
+do_backward_greedy = False  # same logic with previous one
 
 greedy_count = 0  # current pending greedy
 
@@ -784,6 +790,7 @@ def try_to_trade_tit2tat(subpath):
     global ema_1, ema_1_up, ema_1_lo
     global ema_2, ema_2_up, ema_2_lo
     global forward_greedy, backward_greedy
+    global do_forward_greedy, do_backward_greedy
     global update_quarter_amount_forward, update_quarter_amount_backward
     global greedy_count, greedy_count_max, margin_mode
     global record_greedy_pulse, recorded_greedy_max
@@ -794,7 +801,8 @@ def try_to_trade_tit2tat(subpath):
     global pre_close, prev_price_delta
     global new_amount_real
     global show_orders, do_show_order
-
+    global volume_positive_feedback, being_volume_positive_feedback
+    
     globals()['request_price'] = ''  # first clear it
 
     greedy_status = ''
@@ -842,16 +850,18 @@ def try_to_trade_tit2tat(subpath):
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
 
-    ema_prices = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
+    ema_values = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
                                          globals()['contract'],
                                          ktype='', pos=-2)
+    # print (ema_values)
     do_negative_feedback = False
+    do_volume_positive_feedback = False
     if not globals()['negative_feedback']:
         new_amount_real = amount_real
     # print (ema_prices, globals()['ema_price_cursor'])
-    if str(globals()['ema_price_cursor']) < ema_prices[0][0]:  # updated
-        globals()['ema_price_cursor'] = ema_prices[0][0]
-        ema_prices = [float(x) for x in ema_prices[0][1:]]
+    if str(globals()['ema_price_cursor']) < ema_values[0][0]:  # updated
+        globals()['ema_price_cursor'] = ema_values[0][0]
+        ema_prices = [float(x) for x in ema_values[0][1:]]
         new_ema_1 = get_ema(ema_1, ema_prices[ID_CLOSE], ema_period_1)
         new_ema_2 = get_ema(ema_2, ema_prices[ID_CLOSE], ema_period_2)
         new_ema_1_up = get_ema(ema_1_up, ema_prices[ID_HIGH], ema_period_1)
@@ -867,6 +877,16 @@ def try_to_trade_tit2tat(subpath):
             # print (delta, new_amount_real)
             if new_amount_real > 0 and new_amount_real < 0.8:  # valid
                 do_negative_feedback = True
+        #  get volume/signal
+        current_signal = ema_prices[ID_CLOSE]
+        current_volume = ema_prices[ID_VOLUME]
+        ema_values = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
+                                             globals()['contract'],
+                                             ktype='', pos=-3)
+        ema_prices = [float(x) for x in ema_values[0][1:]]
+        previous_signal = ema_prices[ID_CLOSE]
+        previous_volume = ema_prices[ID_VOLUME]
+        do_volume_positive_feedback = True
     else:
         new_ema_1 = ema_1
         new_ema_2 = ema_2
@@ -874,6 +894,10 @@ def try_to_trade_tit2tat(subpath):
         new_ema_1_up = ema_1_up
         new_ema_2_lo = ema_2_lo
         new_ema_2_up = ema_2_up
+        current_signal = 0
+        current_volume = 0
+        previous_signal = 0
+        previous_volume = 0
     delta_ema_1 = new_ema_1 - ema_1
 
     globals()['current_close'] = close  # save early
@@ -892,7 +916,7 @@ def try_to_trade_tit2tat(subpath):
         print(trade_timestamp(), end=' ')
     balance_tuple = '+'
     if trade_file == '':
-        part1= '%.4f -' % close
+        part1 = '%.4f -' % close
         ema_tuple = 'ema_%d/ema_%d: %.4f <=> %.4f' % (ema_period_1, ema_period_2, new_ema_1_lo, new_ema_2)
     elif l_dir == 'sell':  # sell order
         ema_tendency = new_ema_2 - new_ema_1_lo  # ema_2 should bigger than ema_1_lo
@@ -958,10 +982,10 @@ def try_to_trade_tit2tat(subpath):
 
         greedy_tuple = 'greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count)
         cost_tuple = 'cost:%s%0.4f(%s) @ %.4f(%.3f%%)' % (' ' if price_delta >= 0 else '',
-                                                   price_delta,
-                                                   cost_flag,
-                                                   open_cost,
-                                                   100 * globals()['open_cost_rate'])
+                                                          price_delta,
+                                                          cost_flag,
+                                                          open_cost,
+                                                          100 * globals()['open_cost_rate'])
         if not globals()['show_orders'] or do_show_order:
             print(part1,
                   ema_tuple,
@@ -1048,11 +1072,28 @@ def try_to_trade_tit2tat(subpath):
             issuing_close = False
         if globals()['tendency_holdon'] != '':  # yes, hold on it
             issuing_close = False  # reset
+        if not issuing_close and globals()['volume_positive_feedback'] and do_volume_positive_feedback:  # take volume into account
+            if l_dir == 'buy':
+                if (current_volume - previous_volume) * (current_signal - previous_signal) > 0.0:  # same tendency
+                    do_negative_feedback = False
+                    do_forward_greedy = False
+                    if not being_volume_positive_feedback:
+                        print('switch ON  volume positive feedback ', current_volume, current_signal, previous_volume, previous_signal)
+                    being_volume_positive_feedback = True
+                else:
+                    if being_volume_positive_feedback:
+                        print('switch OFF volume positive feedback ', current_volume, current_signal, previous_volume, previous_signal)
+                    else:
+                        print('noop', current_volume, current_signal, previous_volume, previous_signal)
+                    do_negative_feedback = being_volume_positive_feedback
+                    do_forward_greedy = forward_greedy
+                    being_volume_positive_feedback = False
+            pass
         greedy_action = ''
         greedy_status = ''
         update_quarter_amount = do_negative_feedback  # copy from it
         old_previous_close = previous_close
-        if not issuing_close and (forward_greedy or backward_greedy):
+        if not issuing_close and (do_forward_greedy or backward_greedy):
             # emit open again signal
             if l_dir == 'buy':
                 if price_delta > open_cost:
@@ -1101,7 +1142,7 @@ def try_to_trade_tit2tat(subpath):
 #  同向发展，pending < 0, greedy_count >= max，则直接增加持仓为 -pending
             if greedy_action == 'close':  # yes, close action pending
                 t_greedy_max = 0
-                if forward_greedy:
+                if do_forward_greedy:
                     l_reverse_amount = 0
                     if globals()['greedy_same_amount']:
                         (ret, price,
@@ -1215,7 +1256,7 @@ def try_to_trade_tit2tat(subpath):
                 if partly_close:  # actions already taken
                     pass
                 elif greedy_count > 0:  # must bigger than zero
-                    if forward_greedy:  # adjust open sequence according to l_dir
+                    if do_forward_greedy:  # adjust open sequence according to l_dir
                         t_thisweek_amount = thisweek_amount
                         if not globals()['greedy_same_amount']:
                             t_thisweek_amount = delta_thisweek_amount
@@ -1310,7 +1351,7 @@ def try_to_trade_tit2tat(subpath):
                     adjust = ' adjusted'
                     if delta < 0:
                         issue_quarter_order_now(symbol, l_dir, -delta, 'open')
-                    else:
+                    elif not volume_positive_feedback:
                         issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
                 print(trade_timestamp(),
                       '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
@@ -1320,7 +1361,7 @@ def try_to_trade_tit2tat(subpath):
         print(
             trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' %
             (l_dir, previous_close, close, price_delta, 'forced ' if forced_close else '', 'closed'))
-        if forward_greedy:
+        if do_forward_greedy:
             if globals()['greedy_same_amount']:
                 issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
             issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', globals()['close_conditional'])
