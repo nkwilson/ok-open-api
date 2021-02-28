@@ -194,7 +194,8 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
             if amount < 2:
                 reissuing_order = 0
                 return (False, 0, 0)
-            return issue_order_now__(symbol, contract, direction, amount / 2, action, price)
+            # return issue_order_now__(symbol, contract, direction, amount / 2, action, price)
+            return issue_order_now__(symbol, contract, direction, amount, action, price)
     try:
         order_id = str(result['order_id'])  # no exceptions, means successed
         # print(order_id)
@@ -1074,7 +1075,9 @@ def try_to_trade_tit2tat(subpath):
             issuing_close = False  # reset
         if not issuing_close and globals()['volume_positive_feedback'] and do_volume_positive_feedback:  # take volume into account
             if l_dir == 'buy':
-                if (current_volume - previous_volume) * (current_signal - previous_signal) > 0.0:  # same tendency
+                if being_volume_positive_feedback and (current_volume - previous_volume) > 0.0:  # only check positive and not so bigger volume delta
+                    pass
+                elif (current_volume - previous_volume) * (current_signal - previous_signal) > 0.0:  # same tendency
                     do_negative_feedback = False
                     do_forward_greedy = False
                     if not being_volume_positive_feedback:
