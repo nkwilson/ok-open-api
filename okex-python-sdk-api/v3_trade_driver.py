@@ -184,7 +184,7 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
     # print(result)
     if 'order_id' not in result.keys():  # in case name not exist
         if result['result'] == 'again':
-            if reissuing_order < 20:
+            if reissuing_order < 4:
                 reissuing_order += 1
                 return issue_order_now__(symbol, contract, direction, amount, action, price)
             return (False, 0, 0)
@@ -228,7 +228,7 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
         if amount < 2:  # no balance now
             return (False, 0, 0)
         reissuing_order += 1
-        amount = amount / 2
+        # amount = amount / 2
     if contract == 'swap':  # temp logic
         reissuing_order = 0
         return (False, 0, 0)
