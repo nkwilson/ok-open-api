@@ -191,7 +191,7 @@ def issue_order_now__(symbol, contract, direction, amount, action, price=''):
         else:
             print(result)
             reissuing_order += 1
-            if amount < 2:
+            if amount < 2 or reissuing_order > 4:
                 reissuing_order = 0
                 return (False, 0, 0)
             # return issue_order_now__(symbol, contract, direction, amount / 2, action, price)
