@@ -7,9 +7,10 @@ echo ${EXE}
 wait_restart( ) 
 {
 	c=$1
-	test -f *${c}*pid || return
-	pid=$(cat $(*${c}*.pid))
-	ps -p ${pid} || return
+	if test -f *${c}*pid ; then
+		pid=$(cat $(*${c}*.pid))
+		ps -p ${pid} && return
+	fi 
 	if ! inotifywait -e close -t 120 *${c}*status; then
 		echo $(date) ${c} restarted >> restarted.log
 		bash allrestart ${c}
@@ -22,7 +23,7 @@ for f in *.balance; do
 	wait_restart $c &
 done
 
-sleep 40 
+nohup sleep 30 &
 
 wait
 
