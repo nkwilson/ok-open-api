@@ -1200,7 +1200,10 @@ def try_to_trade_tit2tat(subpath):
                         if record_greedy_pulse and recorded_greedy_max > greedy_count_max:
                             greedy_count_max = recorded_greedy_max
 
-                        t_amount = t_amount * withdraw_rate / 100.0 + 0.5
+                        if globals()['negative_feedback']:  # less withdraw
+                            t_amount = delta_thisweek_amount
+                        else:
+                            t_amount = t_amount * withdraw_rate / 100.0 + 0.5
                         print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d' %
                               (loss, profit_num, makeup_gate, t_amount),
                               end='')
