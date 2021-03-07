@@ -851,9 +851,11 @@ def try_to_trade_tit2tat(subpath):
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
 
+    if datetime.datetime.now().strftime('%S') in ['00', '59']:
+        time.sleep(2)
     ema_values = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
                                          globals()['contract'],
-                                         ktype='', pos=-2)
+                                         ktype='', pos=-1)
     # print (ema_values)
     do_negative_feedback = False
     do_volume_positive_feedback = False
@@ -862,6 +864,9 @@ def try_to_trade_tit2tat(subpath):
     # print (ema_prices, globals()['ema_price_cursor'])
     if str(globals()['ema_price_cursor']) < ema_values[0][0]:  # updated
         globals()['ema_price_cursor'] = ema_values[0][0]
+        ema_values = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
+                                             globals()['contract'],
+                                             ktype='', pos=-2)
         ema_prices = [float(x) for x in ema_values[0][1:]]
         new_ema_1 = get_ema(ema_1, ema_prices[ID_CLOSE], ema_period_1)
         new_ema_2 = get_ema(ema_2, ema_prices[ID_CLOSE], ema_period_2)
@@ -887,6 +892,10 @@ def try_to_trade_tit2tat(subpath):
         ema_prices = [float(x) for x in ema_values[0][1:]]
         previous_signal = ema_prices[ID_CLOSE]
         previous_volume = ema_prices[ID_VOLUME]
+        if current_signal == previous_signal and current_volume == previous_volume:
+            print(trade_timestamp(), 'abnormal kline returned, restart', current_volume, current_signal,
+                  previous_volume, previous_signal)
+            sys.exit(1)
         do_volume_positive_feedback = True
     else:
         new_ema_1 = ema_1
@@ -1077,7 +1086,7 @@ def try_to_trade_tit2tat(subpath):
             if l_dir == 'buy':
                 if being_volume_positive_feedback and (current_volume - previous_volume) > 0.0:  # only check positive and not so bigger volume delta
                     pass
-                elif (current_volume - previous_volume) * (current_signal - previous_signal) > 0.0:  # same tendency
+                elif (current_volume - previous_volume) * (current_signal - previous_signal) > 0.0 or (not being_volume_positive_feedback and (current_volume - previous_volume) > 0.0):  # same tendency
                     do_negative_feedback = False
                     do_forward_greedy = False
                     if not being_volume_positive_feedback:
@@ -1759,6 +1768,16 @@ while True:
             f.close()
     else:  # touch it for breathe
         with open('%s.balance' % signal_notify, 'a') as f:
+            f.close()
+
+    if datetime.datetime.now().strftime('%H') in ['00'] and datetime.datetime.now().strftime('%M') in ['00', '01']:
+        with open('%s.balance.zero' % signal_notify, 'a') as f:
+            f.write('%s %.4f %.4f %.4f %05.4f @%.2f%%\n' % (trade_timestamp(),
+                                                            pre_close,
+                                                            globals()['previous_close'],
+                                                            globals()['last_balance'],
+                                                            pre_close * globals()['last_balance'],
+                                                            globals()['margin_ratio'] * 100))
             f.close()
 
     if float(globals()['last_balance']) / float(globals()['last_bond']) < 1:
