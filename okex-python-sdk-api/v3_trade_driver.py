@@ -1105,6 +1105,7 @@ def try_to_trade_tit2tat(subpath):
         greedy_status = ''
         update_quarter_amount = do_negative_feedback  # copy from it
         old_previous_close = previous_close
+        delta_thisweek_amount = 1
         if not issuing_close and (do_forward_greedy or backward_greedy):
             # emit open again signal
             if l_dir == 'buy':
@@ -1367,6 +1368,8 @@ def try_to_trade_tit2tat(subpath):
                     if delta < 0:
                         issue_quarter_order_now(symbol, l_dir, -delta, 'open')
                     elif not volume_positive_feedback:
+                        if delta > delta_thisweek_amount:
+                            delta = delta_thisweek_amount
                         issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
                 print(trade_timestamp(),
                       '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
@@ -1689,6 +1692,8 @@ if not options.nolog:
     sys.stdout = open(logfile, 'a')
     sys.stderr = sys.stdout
 
+zero_saved = False
+
 first_prompt = True
 while True:
     orig_startup_notify = startup_notify
@@ -1773,7 +1778,7 @@ while True:
         with open('%s.balance' % signal_notify, 'a') as f:
             f.close()
 
-    if datetime.datetime.now().strftime('%H') in ['00'] and datetime.datetime.now().strftime('%M') in ['00', '01']:
+    if datetime.datetime.now().strftime('%H') in ['00'] and datetime.datetime.now().strftime('%M') in ['00', '01'] and not zero_saved:
         with open('%s.balance.zero' % signal_notify, 'a') as f:
             f.write('%s %.4f %.4f %.4f %05.4f @%.2f%%\n' % (trade_timestamp(),
                                                             pre_close,
@@ -1782,6 +1787,7 @@ while True:
                                                             pre_close * globals()['last_balance'],
                                                             globals()['margin_ratio'] * 100))
             f.close()
+            zero_saved = True
 
     if float(globals()['last_balance']) / float(globals()['last_bond']) < 1:
         break
