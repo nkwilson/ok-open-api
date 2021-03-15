@@ -990,12 +990,12 @@ def try_to_trade_tit2tat(subpath):
         elif price_delta < -open_cost:
             cost_flag = 'v'
 
-        greedy_tuple = 'greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count)
-        cost_tuple = 'cost:%s%0.4f(%s) @ %.4f(%.3f%%)' % (' ' if price_delta >= 0 else '',
-                                                          price_delta,
-                                                          cost_flag,
-                                                          open_cost,
-                                                          100 * globals()['open_cost_rate'])
+        greedy_tuple = ''  # 'greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count)
+        cost_tuple = 'cost:%s%0.4f(%s)@%.4f(%.3f%%)' % (' ' if price_delta >= 0 else '',
+                                                        price_delta,
+                                                        cost_flag,
+                                                        open_cost,
+                                                        100 * globals()['open_cost_rate'])
         if not globals()['show_orders'] or do_show_order:
             print(part1,
                   ema_tuple,
@@ -1370,7 +1370,9 @@ def try_to_trade_tit2tat(subpath):
                     elif not volume_positive_feedback:
                         if delta > delta_thisweek_amount:
                             delta = delta_thisweek_amount
-                        issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
+                        (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+                        if loss > 0:
+                            issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
                 print(trade_timestamp(),
                       '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
                       end='')
