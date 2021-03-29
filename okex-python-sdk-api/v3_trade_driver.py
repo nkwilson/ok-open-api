@@ -991,11 +991,16 @@ def try_to_trade_tit2tat(subpath):
             cost_flag = 'v'
 
         greedy_tuple = ''  # 'greedy:%s%.2f' % (' ' if greedy_count >= 0 else '', greedy_count)
-        cost_tuple = 'cost:%s%0.4f(%s)@%.4f(%.3f%%)' % (' ' if price_delta >= 0 else '',
-                                                        price_delta,
-                                                        cost_flag,
-                                                        open_cost,
-                                                        100 * globals()['open_cost_rate'])
+        if cost_flag == '.':
+            cost_tuple = 'cost:%s@%.4f(%.3f%%)' % ('-',
+                                                   open_cost,
+                                                   100 * globals()['open_cost_rate'])
+        else:
+            cost_tuple = 'cost:%s%0.4f(%s)@%.4f(%.3f%%)' % (' ' if price_delta >= 0 else '',
+                                                            price_delta,
+                                                            cost_flag,
+                                                            open_cost,
+                                                            100 * globals()['open_cost_rate'])
         if not globals()['show_orders'] or do_show_order:
             print(part1,
                   ema_tuple,
@@ -1780,7 +1785,7 @@ while True:
         with open('%s.balance' % signal_notify, 'a') as f:
             f.close()
 
-    if datetime.datetime.now().strftime('%H') in ['00'] and datetime.datetime.now().strftime('%M') in ['00', '01'] and not zero_saved:
+    if not zero_saved and datetime.datetime.now().strftime('%H') in ['00']:
         with open('%s.balance.zero' % signal_notify, 'a') as f:
             f.write('%s %.4f %.4f %.4f %05.4f @%.2f%%\n' % (trade_timestamp(),
                                                             pre_close,
