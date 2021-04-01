@@ -592,6 +592,7 @@ names_tit2tat = [
     'show_orders',
     'bond_value',
     'do_forward_greedy', 'do_backward_greedy',
+    'daily_volume', 'hourly_volume',
 ]
 
 
@@ -721,6 +722,9 @@ quarter_amount = 1
 thisweek_amount_pending = 0
 do_forward_greedy = False  # current status, maybe different with forward_greedy control
 do_backward_greedy = False  # same logic with previous one
+
+daily_volume = 0
+hourly_volume = 0
 
 greedy_count = 0  # current pending greedy
 
@@ -876,10 +880,7 @@ def try_to_trade_tit2tat(subpath):
         new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW], ema_period_2)
         if globals()['negative_feedback']:  # use negative feedback to adjust amount_real
             delta = (ema_prices[ID_LOW] - new_ema_2) / (new_ema_2 + 0.00001)
-            if delta > 0:
-                new_amount_real = amount_real * (1 - delta)
-            else:
-                new_amount_real = amount_real - delta
+            new_amount_real = amount_real - delta
             # print (delta, new_amount_real)
             if new_amount_real > 0 and new_amount_real < 0.8:  # valid
                 do_negative_feedback = True
@@ -1169,6 +1170,8 @@ def try_to_trade_tit2tat(subpath):
                         if ret:
                             globals()['request_price'] = price
                         delta_thisweek_amount = thisweek_amount
+
+                    globals()['hourly_volume'] += delta_thisweek_amount
 
                     (loss, t_amount, leverage) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
 
@@ -1774,27 +1777,32 @@ while True:
 
     if (globals()['negative_feedback'] and t_new_amount_real != new_amount_real) or (not globals()['negative_feedback'] and t_pre_close != pre_close):
         with open('%s.balance' % signal_notify, 'a') as f:
-            f.write('%s %.4f %.4f %.4f %05.4f @%.2f%%\n' % (trade_timestamp(),
-                                                            pre_close,
-                                                            globals()['previous_close'],
-                                                            globals()['last_balance'],
-                                                            pre_close * globals()['last_balance'],
-                                                            globals()['margin_ratio'] * 100))
+            f.write('%s %.4f %.4f %.4f %05.4f @%.2f%% %f\n' % (trade_timestamp(),
+                                                               pre_close,
+                                                               globals()['previous_close'],
+                                                               globals()['last_balance'],
+                                                               pre_close * globals()['last_balance'],
+                                                               globals()['margin_ratio'] * 100,
+                                                               globals()['hourly_volume']))
             f.close()
+        globals()['daily_volume'] += globals()['hourly_volume']
+        globals()['hourly_volume'] = 0
     else:  # touch it for breathe
         with open('%s.balance' % signal_notify, 'a') as f:
             f.close()
 
     if not zero_saved and datetime.datetime.now().strftime('%H') in ['00']:
         with open('%s.balance.zero' % signal_notify, 'a') as f:
-            f.write('%s %.4f %.4f %.4f %05.4f @%.2f%%\n' % (trade_timestamp(),
-                                                            pre_close,
-                                                            globals()['previous_close'],
-                                                            globals()['last_balance'],
-                                                            pre_close * globals()['last_balance'],
-                                                            globals()['margin_ratio'] * 100))
+            f.write('%s %.4f %.4f %.4f %05.4f @%.2f%% %f\n' % (trade_timestamp(),
+                                                               pre_close,
+                                                               globals()['previous_close'],
+                                                               globals()['last_balance'],
+                                                               pre_close * globals()['last_balance'],
+                                                               globals()['margin_ratio'] * 100,
+                                                               globals()['daily_volume']))
             f.close()
             zero_saved = True
+        globals()['daily_volume'] = 0
 
     if float(globals()['last_balance']) / float(globals()['last_bond']) < 1:
         break
