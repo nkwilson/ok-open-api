@@ -1381,6 +1381,7 @@ def try_to_trade_tit2tat(subpath):
                         (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
                         if loss > 0:
                             issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
+                            globals()['hourly_volume'] += delta
                 print(trade_timestamp(),
                       '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
                       end='')
