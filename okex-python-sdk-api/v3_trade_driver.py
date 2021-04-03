@@ -157,6 +157,8 @@ order_infos = {
     'usd_trx': 'trx_usd',
     'usd_link': 'link_usd',
     'usd_doge': 'doge_usd',
+    'usd_fil': 'fil_usd',
+    'usd_dot': 'dot_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -414,6 +416,8 @@ symbols_mapping = {
     'usd_knc': 'knc_usd',
     'usd_link': 'link_usd',
     'usd_doge': 'doge_usd',
+    'usd_fil': 'fil_usd',
+    'usd_dot': 'dot_usd',
 }
 
 
