@@ -701,10 +701,10 @@ update_quarter_amount_backward = True  # update it if balance decrease
 profit_cost_multiplier = 1  # times of profit with open_cost
 greedy_cost_multiplier = 1  # times of greedy with open_cost
 amount_ratio_plus = 0.1  # percent of total amount
-amount_real = 0.09  # supercede on amount_ratio, as percent of amount
+amount_real = 0.2  # supercede on amount_ratio, as percent of amount
 ema_period_1 = 2  # signal period, 300s
 ema_period_2 = 200  # tendency period, 300s * 200
-ema_signal_period = 900  # 15min signal
+ema_signal_period = 3600  # 15min signal
 forward_greedy = True  # following tendency
 backward_greedy = False  # following reverse tendency
 reverse_amount_rate = 0
@@ -716,7 +716,7 @@ record_greedy_pulse = False  # try to save the pulse greedy count for later usag
 recorded_greedy_max = 0  # persistented max
 margin_ratio = 0  # saved margin_ratio
 close_conditional = False  # close pending positive only
-negative_feedback = False  # using negative feedback policy to control amount real
+negative_feedback = True  # using negative feedback policy to control amount real
 new_amount_real = 0  # for inspecting
 show_orders = True  # global control
 do_show_order = False  # ervery run control
@@ -762,7 +762,7 @@ def get_r_rate():  # figure out the active reverse_amount_rate
     if globals()['reverse_amount_rate'] > 0:
         r_rate = globals()['reverse_amount_rate']
     else:
-        r_rate = 1.0 - globals()['amount_ratio'] / 100
+        r_rate = 1.0 - globals()['open_cost_rate']
     return r_rate
 
 
