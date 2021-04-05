@@ -333,6 +333,13 @@ def query_kline_pos(symbol, period, contract, ktype, pos):
 def query_kline(symbol, period, contract, ktype=''):
     return query_kline_pos(symbol, period, contract, ktype, -1)
 
+
+def query_kline_batch(symbol, period, contract):
+    inst_id = query_instrument_id(symbol, contract)
+    kline = which_api.get_kline(inst_id, granularity=period)
+    return kline
+
+
 # In [13]: futureAPI.get_specific_position('BTC-USD-200327')
 # Out[13]:
 # {'holding': [{'created_at': '2019-12-13T11:59:47.180Z',
