@@ -3,6 +3,6 @@ set -e
 coins=${1:-'btc ltc eth bch eos xtz dash xrp neo etc'}
 
 for c in ${coins}; do
-	tail -n 20 *${c}*status
+	tail -n 20 *${c}_*status
 done
 

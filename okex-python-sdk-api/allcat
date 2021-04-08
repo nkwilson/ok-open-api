@@ -3,6 +3,6 @@ set -e
 coins=${1:-'btc ltc eth bch eos xtz dash xrp neo etc'}
 
 for c in ${coins}; do
-	cat *${c}*$(date +'%m-%d')
+	cat *${c}_*$(date +'%m-%d')
 done
 

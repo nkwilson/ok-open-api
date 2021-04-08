@@ -17,8 +17,8 @@ for c in ${coins}; do
 		ps -p ${PID} > /dev/null && ( kill ${PID} || true )
 		tar cjf ${TPL}-${SUFFIX}.tar.bz2 ${TPL}
 		find  ${TPL} -type f -delete
-		tar cjf ${TPL}-log-${SUFFIX}.tar.bz2 $(find . -name "*${c}*.log.*" -not -cnewer ${TPL}.tit2tat_trade_notify.pid)
-		find . -name "*${c}*.log.*" -not -cnewer ${TPL}.tit2tat_trade_notify.pid -delete
+		tar cjf ${TPL}-log-${SUFFIX}.tar.bz2 $(find . -name "*${c}_*.log.*" -not -cnewer ${TPL}.tit2tat_trade_notify.pid)
+		find . -name "*${c}_*.log.*" -not -cnewer ${TPL}.tit2tat_trade_notify.pid -delete
 	done
 done
 done
