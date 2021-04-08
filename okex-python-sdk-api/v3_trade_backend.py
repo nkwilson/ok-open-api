@@ -336,7 +336,7 @@ def query_kline(symbol, period, contract, ktype=''):
 
 def query_kline_batch(symbol, period, contract, start='', end=''):
     inst_id = query_instrument_id(symbol, contract)
-    kline = which_api.get_kline(inst_id, granularity=period,start=start,end=end)
+    kline = which_api.get_kline(inst_id, granularity=period, start=start, end=end)
     return kline
 
 
