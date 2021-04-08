@@ -603,6 +603,7 @@ names_tit2tat = [
     'bond_value',
     'do_forward_greedy', 'do_backward_greedy',
     'daily_volume', 'hourly_volume',
+    'delta_thisweek_amount',
 ]
 
 
@@ -730,6 +731,7 @@ volume_positive_feedback = False  # use volume information when do positive feed
 being_volume_positive_feedback = False  # be doing volume positive feedback
 quarter_amount = 1
 thisweek_amount_pending = 0
+delta_thisweek_amount = 0
 do_forward_greedy = False  # current status, maybe different with forward_greedy control
 do_backward_greedy = False  # same logic with previous one
 
@@ -870,6 +872,52 @@ def try_to_trade_tit2tat(subpath):
     ema_values = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
                                          globals()['contract'],
                                          ktype='', pos=-1)
+
+    if symbol == 'usd_fil' or globals()['ema_1'] == 0 or globals()['ema_2'] == 0:  # need init
+        print(ema_1, ema_2)
+        klines = backend.query_line_batch(symbol, globals()['ema_signal_period'],
+                                          globals()['contract'])
+        left = globals()['ema_period_2'] * 2 - len(klines)
+        batch_count=200
+        while left > 0:
+            end=klines[0][0]
+            dt=datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%S.%fZ')-datetime.timedelta(seconds=globals()['ema_signal_period']*batch_count)
+            start=datetime.datetime.isoformat(dt)+'Z'
+            left = left - batch_count
+            
+            klines=klines+backend.query_line_batch(symbol, globals()['ema_signal_period'],
+                                                   globals()['contract'], start, end)
+            left = globals()['ema_period_2'] * 3 - len(klines)
+        print(len(klines))
+        values=[float(x[1+ID_CLOSE]) for x in klines[-globals()['ema_period_1']*3:]]
+        ema_1 = sum(values[0:globals()['ema_period_1']]) / globals()['ema_period_1']
+        for x in values[globals()['ema_period_1']:]:
+            ema_1 = get_ema(ema_1, x, ema_period_1)
+        values=[float(x[1+ID_HIGH]) for x in klines[-globals()['ema_period_1']*3:]]
+        ema_1_up = sum(values[0:globals()['ema_period_1']]) / globals()['ema_period_1']
+        for x in values[globals()['ema_period_1']:]:
+            ema_1_up = get_ema(ema_1_up, x, ema_period_1)
+        values=[float(x[1+ID_LOW]) for x in klines[-globals()['ema_period_1']*3:]]
+        ema_1_lo = sum(values[0:globals()['ema_period_1']]) / globals()['ema_period_1']
+        for x in values[globals()['ema_period_1']:]:
+            ema_1_lo = get_ema(ema_1_lo, x, ema_period_1)
+        print(ema_1, ema_1_lo, ema_1_up)
+
+        values=[float(x[1+ID_CLOSE]) for x in klines]
+        ema_2 = sum(values[0:globals()['ema_period_2']]) / globals()['ema_period_2']
+        for x in values[globals()['ema_period_2']:]:
+            ema_2 = get_ema(ema_2, x, ema_period_2)
+        values=[float(x[1+ID_HIGH]) for x in klines]
+        ema_2_up = sum(values[0:globals()['ema_period_2']]) / globals()['ema_period_2']
+        for x in values[globals()['ema_period_2']:]:
+            ema_2_up = get_ema(ema_2_up, x, ema_period_2)
+        values=[float(x[1+ID_LOW]) for x in klines]
+        ema_2_lo = sum(values[0:globals()['ema_period_2']]) / globals()['ema_period_2']
+        for x in values[globals()['ema_period_2']:]:
+            ema_2_lo = get_ema(ema_2_lo, x, ema_period_2)
+        print(ema_2, ema_2_lo, ema_2_up)
+        sys.exit(0)
+        
     # print (ema_values)
     do_negative_feedback = False
     do_volume_positive_feedback = False
@@ -1121,7 +1169,6 @@ def try_to_trade_tit2tat(subpath):
         greedy_status = ''
         update_quarter_amount = do_negative_feedback  # copy from it
         old_previous_close = previous_close
-        delta_thisweek_amount = 1
         if not issuing_close and (do_forward_greedy or backward_greedy):
             # emit open again signal
             if l_dir == 'buy':
