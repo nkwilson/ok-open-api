@@ -159,6 +159,9 @@ order_infos = {
     'usd_doge': 'doge_usd',
     'usd_fil': 'fil_usd',
     'usd_dot': 'dot_usd',
+    'usd_yfi': 'yfi_usd',
+    'usd_yfii': 'yfii_usd',
+    'usd_iota': 'iota_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -418,6 +421,9 @@ symbols_mapping = {
     'usd_doge': 'doge_usd',
     'usd_fil': 'fil_usd',
     'usd_dot': 'dot_usd',
+    'usd_yfi': 'yfi_usd',
+    'usd_yfii': 'yfii_usd',
+    'usd_iota': 'iota_usd',
 }
 
 
