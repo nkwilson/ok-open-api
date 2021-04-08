@@ -604,6 +604,7 @@ names_tit2tat = [
     'do_forward_greedy', 'do_backward_greedy',
     'daily_volume', 'hourly_volume',
     'delta_thisweek_amount',
+    'always_init_emas',
 ]
 
 
@@ -744,6 +745,8 @@ greedy_count = 0  # current pending greedy
 close_greedy = False
 
 
+always_init_emas = True  # control
+emas_init_done = False  # status saved for current run
 ema_1 = 0
 ema_2 = 0
 ema_1_up = 0  # up means high price
@@ -868,13 +871,13 @@ def try_to_trade_tit2tat(subpath):
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, globals()['tendency_holdon'])
 
     if datetime.datetime.now().strftime('%S') in ['00', '59']:
-        time.sleep(2)
+        time.sleep(5)
     ema_values = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
                                          globals()['contract'],
                                          ktype='', pos=-1)
 
     # print(symbol)
-    if globals()['ema_1'] == 0 or globals()['ema_2'] == 0:  # need init
+    if globals()['always_init_emas'] and not globasl()['emas_init_done'] :  # always init emas
         # print(ema_1, ema_2)
         klines = backend.query_kline_batch(symbol, globals()['ema_signal_period'],
                                           globals()['contract'])
@@ -919,6 +922,7 @@ def try_to_trade_tit2tat(subpath):
         for x in values[globals()['ema_period_2']:]:
             ema_2_lo = get_ema(ema_2_lo, x, ema_period_2)
         values=None
+        emas_init_done=True  # status saved
         # print(ema_2, ema_2_lo, ema_2_up)
         
     # print (ema_values)
