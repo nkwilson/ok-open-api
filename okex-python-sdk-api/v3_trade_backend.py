@@ -537,20 +537,27 @@ def query_bond(symbol, contract, direction):
 
 
 def query_balance(symbol, contract=''):
-    if contract == 'swap':
-        suffix = '-SWAP'
-        result = which_api.get_coin_account(symbol.replace('_', '-').upper() + suffix)['info']
-    else:
-        result = which_api.get_coin_account(symbol.replace('_', '-').upper())
-    return float(result['equity'])
+    try:
+        if contract == 'swap':
+            suffix = '-SWAP'
+            result = which_api.get_coin_account(symbol.replace('_', '-').upper() + suffix)['info']
+        else:
+            result = which_api.get_coin_account(symbol.replace('_', '-').upper())
+        return float(result['equity'])
+    except Exception as ex:
+        return 0
 
 
 def query_margin_ratio(symbol, contract=''):
-    if contract == 'swap':
-        suffix = '-SWAP'
-        result = which_api.get_coin_account(symbol.replace('_', '-').upper() + suffix)['info']
-    else:
-        result = which_api.get_coin_account(symbol.replace('_', '-').upper())
+    result = dict()
+    try:
+        if contract == 'swap':
+            suffix = '-SWAP'
+            result = which_api.get_coin_account(symbol.replace('_', '-').upper() + suffix)['info']
+        else:
+            result = which_api.get_coin_account(symbol.replace('_', '-').upper())
+    except Exception as ex:
+        return 0.0
     if 'margin_ratio' in result.keys():
         return float(result['margin_ratio'])
     else:
