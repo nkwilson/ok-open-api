@@ -164,6 +164,7 @@ order_infos = {
     'usd_iota': 'iota_usd',
     'usd_btt': 'btt_usd',
     'usd_1inch': '1inch_usd',
+    'usd_xlm': 'xlm_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -428,6 +429,7 @@ symbols_mapping = {
     'usd_iota': 'iota_usd',
     'usd_btt': 'btt_usd',
     'usd_1inch': '1inch_usd',
+    'usd_xlm': 'xlm_usd',
 }
 
 
@@ -609,6 +611,7 @@ names_tit2tat = [
     'daily_volume', 'hourly_volume',
     'delta_thisweek_amount',
     'always_init_emas',
+    'feedback_price',
 ]
 
 
@@ -729,6 +732,7 @@ recorded_greedy_max = 0  # persistented max
 margin_ratio = 0  # saved margin_ratio
 close_conditional = False  # close pending positive only
 negative_feedback = True  # using negative feedback policy to control amount real
+feedback_price = 0  # price where feedback occured
 new_amount_real = 0  # for inspecting
 show_orders = True  # global control
 do_show_order = False  # ervery run control
@@ -951,7 +955,7 @@ def try_to_trade_tit2tat(subpath):
             delta = (ema_prices[ID_LOW] - new_ema_2) / (new_ema_2 + 0.00001)
             new_amount_real = amount_real - delta
             # print (delta, new_amount_real)
-            if new_amount_real > 0 and new_amount_real < 0.8:  # valid
+            if new_amount_real > 0.1 and new_amount_real < 0.8:  # valid
                 do_negative_feedback = True
         #  get volume/signal
         current_signal = ema_prices[ID_CLOSE]
@@ -1453,11 +1457,15 @@ def try_to_trade_tit2tat(subpath):
                         issue_quarter_order_now(symbol, l_dir, -delta, 'open')
                     elif not volume_positive_feedback:
                         if delta > delta_thisweek_amount:
-                            delta = delta_thisweek_amount
+                            if close > globals()['feedback_price']:  # yes, more profit
+                                delta = delta * globals()['amount_real']
+                            else:
+                                delta = delta_thisweek_amount
                         (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
                         if loss > 0:
                             issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
                             globals()['hourly_volume'] += delta
+                            globals()['feedback_price'] = close
                 print(trade_timestamp(),
                       '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
                       end='')
