@@ -936,6 +936,7 @@ def try_to_trade_tit2tat(subpath):
         new_amount_real = amount_real
     # print (ema_prices, globals()['ema_price_cursor'])
     if str(globals()['ema_price_cursor']) < ema_values[0][0]:  # updated
+        globals()['ema_price_cursor'] = ema_values[0][0]
         ema_values = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
                                              globals()['contract'],
                                              ktype='', pos=-2)
@@ -966,7 +967,6 @@ def try_to_trade_tit2tat(subpath):
                   previous_volume, previous_signal)
             return
         do_volume_positive_feedback = True
-        globals()['ema_price_cursor'] = ema_values[0][0]
     else:
         new_ema_1 = ema_1
         new_ema_2 = ema_2
