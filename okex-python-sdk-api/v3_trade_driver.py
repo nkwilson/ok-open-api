@@ -599,7 +599,7 @@ names_tit2tat = [
     'amount_ratio_plus', 'orders_holding', 'ema_1', 'ema_1_up', 'ema_1_lo', 'ema_period_1', 'ema_2',
     'ema_2_up', 'ema_2_lo', 'ema_period_2', 'forward_greedy', 'backward_greedy', 'fast_issue', 'use_dynamic_open_cost',
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
-    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'margin_ratio', 'close_conditional', 'ema_signal_period',
+    'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'close_conditional', 'ema_signal_period',
     'ema_price_cursor',
     'negative_feedback', 'new_amount_real', 'amount_real',
     'volume_positive_feedback', 'being_volume_positive_feedback',
