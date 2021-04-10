@@ -545,7 +545,7 @@ def query_balance(symbol, contract=''):
             result = which_api.get_coin_account(symbol.replace('_', '-').upper())
         return float(result['equity'])
     except Exception as ex:
-        return -1 
+        return -1
 
 
 def query_margin_ratio(symbol, contract=''):
