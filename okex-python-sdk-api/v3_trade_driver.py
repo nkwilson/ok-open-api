@@ -162,6 +162,8 @@ order_infos = {
     'usd_yfi': 'yfi_usd',
     'usd_yfii': 'yfii_usd',
     'usd_iota': 'iota_usd',
+    'usd_btt': 'btt_usd',
+    'usd_1inch': '1inch_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -424,6 +426,8 @@ symbols_mapping = {
     'usd_yfi': 'yfi_usd',
     'usd_yfii': 'yfii_usd',
     'usd_iota': 'iota_usd',
+    'usd_btt': 'btt_usd',
+    'usd_1inch': '1inch_usd',
 }
 
 
@@ -822,6 +826,7 @@ def try_to_trade_tit2tat(subpath):
     global new_amount_real
     global show_orders, do_show_order
     global volume_positive_feedback, being_volume_positive_feedback
+    global delta_thisweek_amount
 
     globals()['request_price'] = ''  # first clear it
 
