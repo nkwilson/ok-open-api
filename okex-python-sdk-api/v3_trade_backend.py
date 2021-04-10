@@ -442,7 +442,7 @@ def check_holdings_profit(symbol, contract, direction):
         return (loss, amount, leverage)
     except Exception as ex:
         logging.info('%s %s %s' % (symbol, contract, ex))
-        return (0, 0, 0)
+        return (-1, -1, -1)
 
 
 def get_real_open_price_and_cost_from_swap(holding, direction):
@@ -545,7 +545,7 @@ def query_balance(symbol, contract=''):
             result = which_api.get_coin_account(symbol.replace('_', '-').upper())
         return float(result['equity'])
     except Exception as ex:
-        return 0
+        return -1 
 
 
 def query_margin_ratio(symbol, contract=''):
@@ -557,7 +557,7 @@ def query_margin_ratio(symbol, contract=''):
         else:
             result = which_api.get_coin_account(symbol.replace('_', '-').upper())
     except Exception as ex:
-        return 0.0
+        return -1.0
     if 'margin_ratio' in result.keys():
         return float(result['margin_ratio'])
     else:

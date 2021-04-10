@@ -936,7 +936,6 @@ def try_to_trade_tit2tat(subpath):
         new_amount_real = amount_real
     # print (ema_prices, globals()['ema_price_cursor'])
     if str(globals()['ema_price_cursor']) < ema_values[0][0]:  # updated
-        globals()['ema_price_cursor'] = ema_values[0][0]
         ema_values = backend.query_kline_pos(symbol, globals()['ema_signal_period'],
                                              globals()['contract'],
                                              ktype='', pos=-2)
@@ -965,8 +964,9 @@ def try_to_trade_tit2tat(subpath):
         if current_signal == previous_signal and current_volume == previous_volume:
             print(trade_timestamp(), 'abnormal kline returned, restart', current_volume, current_signal,
                   previous_volume, previous_signal)
-            sys.exit(1)
+            return
         do_volume_positive_feedback = True
+        globals()['ema_price_cursor'] = ema_values[0][0]
     else:
         new_ema_1 = ema_1
         new_ema_2 = ema_2
@@ -1023,7 +1023,8 @@ def try_to_trade_tit2tat(subpath):
         (loss, t_amount, _) = backend.check_holdings_profit(symbol,
                                                             globals()['contract'],
                                                             l_dir)
-
+        if loss < 0:  # something is wrong
+            return
         thisweek_amount_pending = t_amount - quarter_amount
         if t_amount > 0 and quarter_amount > 0:  # only on postive situation
             t_greedy_count = greedy_count_max - thisweek_amount_pending / quarter_amount
@@ -1037,16 +1038,23 @@ def try_to_trade_tit2tat(subpath):
         (r_loss, t_reverse_amount, _) = backend.check_holdings_profit(symbol,
                                                                       globals()['contract'],
                                                                       reverse_follow_dir)
+        if r_loss < 0:
+            return
         reverse_tuple = ''
         if t_reverse_amount > 0:
             reverse_tuple = 'reverse: %d @%.1f%%' % (t_reverse_amount, r_loss)
 
         t_last_balance = backend.query_balance(symbol, globals()['contract'])
+        if t_last_balance < 0:
+            return
+
         if t_last_balance > 0:
             globals()['last_balance'] = t_last_balance
         delta_balance_rate = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
 
         margin_ratio = backend.query_margin_ratio(symbol, globals()['contract'])
+        if margin_ratio < 0:
+            return
 
         if balance_tuple == '+':
             str_fmt = 'balance: {: .2f} {: .2f}% {: .2f}%'
