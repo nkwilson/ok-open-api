@@ -1459,6 +1459,7 @@ def try_to_trade_tit2tat(subpath):
                         if delta > delta_thisweek_amount:
                             if close > globals()['feedback_price']:  # yes, more profit
                                 delta = delta * globals()['amount_real']
+                                adjust = adjust + '(%.4f=>%.4f)' % (globals()['feedback_price'], close)
                             else:
                                 delta = delta_thisweek_amount
                         (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
