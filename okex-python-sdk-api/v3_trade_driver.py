@@ -165,6 +165,7 @@ order_infos = {
     'usd_btt': 'btt_usd',
     'usd_1inch': '1inch_usd',
     'usd_xlm': 'xlm_usd',
+    'usd_xrm': 'xmr_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -430,6 +431,7 @@ symbols_mapping = {
     'usd_btt': 'btt_usd',
     'usd_1inch': '1inch_usd',
     'usd_xlm': 'xlm_usd',
+    'usd_xmr': 'xmr_usd',
 }
 
 
