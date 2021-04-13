@@ -968,11 +968,11 @@ def try_to_trade_tit2tat(subpath):
         ema_prices = [float(x) for x in ema_values[0][1:]]
         previous_signal = ema_prices[ID_CLOSE]
         previous_volume = ema_prices[ID_VOLUME]
-        if current_signal == previous_signal and current_volume == previous_volume:
+        if current_signal == previous_signal and current_volume == previous_volume and globals()['volume_positive_feedback']:
             print(trade_timestamp(), 'abnormal kline returned, restart', current_volume, current_signal,
                   previous_volume, previous_signal)
             return
-        do_volume_positive_feedback = True
+        do_volume_positive_feedback = globals()['volume_positive_feedback']
     else:
         new_ema_1 = ema_1
         new_ema_2 = ema_2
@@ -1029,7 +1029,7 @@ def try_to_trade_tit2tat(subpath):
         (loss, t_amount, _) = backend.check_holdings_profit(symbol,
                                                             globals()['contract'],
                                                             l_dir)
-        if loss < 0:  # something is wrong
+        if t_amount < 0:  # something is wrong
             return
         thisweek_amount_pending = t_amount - quarter_amount
         if t_amount > 0 and quarter_amount > 0:  # only on postive situation
@@ -1044,7 +1044,7 @@ def try_to_trade_tit2tat(subpath):
         (r_loss, t_reverse_amount, _) = backend.check_holdings_profit(symbol,
                                                                       globals()['contract'],
                                                                       reverse_follow_dir)
-        if r_loss < 0:
+        if t_reverse_amount < 0:
             return
         reverse_tuple = ''
         if t_reverse_amount > 0:
