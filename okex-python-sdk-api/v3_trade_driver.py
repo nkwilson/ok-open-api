@@ -166,6 +166,7 @@ order_infos = {
     'usd_1inch': '1inch_usd',
     'usd_xlm': 'xlm_usd',
     'usd_xrm': 'xmr_usd',
+    'usd_ada': 'ada_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -432,6 +433,7 @@ symbols_mapping = {
     'usd_1inch': '1inch_usd',
     'usd_xlm': 'xlm_usd',
     'usd_xmr': 'xmr_usd',
+    'usd_ada': 'ada_usd',
 }
 
 
@@ -1850,6 +1852,7 @@ while True:
         prepare_for_self_trigger(signal_notify, l_signal, l_dir)
 
     t_thisweek_amount_pending = globals()['thisweek_amount_pending']
+    t_quarter_amount = globals()['quarter_amount']
     t_previous_close = globals()['previous_close']
     t_pre_close = pre_close
     t_new_amount_real = new_amount_real
@@ -1860,7 +1863,7 @@ while True:
         print(ex)
 
     # temp fix for not touch deep logic
-    if t_thisweek_amount_pending == globals()['thisweek_amount_pending']:
+    if t_thisweek_amount_pending + t_quarter_amount == globals()['thisweek_amount_pending'] + globals()['quarter_amount']:
         globals()['previous_close'] = t_previous_close
 
     if (globals()['negative_feedback'] and t_new_amount_real != new_amount_real) or (not globals()['negative_feedback'] and t_pre_close != pre_close):
@@ -1879,7 +1882,7 @@ while True:
         with open('%s.balance' % signal_notify, 'a') as f:
             f.close()
 
-    if not zero_saved and datetime.datetime.now().strftime('%H') in ['00']:
+    if not zero_saved and datetime.datetime.now().strftime('%H') in ['00'] and globals()['daily_volume'] > 0:
         with open('%s.balance.zero' % signal_notify, 'a') as f:
             f.write('%s %.4f %.4f %.4f %05.4f @%.2f%% %f\n' % (trade_timestamp(),
                                                                pre_close,
