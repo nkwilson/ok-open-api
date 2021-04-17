@@ -613,6 +613,7 @@ names_tit2tat = [
     'bond_value',
     'do_forward_greedy', 'do_backward_greedy',
     'daily_volume', 'hourly_volume',
+    'daily_volume_cursor',
     'delta_thisweek_amount',
     'always_init_emas',
     'feedback_price',
@@ -766,6 +767,7 @@ ema_1_lo = 0  # lo means low price
 ema_2_up = 0
 ema_2_lo = 0
 ema_price_cursor = 0  # record last cursor from kline
+daily_volume_cursor = ''  # record last cursor for daily volume
 
 t_recorded_greedy_max = 0  # max in this running
 t_greedy_max = 0  # max until now, will cleared at close action
@@ -1801,7 +1803,6 @@ if not options.nolog:
     sys.stdout = open(logfile, 'a')
     sys.stderr = sys.stdout
 
-zero_saved = False
 
 first_prompt = True
 while True:
@@ -1864,7 +1865,7 @@ while True:
     t_quarter_amount = globals()['quarter_amount']
     t_previous_close = globals()['previous_close']
     t_pre_close = pre_close
-    t_new_amount_real = new_amount_real
+    t_ema_price_cursor = globals()['ema_price_cursor']
 
     try:
         wait_signal_notify(signal_notify, l_signal, shutdown_notify)
@@ -1875,7 +1876,7 @@ while True:
     if t_thisweek_amount_pending + t_quarter_amount == globals()['thisweek_amount_pending'] + globals()['quarter_amount']:
         globals()['previous_close'] = t_previous_close
 
-    if (globals()['negative_feedback'] and t_new_amount_real != new_amount_real) or (not globals()['negative_feedback'] and t_pre_close != pre_close):
+    if (globals()['negative_feedback'] and t_ema_price_cursor != globals()['ema_price_cursor']) or (not globals()['negative_feedback'] and t_pre_close != pre_close):
         with open('%s.balance' % signal_notify, 'a') as f:
             f.write('%s %.4f %.4f %.4f %05.4f @%.2f%% %f\n' % (trade_timestamp(),
                                                                pre_close,
@@ -1891,7 +1892,8 @@ while True:
         with open('%s.balance' % signal_notify, 'a') as f:
             f.close()
 
-    if not zero_saved and datetime.datetime.now().strftime('%H') in ['00'] and globals()['daily_volume'] > 0:
+    t_daily_volume_cursor = datetime.datetime.now().strftime('%Y-%m-%d')
+    if globals()['daily_volume_cursor'] != t_daily_volume_cursor:
         with open('%s.balance.zero' % signal_notify, 'a') as f:
             f.write('%s %.4f %.4f %.4f %05.4f @%.2f%% %f\n' % (trade_timestamp(),
                                                                pre_close,
@@ -1901,8 +1903,8 @@ while True:
                                                                globals()['margin_ratio'] * 100,
                                                                globals()['daily_volume']))
             f.close()
-            zero_saved = True
         globals()['daily_volume'] = 0
+        globals()['daily_volume_cursor'] = t_daily_volume_cursor
 
     if float(globals()['last_balance']) / float(globals()['last_bond']) < 1:
         break
