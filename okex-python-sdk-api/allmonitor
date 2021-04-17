@@ -18,10 +18,20 @@ wait_restart( )
 }
 
 while true; do 
+COINS=''
+CONTRACTS=''
+PERIODS=''
 for f in *.balance; do
 	c=$(echo $f | awk -F'_' '{print $4}')
+	COINS="${COINS} $c"
+	CONTRACTS="${CONTRACTS} $(echo $f | awk -F'_' '{print $6}')"
+	PERIODS="${PERIODS} $(echo $f | awk -F'_' '{print $7}' | awk -F'.' '{print $1}')"
 	wait_restart $c &
 done
+
+echo $COINS | tr ' ' '\n' | sort | uniq | tr '\n' ' ' > .coins
+echo $CONTRACTS | tr ' ' '\n' | sort | uniq | tr '\n' ' ' > .contracts
+echo $PERIODS | tr ' ' '\n' | sort | uniq | tr '\n' ' ' > .periods
 
 nohup sleep 30 &
 

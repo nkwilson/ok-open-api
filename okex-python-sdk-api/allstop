@@ -1,8 +1,12 @@
 set -e
 
-coins=${1:-'btc ltc eth bch xrp eos xtz neo dash etc'}
-periods=${2:-'1min 3min 5min 15min 30min 1hour 4hour 2hour 1day'}
-contracts=${3:-'quarter thisweek nextweek swap'}
+test -f .coins && COINS=$(cat .coins)
+test -f .contracts && CONTRACTS=$(cat .contracts)
+test -f .periods && PERIODS=$(cat .periods)
+
+coins=${1:-$COINS}
+periods=${2:-$PERIODS}
+contracts=${3:-$CONTRACTS}
 
 TPL0="ok_sub_futureusd_\${c}_kline_\${t}_\${p}"
 for t in ${contracts}; do
@@ -16,4 +20,3 @@ for c in ${coins}; do
 	done
 done
 done
-
