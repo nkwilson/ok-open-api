@@ -959,8 +959,16 @@ def try_to_trade_tit2tat(subpath):
             delta = (ema_prices[ID_LOW] - new_ema_2) / (new_ema_2 + 0.00001)
             new_amount_real = amount_real - delta
             # print (delta, new_amount_real)
-            if new_amount_real > 0.1 and new_amount_real < 0.8:  # valid
-                do_negative_feedback = True
+            minor_amount_real = amount_real / 3
+            base_amount_real = 0.5 * amount_real
+            huge_amount_real = 1.5 * amount_real
+            if new_amount_real < minor_amount_real:  # much big profit
+                new_amount_real = minor_amount_real
+            elif new_amount_real < base_amount_real:  # standard ratio
+                new_amount_real = base_amount_real
+            elif new_amount_real > huge_amount_real:  # valid
+                new_amount_real = huge_amount_real
+            do_negative_feedback = True
         #  get volume/signal
         current_signal = ema_prices[ID_CLOSE]
         current_volume = ema_prices[ID_VOLUME]
@@ -1060,9 +1068,10 @@ def try_to_trade_tit2tat(subpath):
             globals()['last_balance'] = t_last_balance
         delta_balance_rate = (last_balance - old_balance) * 100 / old_balance if old_balance != 0 else 0
 
-        margin_ratio = backend.query_margin_ratio(symbol, globals()['contract'])
-        if margin_ratio < 0:
+        t_margin_ratio = backend.query_margin_ratio(symbol, globals()['contract'])
+        if t_margin_ratio < 0:
             return
+        margin_ratio = t_margin_ratio
 
         if balance_tuple == '+':
             str_fmt = 'balance: {: .2f} {: .2f}% {: .2f}%'
