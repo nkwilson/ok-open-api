@@ -528,7 +528,7 @@ def generate_trade_filename(dir, l_index, order_type):
 
 
 def read_4prices(filename):
-    prices = None
+    prices = [0, 0, 0, 0, 0, 0]
     # drop suffix
     filename = os.path.splitext(filename)[0]
     # print(filename)
