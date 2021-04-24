@@ -788,6 +788,9 @@ def get_r_rate():  # figure out the active reverse_amount_rate
         r_rate = globals()['reverse_amount_rate']
     else:
         r_rate = 1.0 - globals()['open_cost_rate']
+    # check primary open_cost_rate first
+    if r_rate == globals()['reverse_amount_rate']:
+        globals()['reverse_amount_rate'] = 0
     return r_rate
 
 
