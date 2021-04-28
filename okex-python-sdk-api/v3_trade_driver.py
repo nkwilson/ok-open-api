@@ -1473,6 +1473,7 @@ def try_to_trade_tit2tat(subpath):
                     adjust = ' adjusted'
                     if delta < 0:
                         issue_quarter_order_now(symbol, l_dir, -delta, 'open')
+                        adjust = adjust + '(%.4f)' % (close)
                     elif not volume_positive_feedback:
                         if delta > delta_thisweek_amount:
                             if close > globals()['feedback_price']:  # yes, more profit
@@ -1480,11 +1481,13 @@ def try_to_trade_tit2tat(subpath):
                                 adjust = adjust + '(%.4f=>%.4f)' % (globals()['feedback_price'], close)
                             else:
                                 delta = delta_thisweek_amount
+                                adjust = adjust + '(%.4f)' % (close)
                         (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
                         if loss > 0:
                             issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
                             globals()['hourly_volume'] += delta
-                            globals()['feedback_price'] = close
+                            if close > globals()['feedback_price']:
+                                globals()['feedback_price'] = close
                 print(trade_timestamp(),
                       '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
                       end='')
