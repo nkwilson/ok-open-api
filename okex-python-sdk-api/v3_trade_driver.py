@@ -1467,13 +1467,9 @@ def try_to_trade_tit2tat(subpath):
             if do_negative_feedback or (abs(delta_balance_rate) > balance_rate and not globals()['negative_feedback']):
                 if update_quarter_amount_forward and quarter_amount < new_quarter_amount:  # auto update
                     do_updating = 'do ' if not do_negative_feedback else 'feedback '
-                    quarter_amount = new_quarter_amount
                 elif update_quarter_amount_backward and quarter_amount > new_quarter_amount:  # auto update
                     do_updating = 'do ' if not do_negative_feedback else 'feedback '
-                    quarter_amount = new_quarter_amount
             if do_updating != '':
-                if quarter_amount < 2:  # must be bigger than 1
-                    quarter_amount = 2
                 delta = (thisweek_amount_pending + amount) - new_quarter_amount
                 adjust = ''
                 if do_negative_feedback and delta != 0:  # if less, open more
@@ -1497,10 +1493,13 @@ def try_to_trade_tit2tat(subpath):
                             if low_price > globals()['feedback_price']:
                                 globals()['feedback_price'] = low_price
                                 globals()['feedback_balance'] = last_balance
-                print(trade_timestamp(),
-                      '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
-                      end='')
-                print('')
+                                quarter_amount = new_quarter_amount  # only update when positive feedback
+                                if quarter_amount < 2:  # must be bigger than 1
+                                    quarter_amount = 2
+                                print(trade_timestamp(),
+                                      '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
+                                      end='')
+                                print('')
     if close_greedy:
         print(
             trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' %
