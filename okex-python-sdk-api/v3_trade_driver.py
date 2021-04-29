@@ -689,6 +689,10 @@ def positive_normal_profit(price, direction):
 
 
 def update_open_cost(price):
+    if globals()['feedback_price'] > 0:
+        price = globals()['feedback_price']
+    else:
+        globals()['feedback_price'] = price
     if float(globals()['open_cost_rate']) > 0:
         globals()['open_cost'] = price * float(globals()['open_cost_rate'])
 
@@ -1236,7 +1240,7 @@ def try_to_trade_tit2tat(subpath):
                 do_show_order = globals()['show_orders']
                 open_greedy = True
                 previous_close = close
-                update_open_cost(close)
+                update_open_cost(previous_close)
                 if new_amount_real > 0:
                     thisweek_amount = quarter_amount
                     if globals()['greedy_same_amount']:
