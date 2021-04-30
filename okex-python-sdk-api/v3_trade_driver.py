@@ -785,7 +785,7 @@ prev_price_delta = 0
 use_dynamic_open_cost = False  # yes, open_cost is dynamic
 dynamic_open_cost = 0
 
-makeup_gating_on = False  # flag for show makeup gating 
+makeup_gating_on = False  # flag for show makeup gating
 
 
 def get_r_rate():  # figure out the active reverse_amount_rate
@@ -1326,7 +1326,7 @@ def try_to_trade_tit2tat(subpath):
                             print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d' %
                                   (loss, profit_num, makeup_gate, t_amount),
                                   end='')
-                            print(flag)                            
+                            print(flag)
                             globals()['makeup_gating_on'] = True
 
                 if backward_greedy:
