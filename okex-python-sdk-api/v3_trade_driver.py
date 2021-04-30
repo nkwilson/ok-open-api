@@ -785,7 +785,7 @@ prev_price_delta = 0
 use_dynamic_open_cost = False  # yes, open_cost is dynamic
 dynamic_open_cost = 0
 
-do_makeup = False  # if pending is negative, open more order until positive
+makeup_gating_on = False  # flag for show makeup gating 
 
 
 def get_r_rate():  # figure out the active reverse_amount_rate
@@ -1306,10 +1306,7 @@ def try_to_trade_tit2tat(subpath):
                                                                                l_amount,
                                                                                'close',
                                                                                globals()['close_conditional'])  # as much as possible
-                    elif thisweek_amount_pending < 0 and profit_num < makeup_gate and globals()['do_makeup']:  # if less holdings and loss is small, increase it
-                        issue_quarter_order_now(symbol, l_dir,
-                                                -(thisweek_amount_pending * withdraw_rate / 100.0),
-                                                'open')  # as much as possible
+                        globals()['makeup_gating_on'] = False
                     elif t_amount > 0:  # must not be forced close
                         if record_greedy_pulse and recorded_greedy_max > greedy_count_max:
                             greedy_count_max = recorded_greedy_max
@@ -1318,16 +1315,19 @@ def try_to_trade_tit2tat(subpath):
                             t_amount = delta_thisweek_amount
                         else:
                             t_amount = t_amount * withdraw_rate / 100.0 + 0.5
-                        print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d' %
-                              (loss, profit_num, makeup_gate, t_amount),
-                              end='')
+
                         flag = ' (.)'
                         if profit_num > makeup_gate:  # yes, much profit, withdraw
                             flag = ' (+)'
-                            print(flag)
                             issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
-                        else:
-                            print(flag)
+                            globals()['makeup_gating_on'] = False  # switch to show it
+
+                        if not globals()['makeup_gating_on']:
+                            print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d' %
+                                  (loss, profit_num, makeup_gate, t_amount),
+                                  end='')
+                            print(flag)                            
+                            globals()['makeup_gating_on'] = True
 
                 if backward_greedy:
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
@@ -1496,10 +1496,10 @@ def try_to_trade_tit2tat(subpath):
                                 quarter_amount = new_quarter_amount  # only update when positive feedback
                                 if quarter_amount < 2:  # must be bigger than 1
                                     quarter_amount = 2
-                                print(trade_timestamp(),
-                                      '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
-                                      end='')
-                                print('')
+                            print(trade_timestamp(),
+                                  '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
+                                  end='')
+                            print('')
     if close_greedy:
         print(
             trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' %
