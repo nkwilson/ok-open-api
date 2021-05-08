@@ -167,6 +167,7 @@ order_infos = {
     'usd_xlm': 'xlm_usd',
     'usd_xrm': 'xmr_usd',
     'usd_ada': 'ada_usd',
+    'usd_bsv': 'bsv_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -434,6 +435,7 @@ symbols_mapping = {
     'usd_xlm': 'xlm_usd',
     'usd_xmr': 'xmr_usd',
     'usd_ada': 'ada_usd',
+    'usd_bsv': 'bsv_usd',
 }
 
 
