@@ -7,8 +7,8 @@ echo ${EXE}
 wait_restart( ) 
 {
 	c=$1
-	if test -f *${c}*pid ; then
-		pid=$(cat $(*${c}*.pid))
+	if [[ -f *${c}*pid ]] ; then
+		pid=$(cat *${c}*.pid)
 		ps -p ${pid} && return
 	fi 
 	if ! inotifywait -e close -t 120 *${c}*status; then
