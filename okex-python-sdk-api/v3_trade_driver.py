@@ -356,7 +356,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
                     break
         (ret, price, amount) = issue_order_now(symbol, contract, direction, amount, action,
                                                '' if globals()['fast_issue'] else globals()['request_price'])
-        print('loss ratio=%f%%, %s, closed %d' % (loss, 'yeap' if loss > 0 else 'tough', amount))
+        print(' loss ratio=%f%%, %s, closed %d' % (loss, 'yeap' if loss > 0 else 'tough', amount))
         orders_holding[direction]['holding'] = holding
         return (ret, price, amount)
     total_amount = 0
@@ -1236,8 +1236,7 @@ def try_to_trade_tit2tat(subpath):
                     greedy_action = 'open'
                     greedy_status = 'holding'
             if greedy_status != '':
-                print(trade_timestamp(),
-                      'greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
+                print(' greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
             if greedy_action != '':  # update amount
                 do_show_order = globals()['show_orders']
                 open_greedy = True
@@ -1379,10 +1378,11 @@ def try_to_trade_tit2tat(subpath):
                             thisweek_amount_pending -= max_t_amount
                             t_amount = reverse_amount
 
-                cleanup_holdings_atopen(symbol,
-                                        globals()['contract'],
-                                        l_dir,
-                                        quarter_amount + thisweek_amount_pending, close)
+                if globals()['close_conditional']:
+                    cleanup_holdings_atopen(symbol,
+                                            globals()['contract'],
+                                            l_dir,
+                                            quarter_amount + thisweek_amount_pending, close)
 
                 if partly_close:  # actions already taken
                     pass
@@ -1479,6 +1479,8 @@ def try_to_trade_tit2tat(subpath):
                     if delta < 0:
                         issue_quarter_order_now(symbol, l_dir, -delta, 'open')
                         adjust = adjust + '(%.4f)' % (low_price)
+                        globals()['hourly_volume'] += -delta
+                        globals()['feedback_balance'] = last_balance
                     elif not volume_positive_feedback:
                         if delta > delta_thisweek_amount:
                             if low_price > globals()['feedback_price']:  # yes, more profit
