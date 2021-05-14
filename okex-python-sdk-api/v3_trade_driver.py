@@ -1040,6 +1040,8 @@ def try_to_trade_tit2tat(subpath):
         part1 = '%.4f %.4f %s' % (close, -previous_close, l_dir)
         if abs(price_delta) < open_cost:  # yes, show balance
             balance_tuple = ''
+    if globals()['makeup_gating_on']:
+        balance_tuple = ''
 
     if globals()['tendency_holdon'] != '':  # yes, tendency fixed
         ema_tuple = 'fixed'
@@ -1363,7 +1365,7 @@ def try_to_trade_tit2tat(subpath):
                         issue_quarter_order_now(symbol, reverse_follow_dir, profit_close_amount, 'close')
                         t_reverse_amount -= profit_close_amount
                     # first close same direction, then reverse direction, unified as one direction
-                    if greedy_count > 0:
+                    if greedy_count > 0 or globals()['negative_feedback']:
                         # supporsed to close t_amount * r_rate
                         issue_quarter_order_now(symbol, l_dir, delta_thisweek_amount, 'open')
                         thisweek_amount_pending += delta_thisweek_amount
@@ -1478,32 +1480,30 @@ def try_to_trade_tit2tat(subpath):
                     adjust = ' adjusted'
                     if delta < 0:
                         issue_quarter_order_now(symbol, l_dir, -delta, 'open')
-                        adjust = adjust + '(%.4f)' % (low_price)
                         globals()['hourly_volume'] += -delta
-                        globals()['feedback_balance'] = last_balance
                     elif not volume_positive_feedback:
                         if delta > delta_thisweek_amount:
                             if low_price > globals()['feedback_price']:  # yes, more profit
                                 delta = delta * globals()['amount_real']
-                                adjust = adjust + '(%.4f=>%.4f, %.4f)' % (globals()['feedback_price'], low_price, last_balance)
                             else:
                                 delta = delta_thisweek_amount
-                        else:
-                            adjust = adjust + '(%.4f)' % (low_price)
                         (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
                         if loss > 0:
                             issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
                             globals()['hourly_volume'] += delta
-                            if low_price > globals()['feedback_price']:
-                                globals()['feedback_price'] = low_price
-                                globals()['feedback_balance'] = last_balance
-                                quarter_amount = new_quarter_amount  # only update when positive feedback
-                                if quarter_amount < 2:  # must be bigger than 1
-                                    quarter_amount = 2
-                            print(trade_timestamp(),
-                                  '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust),
-                                  end='')
-                            print('')
+                    if low_price > globals()['feedback_price']:
+                        adjust = adjust + '(%.4f=>%.4f, %.4f)' % (globals()['feedback_price'], low_price, last_balance)
+                        globals()['feedback_price'] = low_price
+                        globals()['feedback_balance'] = last_balance
+                        quarter_amount = new_quarter_amount  # only update when positive feedback
+                        if quarter_amount < 2:  # must be bigger than 1
+                            quarter_amount = 2
+                    else:
+                        if amount < new_quarter_amount:
+                            quarter_amount = new_quarter_amount
+                        adjust = adjust + '(%.4f)' % (low_price)
+                    print(trade_timestamp(),
+                          '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust))
     if close_greedy:
         print(
             trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' %
