@@ -168,6 +168,13 @@ order_infos = {
     'usd_xrm': 'xmr_usd',
     'usd_ada': 'ada_usd',
     'usd_bsv': 'bsv_usd',
+    'usd_xch': 'xch_usd',
+    'usd_sushi': 'sushi_usd',
+    'usd_ksm': 'ksm_usd',
+    'usd_atom': 'atom_usd',
+    'usd_algo': 'algo_usd',
+    'usd_uni': 'uni_usd',
+    'usd_crv': 'crv_usd',
     'sell': {
         'open': backend.open_order_sell_rate,
         'close': backend.close_order_sell_rate
@@ -436,6 +443,13 @@ symbols_mapping = {
     'usd_xmr': 'xmr_usd',
     'usd_ada': 'ada_usd',
     'usd_bsv': 'bsv_usd',
+    'usd_xch': 'xch_usd',
+    'usd_sushi': 'sushi_usd',
+    'usd_ksm': 'ksm_usd',
+    'usd_atom': 'atom_usd',
+    'usd_algo': 'algo_usd',
+    'usd_uni': 'uni_usd',
+    'usd_crv': 'crv_usd',
 }
 
 
