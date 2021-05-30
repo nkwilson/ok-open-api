@@ -991,7 +991,7 @@ def try_to_trade_tit2tat(subpath):
                 delta = (new_ema_2 - t_feedback_price) / (new_ema_2 + 0.00001)
             new_amount_real = amount_real - delta
             # print (delta, new_amount_real)
-            minor_amount_real = amount_real / 3
+            minor_amount_real = 0.01
             base_amount_real = 0.5 * amount_real
             huge_amount_real = 1.1 * amount_real
             if new_amount_real < minor_amount_real:  # much big profit
