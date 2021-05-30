@@ -966,7 +966,7 @@ def try_to_trade_tit2tat(subpath):
     # print (ema_values)
     do_negative_feedback = False
     do_volume_positive_feedback = False
-    low_price = 0
+    t_feedback_price = 0
     if not globals()['negative_feedback']:
         new_amount_real = amount_real
     # print (ema_prices, globals()['ema_price_cursor'])
@@ -982,14 +982,18 @@ def try_to_trade_tit2tat(subpath):
         new_ema_1_lo = get_ema(ema_1_lo, ema_prices[ID_LOW], ema_period_1)
         new_ema_2_up = get_ema(ema_2_up, ema_prices[ID_HIGH], ema_period_2)
         new_ema_2_lo = get_ema(ema_2_lo, ema_prices[ID_LOW], ema_period_2)
-        if globals()['negative_feedback']:  # use negative feedback to adjust amount_real
-            low_price = ema_prices[ID_LOW]
-            delta = (low_price - new_ema_2) / (new_ema_2 + 0.00001)
+        if globals()['negative_feedback'] and l_dir in ['buy', 'sell']:  # use negative feedback to adjust amount_real
+            if l_dir == 'buy':
+                t_feedback_price = ema_prices[ID_LOW]
+                delta = (t_feedback_price - new_ema_2) / (new_ema_2 + 0.00001)
+            elif l_dir == 'sell':
+                t_feedback_price = ema_prices[ID_HIGH]
+                delta = (new_ema_2 - t_feedback_price) / (new_ema_2 + 0.00001)
             new_amount_real = amount_real - delta
             # print (delta, new_amount_real)
             minor_amount_real = amount_real / 3
             base_amount_real = 0.5 * amount_real
-            huge_amount_real = 1.5 * amount_real
+            huge_amount_real = 1.1 * amount_real
             if new_amount_real < minor_amount_real:  # much big profit
                 new_amount_real = minor_amount_real
             elif new_amount_real < base_amount_real:  # standard ratio
@@ -1497,17 +1501,19 @@ def try_to_trade_tit2tat(subpath):
                         globals()['hourly_volume'] += -delta
                     elif not volume_positive_feedback:
                         if delta > delta_thisweek_amount:
-                            if low_price > globals()['feedback_price']:  # yes, more profit
+                            if (l_dir == 'buy' and t_feedback_price > globals()['feedback_price']):  # yes, more profit
                                 delta = delta * globals()['amount_real']
+                            elif (l_dir == 'sell' and t_feedback_price < globals()['feedback_price']):
+                                delta = delta * globals()['amount_real']                                
                             else:
                                 delta = delta_thisweek_amount
                         (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
                         if loss > 0:
                             issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
                             globals()['hourly_volume'] += delta
-                    if low_price > globals()['feedback_price']:
-                        adjust = adjust + '(%.4f=>%.4f, %.4f)' % (globals()['feedback_price'], low_price, last_balance)
-                        globals()['feedback_price'] = low_price
+                    if (l_dir == 'buy' and t_feedback_price > globals()['feedback_price']) or (l_dir == 'sell' and t_feedback_price < globals()['feedback_price']):
+                        adjust = adjust + '(%.4f=>%.4f, %.4f)' % (globals()['feedback_price'], t_feedback_price, last_balance)
+                        globals()['feedback_price'] = t_feedback_price
                         globals()['feedback_balance'] = last_balance
                         quarter_amount = new_quarter_amount  # only update when positive feedback
                         if quarter_amount < 2:  # must be bigger than 1
@@ -1515,7 +1521,7 @@ def try_to_trade_tit2tat(subpath):
                     else:
                         if amount < new_quarter_amount:
                             quarter_amount = new_quarter_amount
-                        adjust = adjust + '(%.4f)' % (low_price)
+                        adjust = adjust + '(%.4f)' % (t_feedback_price)
                     print(trade_timestamp(),
                           '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust))
     if close_greedy:
