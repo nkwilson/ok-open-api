@@ -1468,7 +1468,7 @@ def try_to_trade_tit2tat(subpath):
                 close_greedy = backward_greedy  # only if backward_greedy is true
                 open_greedy = False
                 thisweek_amount_pending = 0
-            update_quarter_amount = True
+            update_quarter_amount = False
             trade_file = ''  # clear it
         if update_quarter_amount:
             last_bond = globals()['bond_value'] / close / globals()['amount_ratio']
@@ -1504,7 +1504,7 @@ def try_to_trade_tit2tat(subpath):
                             if (l_dir == 'buy' and t_feedback_price > globals()['feedback_price']):  # yes, more profit
                                 delta = delta * globals()['amount_real']
                             elif (l_dir == 'sell' and t_feedback_price < globals()['feedback_price']):
-                                delta = delta * globals()['amount_real' 
+                                delta = delta * globals()['amount_real']
                             else:
                                 delta = delta_thisweek_amount
                         (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
