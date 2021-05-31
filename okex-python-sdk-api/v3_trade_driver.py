@@ -1175,7 +1175,7 @@ def try_to_trade_tit2tat(subpath):
             if leverage > 0:  # in case something wrong, use old value here
                 globals()['amount_ratio'] = leverage
             globals()['margin_mode'] = backend.get_margin_mode(symbol, globals()['contract'])
-        if t_amount <= 0 and globals()['check_forced']:
+        if t_amount <= 0:
             # open it un-conditionally
             print('abnormal, amount is zero, maybe forced closed, currrent price:', close)
             issue_quarter_order_now(symbol, l_dir, 1, 'open')
