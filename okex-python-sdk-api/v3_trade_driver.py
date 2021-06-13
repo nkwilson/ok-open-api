@@ -623,7 +623,7 @@ names_tit2tat = [
     'request_price', 'wait_for_completion', 'reverse_amount_rate', 'tendency_holdon', 'check_forced', 'margin_mode',
     'profit_withdraw_rate', 'record_greedy_pulse', 'recorded_greedy_max', 'close_conditional', 'ema_signal_period',
     'ema_price_cursor',
-    'negative_feedback', 'new_amount_real', 'amount_real',
+    'negative_feedback', 'new_amount_real', 'amount_real', 'unidirection_feedback',
     'volume_positive_feedback', 'being_volume_positive_feedback',
     'show_orders',
     'bond_value',
@@ -757,6 +757,7 @@ recorded_greedy_max = 0  # persistented max
 margin_ratio = 0  # saved margin_ratio
 close_conditional = False  # close pending positive only
 negative_feedback = True  # using negative feedback policy to control amount real
+unidirection_feedback = True  # only adjust amount_real in one direction
 feedback_price = 0  # price where feedback occured
 feedback_balance = 0  # balance where feedback occured
 new_amount_real = 0  # for inspecting
@@ -989,7 +990,13 @@ def try_to_trade_tit2tat(subpath):
             elif l_dir == 'sell':
                 t_feedback_price = ema_prices[ID_HIGH]
                 delta = (new_ema_2 - t_feedback_price) / (new_ema_2 + 0.00001)
-            new_amount_real = amount_real - delta
+            if globals()['unidirection_feedback']:
+                if delta > 0:
+                    new_amount_real = amount_real - delta
+                else:
+                    new_amount_real = amount_real
+            else:
+                new_amount_real = amount_real - delta                
             # print (delta, new_amount_real)
             minor_amount_real = 0.01
             base_amount_real = 0.5 * amount_real
