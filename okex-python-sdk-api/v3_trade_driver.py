@@ -996,17 +996,14 @@ def try_to_trade_tit2tat(subpath):
                 else:
                     new_amount_real = amount_real
             else:
-                new_amount_real = amount_real - delta                
-            # print (delta, new_amount_real)
+                new_amount_real = amount_real - delta
             minor_amount_real = 0.01
-            base_amount_real = 0.5 * amount_real
             huge_amount_real = 1.1 * amount_real
             if new_amount_real < minor_amount_real:  # much big profit
                 new_amount_real = minor_amount_real
-            elif new_amount_real < base_amount_real:  # standard ratio
-                new_amount_real = base_amount_real
             elif new_amount_real > huge_amount_real:  # valid
                 new_amount_real = huge_amount_real
+            # print (delta, new_amount_real)
             do_negative_feedback = True
         #  get volume/signal
         current_signal = ema_prices[ID_CLOSE]
@@ -1036,7 +1033,7 @@ def try_to_trade_tit2tat(subpath):
     delta_ema_1 = new_ema_1 - ema_1
 
     globals()['current_close'] = close  # save early
-    globals()['new_amount_real'] = new_amount_real
+    # globals()['new_amount_real'] = new_amount_real
 
     old_balance = last_balance
 
@@ -1488,6 +1485,7 @@ def try_to_trade_tit2tat(subpath):
                 new_quarter_amount = math.ceil(base_amount / globals()['amount_ratio'] + base_amount * amount_ratio_plus)
             if new_quarter_amount < 1:
                 new_quarter_amount = quarter_amount  # means no real update
+            # print (base_amount, new_quarter_amount, quarter_amount)
             do_updating = ''
             if options.highfreq:
                 balance_rate = 0
