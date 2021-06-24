@@ -747,7 +747,7 @@ ema_period_2 = 200  # tendency period, 300s * 200
 ema_signal_period = 3600  # 15min signal
 forward_greedy = True  # following tendency
 backward_greedy = False  # following reverse tendency
-reverse_amount_rate = 0
+reverse_amount_rate = 0.50
 tendency_holdon = 'buy'  # if set, hold on the tendency
 check_forced = False  # no check for whether forced close
 margin_mode = 'fixed'  # default is fixed, others is crossed
@@ -811,7 +811,7 @@ def get_r_rate():  # figure out the active reverse_amount_rate
     else:
         r_rate = 1.0 - globals()['open_cost_rate']
     # check primary open_cost_rate first
-    if r_rate == globals()['reverse_amount_rate']:
+    if r_rate == globals()['open_cost_rate']:
         globals()['reverse_amount_rate'] = 0
     return r_rate
 
@@ -1249,14 +1249,14 @@ def try_to_trade_tit2tat(subpath):
                 if price_delta > open_cost:
                     greedy_action = 'close'
                     greedy_status = 'maybe closed'
-                elif price_delta < -open_cost:
+                elif price_delta < - 2 * open_cost:
                     greedy_action = 'open'
                     greedy_status = 'holding'
             elif l_dir == 'sell':
                 if price_delta > open_cost:
                     greedy_action = 'close'
                     greedy_status = 'maybe closed'
-                elif price_delta < -open_cost:
+                elif price_delta < - 2 * open_cost:
                     greedy_action = 'open'
                     greedy_status = 'holding'
             if greedy_status != '':
@@ -1527,8 +1527,9 @@ def try_to_trade_tit2tat(subpath):
                         if amount < new_quarter_amount:
                             quarter_amount = new_quarter_amount
                         adjust = adjust + '(%.4f)' % (t_feedback_price)
-                    print(trade_timestamp(),
-                          '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust))
+                    if amount != quarter_amount:
+                        print(trade_timestamp(),
+                              '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust))
     if close_greedy:
         print(
             trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' %
