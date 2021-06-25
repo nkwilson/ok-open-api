@@ -1478,6 +1478,8 @@ def try_to_trade_tit2tat(subpath):
             update_quarter_amount = False
             trade_file = ''  # clear it
         if update_quarter_amount:
+            do_show_order = globals()['show_orders']
+
             last_bond = globals()['bond_value'] / close / globals()['amount_ratio']
 
             amount = quarter_amount
