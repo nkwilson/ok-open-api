@@ -825,9 +825,12 @@ def effective_deleta_thisweek_amount(thisweek_amount, price_delta):  # figure ou
     # default reverse_amount loigc
     reverse_amount = int(thisweek_amount * get_r_rate())
 
-    orate = max(math.floor(abs(price_delta / globals()['open_cost'])), 1)
-    if orate <= 1 and globals()['use_dynamic_open_cost'] and globals()['dynamic_open_cost'] > 0:  # only valid for little price_delta
-        orate = min(globals()['dynamic_open_cost'] / globals()['open_cost'], 1)
+    if globals()['use_dynamic_open_cost']:
+        orate = max(math.floor(abs(price_delta / globals()['open_cost'])), 1)
+        if orate <= 1 and globals()['dynamic_open_cost'] > 0:  # only valid for little price_delta
+            orate = min(globals()['dynamic_open_cost'] / globals()['open_cost'], 1)
+    else:
+        orate = 1
 
     delta_thisweek_amount = max((thisweek_amount - reverse_amount) * orate, 1)
 
