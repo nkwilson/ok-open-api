@@ -396,7 +396,7 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
     return (ret, price, total_amount)
 
 
-def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=True):
+def issue_quarter_order_now_conditional(symbol, direction, amount, action, info='', must_positive=True):
     print('EMUL ' if options.noaction else '', 'issue quarter order%s: ' % (' conditional' if must_positive else ''),
           action, symbol, direction, amount)
     if options.noaction:
@@ -408,8 +408,8 @@ def issue_quarter_order_now_conditional(symbol, direction, amount, action, must_
     return (ret, price, amount)
 
 
-def issue_quarter_order_now(symbol, direction, amount, action):
-    return issue_quarter_order_now_conditional(symbol, direction, amount, action, must_positive=False)
+def issue_quarter_order_now(symbol, direction, amount, action, info=''):
+    return issue_quarter_order_now_conditional(symbol, direction, amount, action, info, must_positive=False)
 
 
 old_open_price = 0
@@ -1478,8 +1478,6 @@ def try_to_trade_tit2tat(subpath):
             update_quarter_amount = False
             trade_file = ''  # clear it
         if update_quarter_amount:
-            do_show_order = globals()['show_orders']
-
             last_bond = globals()['bond_value'] / close / globals()['amount_ratio']
 
             amount = quarter_amount
@@ -1533,6 +1531,7 @@ def try_to_trade_tit2tat(subpath):
                             quarter_amount = new_quarter_amount
                         adjust = adjust + '(%.4f)' % (t_feedback_price)
                     if amount != quarter_amount:
+                        do_show_order = globals()['show_orders']
                         print(trade_timestamp(),
                               '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust))
     if close_greedy:
