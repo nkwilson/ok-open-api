@@ -398,7 +398,8 @@ def issue_order_now_conditional(symbol, contract, direction, amount, action, mus
 
 def issue_quarter_order_now_conditional(symbol, direction, amount, action, info='', must_positive=True):
     print('EMUL ' if options.noaction else '', 'issue quarter order%s: ' % (' conditional' if must_positive else ''),
-          action, symbol, direction, amount)
+          action, symbol, direction, amount, 'info:', info)
+    globals()['do_show_order'] = globals()['show_orders']
     if options.noaction:
         return 0
     (ret, price, amount) = issue_order_now_conditional(symbol,
@@ -1185,7 +1186,7 @@ def try_to_trade_tit2tat(subpath):
         if t_amount <= 0:
             # open it un-conditionally
             print('abnormal, amount is zero, maybe forced closed, currrent price:', close)
-            issue_quarter_order_now(symbol, l_dir, 1, 'open')
+            issue_quarter_order_now(symbol, l_dir, 1, 'open', sys._getframe().f_lineno)
             # check if should take normal close action
             forced_close = globals()['check_forced']
     if forced_close:  # only when required
@@ -1195,7 +1196,7 @@ def try_to_trade_tit2tat(subpath):
         print(trade_timestamp(), 'detected forced close signal %s at %s => %s' % (l_dir, previous_close, close))
         # action likes new_open equals true, but take original l_dir as it
         mini_amount = max(1, math.ceil(quarter_amount / 8))
-        issue_quarter_order_now(symbol, l_dir, mini_amount, 'open')
+        issue_quarter_order_now(symbol, l_dir, mini_amount, 'open', sys._getframe().f_lineno)
         if options.emulate:
             open_price = close
         else:
@@ -1265,7 +1266,6 @@ def try_to_trade_tit2tat(subpath):
             if greedy_status != '':
                 print(' greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
             if greedy_action != '':  # update amount
-                do_show_order = globals()['show_orders']
                 open_greedy = True
                 previous_close = close
                 update_open_cost(previous_close)
@@ -1299,7 +1299,9 @@ def try_to_trade_tit2tat(subpath):
                     if globals()['greedy_same_amount']:
                         (ret, price,
                          l_reverse_amount) = issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0,
-                                                                                 'close', globals()['close_conditional'])
+                                                                                 'close',
+                                                                                 sys._getframe().f_lineno,
+                                                                                 globals()['close_conditional'])
                         if ret:
                             globals()['request_price'] = price
                         delta_thisweek_amount = thisweek_amount
@@ -1333,6 +1335,7 @@ def try_to_trade_tit2tat(subpath):
                                                                                l_dir,
                                                                                l_amount,
                                                                                'close',
+                                                                               sys._getframe().f_lineno,
                                                                                globals()['close_conditional'])  # as much as possible
                         globals()['makeup_gating_on'] = False
                     elif t_amount > 0:  # must not be forced close
@@ -1347,7 +1350,7 @@ def try_to_trade_tit2tat(subpath):
                         flag = ' (.)'
                         if profit_num > makeup_gate:  # yes, much profit, withdraw
                             flag = ' (+)'
-                            issue_quarter_order_now(symbol, l_dir, t_amount, 'close')
+                            issue_quarter_order_now(symbol, l_dir, t_amount, 'close', sys._getframe().f_lineno)
                             globals()['makeup_gating_on'] = False  # switch to show it
 
                         if not globals()['makeup_gating_on']:
@@ -1358,7 +1361,7 @@ def try_to_trade_tit2tat(subpath):
                             globals()['makeup_gating_on'] = True
 
                 if backward_greedy:
-                    issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
+                    issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', sys._getframe().f_lineno, globals()['close_conditional'])
             elif greedy_action == 'open':  # yes, open action pending
                 # first take reverse into account and do some makeup
                 (reverse_loss, t_reverse_amount, leverage) = backend.check_holdings_profit(symbol, contract, reverse_follow_dir)
@@ -1387,20 +1390,20 @@ def try_to_trade_tit2tat(subpath):
                     # if reach here, t_reverse_amount must positive
                     if (thisweek_amount_pending - t_reverse_amount) < 0:
                         profit_close_amount = t_reverse_amount - max(0, thisweek_amount_pending) * get_r_rate()
-                        issue_quarter_order_now(symbol, reverse_follow_dir, profit_close_amount, 'close')
+                        issue_quarter_order_now(symbol, reverse_follow_dir, profit_close_amount, 'close', sys._getframe().f_lineno)
                         t_reverse_amount -= profit_close_amount
                     # first close same direction, then reverse direction, unified as one direction
                     if greedy_count > 0 or globals()['negative_feedback']:
                         # supporsed to close t_amount * r_rate
-                        issue_quarter_order_now(symbol, l_dir, delta_thisweek_amount, 'open')
+                        issue_quarter_order_now(symbol, l_dir, delta_thisweek_amount, 'open', sys._getframe().f_lineno)
                         thisweek_amount_pending += delta_thisweek_amount
                     elif greedy_count <= 0:
                         greedy_count = greedy_count_max - 1
 
                         if t_reverse_amount > 0:
                             max_t_amount = min(thisweek_amount_pending, t_reverse_amount * get_r_rate())
-                            issue_quarter_order_now(symbol, l_dir, max_t_amount * withdraw_rate / 100.0, 'close')
-                            issue_quarter_order_now(symbol, reverse_follow_dir, max_t_amount, 'close')
+                            issue_quarter_order_now(symbol, l_dir, max_t_amount * withdraw_rate / 100.0, 'close', sys._getframe().f_lineno)
+                            issue_quarter_order_now(symbol, reverse_follow_dir, max_t_amount, 'close', sys._getframe().f_lineno)
 
                             thisweek_amount_pending -= max_t_amount
                             t_amount = reverse_amount
@@ -1422,22 +1425,22 @@ def try_to_trade_tit2tat(subpath):
                         if l_dir == 'buy':  # first open sell, then open buy
                             if globals()['greedy_same_amount']:
                                 (ret, price, l_amount) = issue_quarter_order_now(symbol, reverse_follow_dir,
-                                                                                 reverse_amount, 'open')
+                                                                                 reverse_amount, 'open', sys._getframe().f_lineno)
                                 if ret:
                                     globals()['request_price'] = price
-                            issue_quarter_order_now(symbol, l_dir, t_thisweek_amount, 'open')
+                            issue_quarter_order_now(symbol, l_dir, t_thisweek_amount, 'open', sys._getframe().f_lineno)
                             pass
                         else:
-                            (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, t_thisweek_amount, 'open')
+                            (ret, price, l_amount) = issue_quarter_order_now(symbol, l_dir, t_thisweek_amount, 'open', sys._getframe().f_lineno)
                             if ret:
                                 globals()['request_price'] = price
                             if globals()['greedy_same_amount']:
-                                issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open')
+                                issue_quarter_order_now(symbol, reverse_follow_dir, reverse_amount, 'open', sys._getframe().f_lineno)
                             pass
                     if backward_greedy:
-                        issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
+                        issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', sys._getframe().f_lineno, globals()['close_conditional'])
                         # secondly open new order
-                        issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open')
+                        issue_quarter_order_now(symbol, reverse_follow_dir, max(1, thisweek_amount / 2), 'open', sys._getframe().f_lineno)
                 else:  # less than 1
                     if greedy_count == 0:
                         t_greedy_max = greedy_count_max
@@ -1454,7 +1457,7 @@ def try_to_trade_tit2tat(subpath):
                             # open reverse order
                             if globals()['greedy_same_amount']:
                                 issue_quarter_order_now(symbol, reverse_follow_dir, pending_amount,
-                                                        'open')
+                                                        'open', sys._getframe().f_lineno)
                             else:  # reset previous_close updating
                                 previous_close = old_previous_close
                                 update_open_cost(previous_close)
@@ -1468,7 +1471,7 @@ def try_to_trade_tit2tat(subpath):
                                          close)
         if issuing_close:
             globals()['signal_close_order_with_%s' % l_dir](l_index, trade_file, close)
-            issue_quarter_order_now(symbol, l_dir, 0, 'close')  # use zero to close all
+            issue_quarter_order_now(symbol, l_dir, 0, 'close', sys._getframe().f_lineno)  # use zero to close all
             # and open again, just like new_open == True
             new_open = True
             if open_greedy:
@@ -1505,19 +1508,19 @@ def try_to_trade_tit2tat(subpath):
                 if do_negative_feedback and delta != 0:  # if less, open more
                     adjust = ' adjusted'
                     if delta < 0:
-                        issue_quarter_order_now(symbol, l_dir, -delta, 'open')
+                        issue_quarter_order_now(symbol, l_dir, -delta, 'open', sys._getframe().f_lineno)
                         globals()['hourly_volume'] += -delta
                     elif not volume_positive_feedback:
                         if delta > delta_thisweek_amount:
                             if (l_dir == 'buy' and t_feedback_price > globals()['feedback_price']):  # yes, more profit
-                                delta = delta * globals()['amount_real']
+                                delta = max(delta * globals()['new_amount_real'], 1)
                             elif (l_dir == 'sell' and t_feedback_price < globals()['feedback_price']):
-                                delta = delta * globals()['amount_real']
+                                delta = max(delta * globals()['new_amount_real'], 1)
                             else:
                                 delta = delta_thisweek_amount
                         (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
                         if loss > 0:
-                            issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', globals()['close_conditional'])
+                            issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', sys._getframe().f_lineno, globals()['close_conditional'])
                             globals()['hourly_volume'] += delta
                     if (l_dir == 'buy' and t_feedback_price > globals()['feedback_price']) or (l_dir == 'sell' and t_feedback_price < globals()['feedback_price']):
                         adjust = adjust + '(%.4f=>%.4f, %.4f)' % (globals()['feedback_price'], t_feedback_price, last_balance)
@@ -1531,19 +1534,17 @@ def try_to_trade_tit2tat(subpath):
                             quarter_amount = new_quarter_amount
                         adjust = adjust + '(%.4f)' % (t_feedback_price)
                     if amount != quarter_amount:
-                        do_show_order = globals()['show_orders']
-                        print(trade_timestamp(),
-                              '%supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust))
+                        print(' %supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust))
     if close_greedy:
         print(
             trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' %
             (l_dir, previous_close, close, price_delta, 'forced ' if forced_close else '', 'closed'))
         if do_forward_greedy:
             if globals()['greedy_same_amount']:
-                issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
-            issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', globals()['close_conditional'])
+                issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', sys._getframe().f_lineno, globals()['close_conditional'])
+            issue_quarter_order_now_conditional(symbol, l_dir, thisweek_amount_pending, 'close', sys._getframe().f_lineno, globals()['close_conditional'])
         if backward_greedy:
-            issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', globals()['close_conditional'])
+            issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', sys._getframe().f_lineno, globals()['close_conditional'])
         thisweek_amount_pending = 0
         close_greedy = False
     if new_open:
@@ -1566,7 +1567,7 @@ def try_to_trade_tit2tat(subpath):
         trade_file = generate_trade_filename(os.path.dirname(event_path), l_index, l_dir)
         # print(trade_file)
         globals()['signal_open_order_with_%s' % l_dir](l_index, trade_file, close)
-        issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open')
+        issue_quarter_order_now(symbol, l_dir, quarter_amount, 'open', sys._getframe().f_lineno)
 
         if options.emulate:
             open_price = close
