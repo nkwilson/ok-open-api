@@ -1264,7 +1264,8 @@ def try_to_trade_tit2tat(subpath):
                     greedy_action = 'open'
                     greedy_status = 'holding'
             if greedy_status != '':
-                print(' greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
+                if not globals()['makeup_gating_on']:
+                    print(' greedy signal %s at %s => %s (%s) ' % (l_dir, previous_close, close, greedy_status))
             if greedy_action != '':  # update amount
                 open_greedy = True
                 previous_close = close
@@ -1347,6 +1348,8 @@ def try_to_trade_tit2tat(subpath):
                         else:
                             t_amount = t_amount * withdraw_rate / 100.0 + 0.5
 
+                        globals()['makeup_gating_on'] = True
+
                         flag = ' (.)'
                         if profit_num > makeup_gate:  # yes, much profit, withdraw
                             flag = ' (+)'
@@ -1354,11 +1357,10 @@ def try_to_trade_tit2tat(subpath):
                             globals()['makeup_gating_on'] = False  # switch to show it
 
                         if not globals()['makeup_gating_on']:
-                            print('loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d' %
+                            print(' loss:%.2f profit_num:%.2f makeup_gate:%.2f t_amount:%d' %
                                   (loss, profit_num, makeup_gate, t_amount),
                                   end='')
                             print(flag)
-                            globals()['makeup_gating_on'] = True
 
                 if backward_greedy:
                     issue_quarter_order_now_conditional(symbol, reverse_follow_dir, 0, 'close', sys._getframe().f_lineno, globals()['close_conditional'])
@@ -1504,9 +1506,9 @@ def try_to_trade_tit2tat(subpath):
                     do_updating = 'do ' if not do_negative_feedback else 'feedback '
             if do_updating != '':
                 delta = (thisweek_amount_pending + amount) - new_quarter_amount
-                adjust = ''
                 if do_negative_feedback and delta != 0:  # if less, open more
-                    adjust = ' adjusted'
+                    adjust = ' holding'
+
                     if delta < 0:
                         issue_quarter_order_now(symbol, l_dir, -delta, 'open', sys._getframe().f_lineno)
                         globals()['hourly_volume'] += -delta
@@ -1522,8 +1524,9 @@ def try_to_trade_tit2tat(subpath):
                         if loss > 0:
                             issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', sys._getframe().f_lineno, globals()['close_conditional'])
                             globals()['hourly_volume'] += delta
+
                     if (l_dir == 'buy' and t_feedback_price > globals()['feedback_price']) or (l_dir == 'sell' and t_feedback_price < globals()['feedback_price']):
-                        adjust = adjust + '(%.4f=>%.4f, %.4f)' % (globals()['feedback_price'], t_feedback_price, last_balance)
+                        adjust = ' adjusted(%.4f=>%.4f, %.4f)' % (globals()['feedback_price'], t_feedback_price, last_balance)
                         globals()['feedback_price'] = t_feedback_price
                         globals()['feedback_balance'] = last_balance
                         quarter_amount = new_quarter_amount  # only update when positive feedback
@@ -1532,9 +1535,12 @@ def try_to_trade_tit2tat(subpath):
                     else:
                         if amount < new_quarter_amount:
                             quarter_amount = new_quarter_amount
+                            adjust = ' adjusted'
                         adjust = adjust + '(%.4f)' % (t_feedback_price)
-                    if amount != quarter_amount:
-                        print(' %supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust))
+
+                    print(' %supdate quarter_amount from %s=>%s%s' % (do_updating, amount, new_quarter_amount, adjust))
+                    globals()['do_show_order'] = globals()['show_orders']
+
     if close_greedy:
         print(
             trade_timestamp(), 'greedy signal %s at %s => %s %0.2f (%s%s)' %
