@@ -1205,9 +1205,9 @@ def try_to_trade_tit2tat(subpath):
     new_l_dir = ''
     if globals()['tendency_holdon'] in ['buy', 'sell']:  # if set, holding on
         new_l_dir = globals()['tendency_holdon']
-    elif close > previous_close and delta_ema_1 > 0:
+    elif close > previous_close and delta_ema_1 > 0 and (ema_1_up - ema_2) > 2 * globals()['open_cost']:  # use more strict threshold
         new_l_dir = 'buy'
-    elif close < previous_close and delta_ema_1 < 0:
+    elif close < previous_close and delta_ema_1 < 0 and (ema_2 - ema_1_lo) > 2 * globals()['open_cost']:
         new_l_dir = 'sell'
 
     if not new_open:
@@ -1508,6 +1508,7 @@ def try_to_trade_tit2tat(subpath):
                 delta = (thisweek_amount_pending + amount) - new_quarter_amount
                 if do_negative_feedback and delta != 0:  # if less, open more
                     adjust = ' holding'
+                    loss = 0
 
                     if delta < 0:
                         issue_quarter_order_now(symbol, l_dir, -delta, 'open', sys._getframe().f_lineno)
@@ -1521,11 +1522,12 @@ def try_to_trade_tit2tat(subpath):
                             else:
                                 delta = delta_thisweek_amount
                         (loss, _, _) = backend.check_holdings_profit(symbol, globals()['contract'], l_dir)
+
+                    if (l_dir == 'buy' and t_feedback_price > globals()['feedback_price']) or (l_dir == 'sell' and t_feedback_price < globals()['feedback_price']):
                         if loss > 0:
                             issue_quarter_order_now_conditional(symbol, l_dir, delta, 'close', sys._getframe().f_lineno, globals()['close_conditional'])
                             globals()['hourly_volume'] += delta
 
-                    if (l_dir == 'buy' and t_feedback_price > globals()['feedback_price']) or (l_dir == 'sell' and t_feedback_price < globals()['feedback_price']):
                         adjust = ' adjusted(%.4f=>%.4f, %.4f)' % (globals()['feedback_price'], t_feedback_price, last_balance)
                         globals()['feedback_price'] = t_feedback_price
                         globals()['feedback_balance'] = last_balance
